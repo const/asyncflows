@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.sf.asyncobjects</groupId>
+    <artifactId>asyncobjects</artifactId>
+    <version>0.5.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>AsyncObjects Framework</name>
+    <description>The AsyncObjects framework simplifies writing asynchronous event-driven dataflow-based applications in
+        Java, Groovy, and Scala. It mainly builds upon ideas and syntax of E programming language. However, it also
+        draws ideas from other programming languages like Occam and frameworks like SEDA as well. In addition to core
+        library that supports common asynchronous communication patterns. The framework provides a wrapper for NIO-based
+        sockets that simplify creation of network applications that support a high number of concurrent connections.
+    </description>
+
+    <developers>
+        <developer>
+            <id>const</id>
+            <name>Constantine Plotnikov</name>
+            <email>constantine.plotnikov@gmail.com</email>
+            <timezone>+4</timezone>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>Sourceforge.net Tracker</system>
+        <url>https://sourceforge.net/tracker/?group_id=170750</url>
+    </issueManagement>
+
+
+    <modules>
+        <module>asyncobjects-core</module>
+        <module>asyncobjects-junit</module>
+        <module>asyncobjects-nio</module>
+        <module>asyncobjects-stream</module>
+        <!--
+        <module>asyncobjects-net-api</module>
+        <module>asyncobjects-net-nio</module>
+        <module>asyncobjects-net-oio</module>
+        <module>asyncobjects-awt</module>
+        <module>asyncobjects-http</module>
+        <module>asyncobjects-spring</module>
+        <module>asyncobjects-sample</module>
+        -->
+    </modules>
+</project>
