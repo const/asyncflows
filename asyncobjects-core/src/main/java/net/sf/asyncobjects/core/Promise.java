@@ -142,12 +142,7 @@ public final class Promise<T> {
         if (state == State.RESOLVED) {
             return aVoid();
         }
-        return map(new AFunction<Void, T>() {
-            @Override
-            public Promise<Void> apply(final T value) {
-                return aVoid();
-            }
-        });
+        return map(CoreFunctionUtil.<T>voidMapper());
     }
 
     /**

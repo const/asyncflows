@@ -3,7 +3,7 @@ package net.sf.asyncobjects.core.vats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
+import java.awt.EventQueue;
 
 /**
  * The AWT vat used to schedule events on AWT event queue.

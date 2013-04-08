@@ -39,6 +39,11 @@ public abstract class BufferOperations<B extends Buffer, A> {
         public void compact(final ByteBuffer buffer) {
             buffer.compact();
         }
+
+        @Override
+        public void rawPut(final ByteBuffer source, final ByteBuffer destination) {
+            destination.put(source);
+        }
     };
 
     /**
@@ -68,6 +73,11 @@ public abstract class BufferOperations<B extends Buffer, A> {
         @Override
         public void compact(final CharBuffer buffer) {
             buffer.compact();
+        }
+
+        @Override
+        public void rawPut(final CharBuffer source, final CharBuffer destination) {
+            destination.put(source);
         }
     };
 
@@ -113,4 +123,58 @@ public abstract class BufferOperations<B extends Buffer, A> {
      * @param buffer the buffer to compact
      */
     public abstract void compact(B buffer);
+
+    /**
+     * Put as much as possible bytes from source buffer to the destination buffer.
+     *
+     * @param source      the source buffer (ready for read)
+     * @param destination the destination buffer (ready for write)
+     * @return the amount of bytes.
+     */
+    public int put(final B source, final B destination) {
+        final int result;
+        if (source.remaining() <= destination.remaining()) {
+            result = source.remaining();
+            rawPut(source, destination);
+        } else {
+            result = destination.remaining();
+            final int limit = source.limit();
+            source.limit(limit - source.remaining() + result);
+            rawPut(source, destination);
+            source.limit(limit);
+        }
+        return result;
+    }
+
+    /**
+     * Append data to the buffer. The push avoid copying data if it is possible.
+     *
+     * @param destination the destination buffer (ready for read)
+     * @param source      the source buffer (ready for read)
+     * @return the amount that has been put
+     */
+    public int append(final B destination, final B source) {
+        final int position = destination.position();
+        final int result;
+        if (position > 0 && destination.remaining() < source.remaining()) {
+            compact(destination);
+            result = put(source, destination);
+            destination.flip();
+        } else {
+            destination.position(destination.limit());
+            destination.limit(destination.capacity());
+            result = put(source, destination);
+            destination.limit(destination.position());
+            destination.position(position);
+        }
+        return result;
+    }
+
+    /**
+     * Put the entire buffer into the destination buffer.
+     *
+     * @param source      the source to put.
+     * @param destination the destination to put.
+     */
+    public abstract void rawPut(final B source, final B destination);
 }

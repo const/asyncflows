@@ -21,6 +21,43 @@ public final class NIOExportUtil {
     }
 
     /**
+     * Export channel.
+     *
+     * @param vat     the target vat
+     * @param channel the channel to export
+     * @param <B>     the buffer type
+     * @return the exported channel
+     */
+    public static <B extends Buffer> AChannel<B> export(final Vat vat, final AChannel<B> channel) {
+        return new AChannel<B>() {
+            @Override
+            public Promise<AInput<B>> getInput() {
+                return aLater(vat, new ACallable<AInput<B>>() {
+                    @Override
+                    public Promise<AInput<B>> call() throws Throwable {
+                        return channel.getInput();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<AOutput<B>> getOutput() {
+                return aLater(vat, new ACallable<AOutput<B>>() {
+                    @Override
+                    public Promise<AOutput<B>> call() throws Throwable {
+                        return channel.getOutput();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> close() {
+                return closeResource(vat, channel);
+            }
+        };
+    }
+
+    /**
      * Export input stream.
      *
      * @param vat   the target vat

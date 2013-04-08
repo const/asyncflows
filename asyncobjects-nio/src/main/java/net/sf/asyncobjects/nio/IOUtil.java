@@ -23,6 +23,10 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
  */
 public class IOUtil<B extends Buffer, A> {
     /**
+     * The default buffer size used by utilities if the buffer size is omitted.
+     */
+    public static final int DEFAULT_BUFFER_SIZE = 1024;
+    /**
      * Byte version of IO utils.
      */
     public static final IOUtil<ByteBuffer, byte[]> BYTE = new IOUtil<ByteBuffer, byte[]>(BufferOperations.BYTE);
@@ -68,10 +72,12 @@ public class IOUtil<B extends Buffer, A> {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
                     @Override
                     public Promise<Boolean> apply(final Integer value) throws Throwable {
-                        if (value < 0) {
+                        if (value < 0 && buffer.position() == 0) {
                             return aFalse();
                         } else {
-                            result.setValue(result.getValue() + value);
+                            if (value > 0) {
+                                result.setValue(result.getValue() + value);
+                            }
                             buffer.flip();
                             return output.write(buffer).then(new ACallable<Boolean>() {
                                 @Override

@@ -159,6 +159,22 @@ public final class CoreFunctionUtil {
     }
 
     /**
+     * The callable that always return the same promise.
+     *
+     * @param promise the promise to return
+     * @param <T>     the value type
+     * @return the callable instance
+     */
+    public static <T> ACallable<T> promiseCallable(final Promise<T> promise) {
+        return new ACallable<T>() {
+            @Override
+            public Promise<T> call() throws Throwable {
+                return promise;
+            }
+        };
+    }
+
+    /**
      * Convert callable to function by discarding argument.
      *
      * @param callable the callable to use

@@ -8,6 +8,7 @@ import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 
 /**
@@ -29,6 +30,18 @@ public final class ResourceUtil {
      */
     public static <A extends ACloseable> Try1<A> aTry(final ACallable<A> openBody) {
         return new Try1<A>(openBody);
+    }
+
+
+    /**
+     * Start building a try with resources.
+     *
+     * @param openPromise the action that opens resource
+     * @param <A>         the resource type
+     * @return the opened resource
+     */
+    public static <A extends ACloseable> Try1<A> aTry(final Promise<A> openPromise) {
+        return new Try1<A>(promiseCallable(openPromise));
     }
 
     /**
@@ -88,7 +101,7 @@ public final class ResourceUtil {
                     resource1.setValue(value);
                     return body.apply(value);
                 }
-            }).finallyDo(closeResourceAction(resource1));
+            }).finallyDo(closeResourceCellAction(resource1));
         }
     }
 
@@ -96,10 +109,10 @@ public final class ResourceUtil {
      * Close the resource action.
      *
      * @param resourceCell the cell with resource
-     * @param <A>          the action type
+     * @param <A>          the resource type
      * @return the close resource action
      */
-    private static <A extends ACloseable> ACallable<Void> closeResourceAction(final Cell<A> resourceCell) {
+    private static <A extends ACloseable> ACallable<Void> closeResourceCellAction(final Cell<A> resourceCell) {
         return new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
@@ -120,12 +133,23 @@ public final class ResourceUtil {
      * @return the promise that resolves when close is finished
      */
     public static Promise<Void> closeResource(final Vat vat, final ACloseable stream) {
-        return aLater(vat, new ACallable<Void>() {
+        return aLater(vat, closeResourceAction(stream));
+    }
+
+    /**
+     * Create an action that closes resource. This method is mostly used for utility classes that work
+     * with closeable resources.
+     *
+     * @param stream the closeable object
+     * @return the action that closes it
+     */
+    public static ACallable<Void> closeResourceAction(final ACloseable stream) {
+        return new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
                 return stream.close();
             }
-        });
+        };
     }
 
 
@@ -203,7 +227,7 @@ public final class ResourceUtil {
                             resource.setValue(value2);
                             return body.apply(value1, value2);
                         }
-                    }).finallyDo(closeResourceAction(resource));
+                    }).finallyDo(closeResourceCellAction(resource));
                 }
             });
         }
@@ -261,7 +285,7 @@ public final class ResourceUtil {
                             resource.setValue(value3);
                             return body.apply(value1, value2, value3);
                         }
-                    }).finallyDo(closeResourceAction(resource));
+                    }).finallyDo(closeResourceCellAction(resource));
                 }
             });
         }

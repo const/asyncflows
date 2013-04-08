@@ -5,6 +5,7 @@ import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.BufferOperations;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.io.Closeable;
@@ -23,10 +24,6 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
  */
 public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeable, A>
         extends CloseableAdapter<O> implements AOutput<B>, ExportsSelf<AOutput<B>> {
-    /**
-     * The size of buffer to allocate if non-array buffer is supplied.
-     */
-    private static final int BUFFER_SIZE = 1024;
     /**
      * The data array.
      */
@@ -80,13 +77,13 @@ public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeabl
                 buffer.position(buffer.position() + length);
             } else {
                 if (dataArray == null) {
-                    dataArray = operations.allocate(BUFFER_SIZE);
+                    dataArray = operations.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
                 }
                 final A b = dataArray;
                 final int offset = 0;
                 int length;
                 do {
-                    length = Math.min(BUFFER_SIZE, buffer.remaining());
+                    length = Math.min(IOUtil.DEFAULT_BUFFER_SIZE, buffer.remaining());
                     operations.get(buffer, b, offset, length);
                     write(stream, b, offset, length);
                 } while (buffer.hasRemaining());
