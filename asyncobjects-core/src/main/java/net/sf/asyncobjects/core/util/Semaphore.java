@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -66,7 +65,7 @@ public final class Semaphore implements ASemaphore, ExportsSelf<ASemaphore> {
                             permits -= requestedPermits;
                             return aFalse();
                         } else {
-                            return requests.suspend().then(CoreFunctionUtil.booleanCallable(true));
+                            return requests.suspendThenTrue();
                         }
                     }
                 });

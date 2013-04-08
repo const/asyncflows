@@ -21,7 +21,6 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
@@ -123,12 +122,6 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
             return aVoid();
         }
 
-        /**
-         * @return a promise that resolves to true when suspend operation awaken.
-         */
-        protected Promise<Boolean> suspendThenContinue() {
-            return requests.suspend().then(booleanCallable(true));
-        }
     }
 
     /**
@@ -160,7 +153,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                                 notifySuccess(result.resolver(), -1);
                                 return aFalse();
                             }
-                            return suspendThenContinue();
+                            return requests.suspendThenTrue();
                         }
                     }).then(CoreFunctionUtil.promiseCallable(result));
                 }
@@ -193,7 +186,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                             if (!buffer.hasRemaining()) {
                                 return aFalse();
                             }
-                            return suspendThenContinue();
+                            return requests.suspendThenTrue();
                         }
                     });
                 }
@@ -217,7 +210,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                             if (input.closed) {
                                 return inputClosed("flush");
                             }
-                            return suspendThenContinue();
+                            return requests.suspendThenTrue();
                         }
                     });
                 }

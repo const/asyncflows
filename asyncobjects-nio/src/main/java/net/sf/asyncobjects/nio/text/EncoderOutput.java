@@ -20,7 +20,6 @@ import java.nio.charset.CoderResult;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -82,7 +81,7 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
                         if (!buffer.hasRemaining()) {
                             return aFalse();
                         } else {
-                            CoderResult result = encoder.encode(chars, bytes, false);
+                            final CoderResult result = encoder.encode(chars, bytes, false);
                             if (result.isUnderflow()) {
                                 return aTrue();
                             } else if (result.isOverflow()) {
@@ -115,11 +114,11 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
         return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
-                if (isNotValidAndOpen()) {
+                if (eof ? !isValid() : isNotValidAndOpen()) {
                     return failureInvalidOrClosed();
                 }
                 final CoderResult result = encoder.encode(chars, bytes, eof);
-                if (result.isOverflow() || (result.isUnderflow() && bytes.position() > 0)) {
+                if (result.isOverflow() || result.isUnderflow() && bytes.position() > 0) {
                     bytes.flip();
                     return wrapped.write(bytes).then(new ACallable<Boolean>() {
                         @Override
@@ -138,7 +137,6 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
         });
     }
 
-
     @Override
     public Promise<Void> flush() {
         return requests.run(new ACallable<Void>() {
@@ -155,21 +153,11 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
     }
 
     @Override
-    public Promise<Void> close() {
-        return aSeq(new ACallable<Void>() {
+    protected Promise<Void> beforeClose() {
+        return requests.run(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return requests.run(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return isNotValidAndOpen() ? aVoid() : internalFlush(true);
-                    }
-                });
-            }
-        }).finallyDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return EncoderOutput.super.close();
+                return isValid() ? internalFlush(true) : aVoid();
             }
         });
     }
@@ -209,9 +197,9 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
      */
     public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
                                              final int bufferSize) {
-        CharBuffer chars = CharBuffer.allocate(bufferSize);
+        final CharBuffer chars = CharBuffer.allocate(bufferSize);
         chars.limit(0);
-        ByteBuffer bytes = ByteBuffer.allocate((int) (bufferSize * encoder.averageBytesPerChar()) + BUFFER_PAD);
+        final ByteBuffer bytes = ByteBuffer.allocate((int) (bufferSize * encoder.averageBytesPerChar()) + BUFFER_PAD);
         return encode(output, encoder, bytes, chars);
     }
 

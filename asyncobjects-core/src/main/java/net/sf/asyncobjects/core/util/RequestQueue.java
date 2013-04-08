@@ -9,10 +9,11 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
+import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
 /**
- * The asynchronous request queue.
+ * The asynchronous request queue. It is is similar to non-reentrant mutex.
  */
 public final class RequestQueue {
     /**
@@ -53,7 +54,7 @@ public final class RequestQueue {
 
 
     /**
-     * @return the promise that resolvers when someone calls {@link #awake()}
+     * @return the promise that resolves to void when someone calls {@link #awake()}
      */
     public Promise<Void> suspend() {
         if (suspendResolver != null) {
@@ -61,6 +62,32 @@ public final class RequestQueue {
         }
         final Promise<Void> rc = new Promise<Void>();
         suspendResolver = rc.resolver();
+        return rc;
+    }
+
+    /**
+     * The form of suspend that resolves to true. It is used in loop, when loop should be continued immediately
+     * after suspend operation. The method is the same as {@code requests.suspend().then(booleanCallable(true))},
+     * but is slightly more optimized in order to resume cycle faster.
+     *
+     * @return the promise that resolves to true when someone calls {@link #awake()}
+     */
+    public Promise<Boolean> suspendThenTrue() {
+        if (suspendResolver != null) {
+            throw new IllegalStateException("The suspend operation is already in the progress");
+        }
+        final Promise<Boolean> rc = new Promise<Boolean>();
+        final AResolver<Boolean> resolver = rc.resolver();
+        suspendResolver = new AResolver<Void>() {
+            @Override
+            public void resolve(final Outcome<Void> resolution) throws Throwable {
+                if (resolution.isSuccess()) {
+                    notifySuccess(resolver, true);
+                } else {
+                    notifyFailure(resolver, resolution.failure());
+                }
+            }
+        };
         return rc;
     }
 

@@ -1,11 +1,15 @@
 package net.sf.asyncobjects.core.util;
 
+import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aNow;
+import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 
 /**
  * A Closeable instance above other closeable instance.
@@ -13,6 +17,10 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
  * @param <T> the underlying object type
  */
 public abstract class ChainedClosable<T extends ACloseable> implements ACloseable {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(ChainedClosable.class);
     /**
      * If true, the close operation is already started.
      */
@@ -61,8 +69,20 @@ public abstract class ChainedClosable<T extends ACloseable> implements ACloseabl
     protected void startClosing() {
         if (!closeStarted) {
             closeStarted = true;
-            aNow(ResourceUtil.closeResourceAction(wrapped)).listen(closePromiseResolver);
+            aSeq(new ACallable<Void>() {
+                @Override
+                public Promise<Void> call() throws Throwable {
+                    return beforeClose();
+                }
+            }).finallyDo(ResourceUtil.closeResourceAction(wrapped)).listen(closePromiseResolver);
         }
+    }
+
+    /**
+     * @return before close action
+     */
+    protected Promise<Void> beforeClose() {
+        return aVoid();
     }
 
     /**
@@ -72,7 +92,20 @@ public abstract class ChainedClosable<T extends ACloseable> implements ACloseabl
      */
     protected final void invalidate(final Throwable throwable) {
         invalidation = throwable;
-        startClosing();
+        try {
+            onInvalidation(throwable);
+        } catch (Throwable t) {
+            LOG.error("Invalidation callback failed with error", t);
+        }
+    }
+
+    /**
+     * The invalidation callback.
+     *
+     * @param throwable the invalidation reason
+     */
+    protected void onInvalidation(final Throwable throwable) { // NOPMD
+        // it will be overridden in subclasses if needed
     }
 
     /**
@@ -88,6 +121,13 @@ public abstract class ChainedClosable<T extends ACloseable> implements ACloseabl
      */
     protected final boolean isNotValidAndOpen() {
         return closeStarted || invalidation != null;
+    }
+
+    /**
+     * @return check if closeable is still valid
+     */
+    protected final boolean isValid() {
+        return invalidation == null;
     }
 
     /**
