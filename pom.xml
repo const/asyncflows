@@ -35,7 +35,6 @@
     <modules>
         <module>asyncobjects-core</module>
         <module>asyncobjects-junit</module>
-        <module>asyncobjects-stream</module>
         <module>asyncobjects-nio</module>
         <!--
         <module>asyncobjects-net-api</module>

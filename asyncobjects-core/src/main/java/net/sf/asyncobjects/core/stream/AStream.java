@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.streams;
+package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.ACloseable;

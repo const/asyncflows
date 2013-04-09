@@ -1,10 +1,10 @@
 package net.sf.asyncobjects.nio.text;
 
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.stream.AStream;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.codec.ObjectDecoder;
 import net.sf.asyncobjects.nio.codec.ObjectDecoderStream;
-import net.sf.asyncobjects.streams.AStream;
 
 import java.nio.CharBuffer;
 

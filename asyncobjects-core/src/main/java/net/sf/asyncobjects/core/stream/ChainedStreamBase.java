@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.streams.util;
+package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
@@ -8,8 +8,6 @@ import net.sf.asyncobjects.core.util.ACloseable;
 import net.sf.asyncobjects.core.util.ChainedClosable;
 import net.sf.asyncobjects.core.util.OptionalValue;
 import net.sf.asyncobjects.core.vats.Vat;
-import net.sf.asyncobjects.streams.AStream;
-import net.sf.asyncobjects.streams.StreamExportUtil;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 

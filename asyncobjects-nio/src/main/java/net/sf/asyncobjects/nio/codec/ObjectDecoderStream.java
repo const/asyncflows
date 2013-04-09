@@ -3,13 +3,13 @@ package net.sf.asyncobjects.nio.codec;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.stream.AStream;
+import net.sf.asyncobjects.core.stream.ChainedStreamBase;
 import net.sf.asyncobjects.core.util.OptionalValue;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.BufferOperations;
 import net.sf.asyncobjects.nio.IOUtil;
-import net.sf.asyncobjects.streams.AStream;
-import net.sf.asyncobjects.streams.util.ChainedStreamBase;
 
 import java.io.IOException;
 import java.nio.Buffer;

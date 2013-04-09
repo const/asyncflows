@@ -1,9 +1,7 @@
-package net.sf.asyncobjects.streams.util;
+package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.SeqControl;
-import net.sf.asyncobjects.streams.AStream;
-import net.sf.asyncobjects.streams.StreamUtil;
 
 import java.util.List;
 

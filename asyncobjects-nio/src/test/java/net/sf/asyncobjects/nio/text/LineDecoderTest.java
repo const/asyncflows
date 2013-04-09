@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
-import static net.sf.asyncobjects.streams.util.StreamBuilder.forStream;
+import static net.sf.asyncobjects.core.stream.StreamBuilder.forStream;
 import static org.junit.Assert.assertEquals;
 
 /**

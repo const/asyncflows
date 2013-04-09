@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.streams;
+package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.ACloseable;
@@ -15,11 +15,12 @@ public interface AThunk<T> extends ACloseable {
      * @param value the value to put
      * @return the promise that resolves when thunk is ready for the next value
      */
-    Promise<Void> write(T value);
+    Promise<Void> put(T value);
 
     /**
      * Fail the thunk. This efficiently closes the thunk, but also notifies other side about
-     * a reason for the closing it.
+     * a reason for the closing it. So the other side could be aware why no other items
+     * are coming.
      *
      * @param problem the problem
      * @return the time when thunk is invalidated.
