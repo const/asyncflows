@@ -145,7 +145,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                                 return aFalse();
                             }
                             if (pipeBuffer.hasRemaining()) {
-                                notifySuccess(result.resolver(), operations.put(pipeBuffer, buffer));
+                                notifySuccess(result.resolver(), operations.put(buffer, pipeBuffer));
                                 output.requests.awake();
                                 return aFalse();
                             }

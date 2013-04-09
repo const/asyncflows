@@ -10,6 +10,7 @@ import net.sf.asyncobjects.core.ResolverUtil;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
@@ -79,24 +80,68 @@ public final class SeqControl {
 
             @Override
             public void resolve(final Outcome<Boolean> resolution) throws Throwable {
-                if (resolution.isSuccess()) {
-                    if (resolution.value()) {
-                        vat.execute(vat, new Runnable() {
-                            @Override
-                            public void run() {
-                                aNow(body).listen(self);
-                            }
-                        });
+                try {
+                    if (resolution.isSuccess()) {
+                        if (resolution.value()) {
+                            vat.execute(vat, new Runnable() {
+                                @Override
+                                public void run() {
+                                    aNow(body).listen(self);
+                                }
+                            });
+                        } else {
+                            ResolverUtil.notifySuccess(resolver, null);
+                        }
                     } else {
-                        ResolverUtil.notifySuccess(resolver, null);
+                        ResolverUtil.notifyFailure(resolver, resolution.failure());
                     }
-                } else {
-                    ResolverUtil.notifyFailure(resolver, resolution.failure());
+                } catch (Throwable t) {
+                    ResolverUtil.notifyFailure(resolver, t);
                 }
             }
         }, true);
         return result;
     }
+
+    /**
+     * Generic loop that executes body until it returns non-empty value.
+     *
+     * @param body the body to execute
+     * @param <A>  the result type
+     * @return the promises that resolves when body fails or returns non-empty value
+     */
+    public static <A> Promise<A> aSeqOptionLoop(final ACallable<OptionalValue<A>> body) {
+        final Promise<A> result = new Promise<A>();
+        final AResolver<A> resolver = result.resolver();
+        final Vat vat = Vat.current();
+        ResolverUtil.notifySuccess(new AResolver<OptionalValue<A>>() {
+            private final AResolver<OptionalValue<A>> self = this;
+
+            @Override
+            public void resolve(final Outcome<OptionalValue<A>> resolution) throws Throwable {
+                try {
+                    if (resolution.isSuccess()) {
+                        if (resolution.value().isEmpty()) {
+                            vat.execute(vat, new Runnable() {
+                                @Override
+                                public void run() {
+                                    aNow(body).listen(self);
+                                }
+                            });
+                        } else {
+                            ResolverUtil.notifySuccess(resolver, resolution.value().value());
+                        }
+                    } else {
+                        ResolverUtil.notifyFailure(resolver, resolution.failure());
+                    }
+                } catch (Throwable t) {
+                    ResolverUtil.notifyFailure(resolver, t);
+                }
+            }
+        }, OptionalValue.<A>empty());
+        return result;
+    }
+
 
     /**
      * Builder for the sequence of operations.
@@ -400,6 +445,19 @@ public final class SeqControl {
                 @Override
                 public Promise<Void> apply(final Void result, final T item) throws Throwable {
                     return aVoid();
+                }
+            });
+        }
+
+        /**
+         * @return the fold to list
+         */
+        public Promise<List<T>> toList() {
+            return leftFold(new ArrayList<T>(), new AFunction2<List<T>, List<T>, T>() {
+                @Override
+                public Promise<List<T>> apply(final List<T> value1, final T value2) throws Throwable {
+                    value1.add(value2);
+                    return aSuccess(value1);
                 }
             });
         }

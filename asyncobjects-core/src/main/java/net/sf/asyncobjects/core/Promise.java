@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 
 /**
  * The promise. The class is intentionally not a thread-safe,
@@ -82,7 +83,11 @@ public final class Promise<T> {
         listen(new AResolver<T>() {
             @Override
             public void resolve(final Outcome<T> resolution) throws Throwable {
-                aNow(action).listen(resolver);
+                if (resolution.isSuccess()) {
+                    aNow(action).listen(resolver);
+                } else {
+                    notifyFailure(resolver, resolution.failure());
+                }
             }
         });
         return promise;
@@ -269,5 +274,17 @@ public final class Promise<T> {
         private ListenerCell(final AResolver<? super A> resolver) {
             this.listener = resolver;
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Promise{");
+        if (state == State.RESOLVED) {
+            sb.append(outcome);
+        } else {
+            sb.append(state);
+        }
+        sb.append('}');
+        return sb.toString();
     }
 }

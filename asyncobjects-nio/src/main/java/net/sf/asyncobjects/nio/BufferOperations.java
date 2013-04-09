@@ -41,7 +41,7 @@ public abstract class BufferOperations<B extends Buffer, A> {
         }
 
         @Override
-        public void rawPut(final ByteBuffer source, final ByteBuffer destination) {
+        public void rawPut(final ByteBuffer destination, final ByteBuffer source) {
             destination.put(source);
         }
     };
@@ -76,7 +76,7 @@ public abstract class BufferOperations<B extends Buffer, A> {
         }
 
         @Override
-        public void rawPut(final CharBuffer source, final CharBuffer destination) {
+        public void rawPut(final CharBuffer destination, final CharBuffer source) {
             destination.put(source);
         }
     };
@@ -127,20 +127,20 @@ public abstract class BufferOperations<B extends Buffer, A> {
     /**
      * Put as much as possible bytes from source buffer to the destination buffer.
      *
-     * @param source      the source buffer (ready for read)
      * @param destination the destination buffer (ready for write)
+     * @param source      the source buffer (ready for read)
      * @return the amount of bytes.
      */
-    public int put(final B source, final B destination) {
+    public int put(final B destination, final B source) {
         final int result;
         if (source.remaining() <= destination.remaining()) {
             result = source.remaining();
-            rawPut(source, destination);
+            rawPut(destination, source);
         } else {
             result = destination.remaining();
             final int limit = source.limit();
             source.limit(limit - source.remaining() + result);
-            rawPut(source, destination);
+            rawPut(destination, source);
             source.limit(limit);
         }
         return result;
@@ -158,12 +158,12 @@ public abstract class BufferOperations<B extends Buffer, A> {
         final int result;
         if (position > 0 && destination.remaining() < source.remaining()) {
             compact(destination);
-            result = put(source, destination);
+            result = put(destination, source);
             destination.flip();
         } else {
             destination.position(destination.limit());
             destination.limit(destination.capacity());
-            result = put(source, destination);
+            result = put(destination, source);
             destination.limit(destination.position());
             destination.position(position);
         }
@@ -173,8 +173,8 @@ public abstract class BufferOperations<B extends Buffer, A> {
     /**
      * Put the entire buffer into the destination buffer.
      *
-     * @param source      the source to put.
      * @param destination the destination to put.
+     * @param source      the source to put.
      */
-    public abstract void rawPut(final B source, final B destination);
+    public abstract void rawPut(final B destination, final B source);
 }

@@ -16,4 +16,13 @@ public interface AThunk<T> extends ACloseable {
      * @return the promise that resolves when thunk is ready for the next value
      */
     Promise<Void> write(T value);
+
+    /**
+     * Fail the thunk. This efficiently closes the thunk, but also notifies other side about
+     * a reason for the closing it.
+     *
+     * @param problem the problem
+     * @return the time when thunk is invalidated.
+     */
+    Promise<Void> fail(RuntimeException problem);
 }
