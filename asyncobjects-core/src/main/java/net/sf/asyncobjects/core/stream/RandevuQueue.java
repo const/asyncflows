@@ -12,10 +12,10 @@ import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
-import static net.sf.asyncobjects.core.util.ProducerUtil.aEmptyOption;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -186,7 +186,7 @@ public final class RandevuQueue<T> {
                         return aFailure(problem);
                     }
                     if (sink.eof) {
-                        return aEmptyOption();
+                        return aMaybeEmpty();
                     }
                     final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
                     currentRequest = promise.resolver();

@@ -8,10 +8,11 @@ import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.RequestQueue;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
-import static net.sf.asyncobjects.core.util.ProducerUtil.aEmptyOption;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
 
 /**
@@ -52,7 +53,7 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                     @Override
                     public Promise<Maybe<Outcome<T>>> call() throws Throwable {
                         if (eof) {
-                            return aEmptyOption();
+                            return aMaybeEmpty();
                         }
                         return aNow(StreamUtil.producerFromStream(wrapped)).mapOutcome(
                                 new AFunction<Maybe<Outcome<T>>, Outcome<Maybe<T>>>() {
@@ -60,14 +61,14 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                                     public Promise<Maybe<Outcome<T>>> apply(final Outcome<Maybe<T>> value) {
                                         if (value.isSuccess()) {
                                             if (value.value().isEmpty()) {
-                                                return aEmptyOption();
+                                                return aMaybeEmpty();
                                             } else {
-                                                return aSuccess(Maybe.value(Outcome.<T>success(value.value().value())));
+                                                return aMaybeValue(Outcome.<T>success(value.value().value()));
                                             }
 
                                         } else {
                                             eof = true;
-                                            return aSuccess(Maybe.value(Outcome.<T>failure(value.failure())));
+                                            return aMaybeValue(Outcome.<T>failure(value.failure()));
                                         }
                                     }
                                 });
@@ -99,10 +100,10 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                             @Override
                             public Promise<Maybe<T>> apply(final Maybe<Outcome<T>> value) throws Throwable {
                                 if (value.isEmpty()) {
-                                    return aEmptyOption();
+                                    return aMaybeEmpty();
                                 }
                                 if (value.value().isSuccess()) {
-                                    return aSuccess(Maybe.value(value.value().value()));
+                                    return aMaybeValue(value.value().value());
                                 }
                                 return aSeqOptionLoop(new ACallable<Maybe<Maybe<T>>>() {
                                     @Override
@@ -114,7 +115,7 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                                                     return aFailure(value.value().failure());
                                                 } else {
                                                     // continue loop
-                                                    return aEmptyOption();
+                                                    return aMaybeEmpty();
                                                 }
                                             }
                                         });
@@ -169,18 +170,17 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                                 public Promise<Maybe<Outcome<N>>> apply(final Outcome<Maybe<N>> value) {
                                     if (value.isSuccess()) {
                                         if (value.value().isEmpty()) {
-                                            return aEmptyOption();
+                                            return aMaybeEmpty();
                                         } else {
-                                            return aSuccess(Maybe.<Outcome<N>>value(
-                                                    Outcome.<N>success(value.value().value())));
+                                            return aMaybeValue(Outcome.<N>success(value.value().value()));
                                         }
                                     } else {
-                                        return aSuccess(Maybe.<Outcome<N>>value(Outcome.<N>failure(value.failure())));
+                                        return aMaybeValue(Outcome.<N>failure(value.failure()));
                                     }
                                 }
                             });
                 } else {
-                    return aSuccess(Maybe.value(Outcome.<N>failure(value.failure())));
+                    return aMaybeValue(Outcome.<N>failure(value.failure()));
                 }
             }
         }));

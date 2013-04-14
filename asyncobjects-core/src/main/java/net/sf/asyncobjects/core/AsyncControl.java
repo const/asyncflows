@@ -1,5 +1,6 @@
 package net.sf.asyncobjects.core;
 
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.SingleThreadVat;
 import net.sf.asyncobjects.core.vats.Vat;
 
@@ -21,6 +22,10 @@ public final class AsyncControl {
      * The false promise.
      */
     private static final Promise<Boolean> FALSE_PROMISE = aSuccess(false);
+    /**
+     * Empty value.
+     */
+    private static final Promise<Maybe<Object>> EMPTY_VALUE = aSuccess(Maybe.empty());
 
     /**
      * The private constructor for utility class.
@@ -229,5 +234,27 @@ public final class AsyncControl {
                 throw new UndeclaredThrowableException(t, "A checked exception is received");
             }
         }
+    }
+
+    /**
+     * Return empty option value.
+     *
+     * @param <T> the value type
+     * @return the resolved promise for empty value
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Promise<Maybe<T>> aMaybeEmpty() {
+        return (Promise<Maybe<T>>) (Promise) EMPTY_VALUE;
+    }
+
+    /**
+     * The maybe with value
+     *
+     * @param value the value
+     * @param <T>   the type
+     * @return the maybe with value
+     */
+    public static <T> Promise<Maybe<T>> aMaybeValue(T value) {
+        return aSuccess(Maybe.value(value));
     }
 }

@@ -17,8 +17,8 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
-import static net.sf.asyncobjects.core.util.ProducerUtil.aEmptyOption;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
 
 /**
@@ -138,11 +138,10 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
                             public Promise<Maybe<Maybe<O>>> apply(
                                     final ObjectDecoder.DecodeResult decodeResult) {
                                 if (decodeResult == ObjectDecoder.DecodeResult.EOF) {
-                                    return aSuccess(Maybe.<Maybe<O>>value(Maybe.<O>empty()));
+                                    return aMaybeValue(Maybe.<O>empty());
                                 }
                                 if (decodeResult == ObjectDecoder.DecodeResult.OBJECT_READY) {
-                                    return aSuccess(Maybe.<Maybe<O>>value(
-                                            Maybe.<O>value(decoder.getObject())));
+                                    return aMaybeValue(Maybe.<O>value(decoder.getObject()));
                                 }
                                 if (decodeResult == ObjectDecoder.DecodeResult.FAILURE) {
                                     return aFailure(decoder.getFailure());
@@ -162,7 +161,7 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
                                         } else if (value == 0) {
                                             return aFailure(new IOException("Nothing has been read"));
                                         }
-                                        return aEmptyOption();
+                                        return aMaybeEmpty();
                                     }
                                 });
                             }

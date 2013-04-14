@@ -13,12 +13,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.CoreExportUtil.exportIfNeeded;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
-import static net.sf.asyncobjects.core.util.ProducerUtil.aEmptyOption;
 
 /**
  * The forward builder for the data streams and sinks. It starts with some data source and adds additional downstream
@@ -170,9 +171,9 @@ public abstract class ForwardStreamBuilder<T> {
                     @Override
                     public Promise<Maybe<T>> apply(final Boolean filterResult) throws Throwable {
                         if (filterResult) {
-                            return aSuccess(Maybe.<T>value(value));
+                            return aMaybeValue(value);
                         } else {
-                            return aEmptyOption();
+                            return aMaybeEmpty();
                         }
                     }
                 });

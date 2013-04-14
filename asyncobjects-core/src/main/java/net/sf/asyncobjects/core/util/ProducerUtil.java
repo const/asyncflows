@@ -7,7 +7,8 @@ import net.sf.asyncobjects.core.data.Maybe;
 
 import java.util.Iterator;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.failureCallable;
 
 /**
@@ -15,17 +16,13 @@ import static net.sf.asyncobjects.core.CoreFunctionUtil.failureCallable;
  */
 public final class ProducerUtil {
     /**
-     * Empty value.
-     */
-    private static final Promise<Maybe<Object>> EMPTY_VALUE = aSuccess(Maybe.empty());
-    /**
      * The wrapper into {@link net.sf.asyncobjects.core.data.Maybe}.
      */
     private static final AFunction<Maybe<Object>, Object> OPTIONAL_WRAPPER
             = new AFunction<Maybe<Object>, Object>() {
         @Override
         public Promise<Maybe<Object>> apply(final Object value) throws Throwable {
-            return aSuccess(Maybe.value(value));
+            return aMaybeValue(value);
         }
     };
 
@@ -62,9 +59,9 @@ public final class ProducerUtil {
             @Override
             public Promise<Maybe<T>> call() throws Throwable {
                 if (iterator.hasNext()) {
-                    return aSuccess(Maybe.value(iterator.next()));
+                    return aMaybeValue(iterator.next());
                 } else {
-                    return aEmptyOption();
+                    return aMaybeEmpty();
                 }
             }
         };
@@ -85,9 +82,9 @@ public final class ProducerUtil {
             @Override
             public Promise<Maybe<Integer>> call() throws Throwable {
                 if (current <= end) {
-                    return aSuccess(Maybe.value(current++));
+                    return aMaybeValue(current++);
                 } else {
-                    return aEmptyOption();
+                    return aMaybeEmpty();
                 }
             }
         };
@@ -126,7 +123,7 @@ public final class ProducerUtil {
             @Override
             public Promise<Maybe<B>> apply(final Maybe<A> value) throws Throwable {
                 if (value.isEmpty()) {
-                    return aEmptyOption();
+                    return aMaybeEmpty();
                 } else {
                     return mapper.apply(value.value()).map(ProducerUtil.<B>optionalValueWrapper());
                 }
@@ -143,16 +140,5 @@ public final class ProducerUtil {
     @SuppressWarnings("unchecked")
     public static <T> AFunction<Maybe<T>, T> optionalValueWrapper() {
         return (AFunction<Maybe<T>, T>) (AFunction) OPTIONAL_WRAPPER;
-    }
-
-    /**
-     * Return empty option value.
-     *
-     * @param <T> the value type
-     * @return the resolved promise for empty value
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Promise<Maybe<T>> aEmptyOption() {
-        return (Promise<Maybe<T>>) (Promise) EMPTY_VALUE;
     }
 }
