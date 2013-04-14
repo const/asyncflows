@@ -54,27 +54,23 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                         if (eof) {
                             return aEmptyOption();
                         }
-                        return aNow(new ACallable<Maybe<T>>() {
-                            @Override
-                            public Promise<Maybe<T>> call() throws Throwable {
-                                return wrapped.next();
-                            }
-                        }).mapOutcome(new AFunction<Maybe<Outcome<T>>, Outcome<Maybe<T>>>() {
-                            @Override
-                            public Promise<Maybe<Outcome<T>>> apply(final Outcome<Maybe<T>> value) {
-                                if (value.isSuccess()) {
-                                    if (value.value().isEmpty()) {
-                                        return aEmptyOption();
-                                    } else {
-                                        return aSuccess(Maybe.value(Outcome.<T>success(value.value().value())));
-                                    }
+                        return aNow(StreamUtil.producerFromStream(wrapped)).mapOutcome(
+                                new AFunction<Maybe<Outcome<T>>, Outcome<Maybe<T>>>() {
+                                    @Override
+                                    public Promise<Maybe<Outcome<T>>> apply(final Outcome<Maybe<T>> value) {
+                                        if (value.isSuccess()) {
+                                            if (value.value().isEmpty()) {
+                                                return aEmptyOption();
+                                            } else {
+                                                return aSuccess(Maybe.value(Outcome.<T>success(value.value().value())));
+                                            }
 
-                                } else {
-                                    eof = true;
-                                    return aSuccess(Maybe.value(Outcome.<T>failure(value.failure())));
-                                }
-                            }
-                        });
+                                        } else {
+                                            eof = true;
+                                            return aSuccess(Maybe.value(Outcome.<T>failure(value.failure())));
+                                        }
+                                    }
+                                });
                     }
                 });
             }

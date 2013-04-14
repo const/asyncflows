@@ -10,6 +10,7 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
@@ -71,7 +72,8 @@ public final class StreamUtil {
                         if (!stopped.isEmpty()) {
                             return aFalse();
                         }
-                        return stream.next().mapOutcome(new AFunction<Boolean, Outcome<Maybe<O>>>() {
+                        final Promise<Maybe<O>> next = aNow(StreamUtil.producerFromStream(stream));
+                        return next.mapOutcome(new AFunction<Boolean, Outcome<Maybe<O>>>() {
                             @Override
                             public Promise<Boolean> apply(final Outcome<Maybe<O>> value) throws Throwable {
                                 try {
