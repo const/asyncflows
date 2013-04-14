@@ -82,6 +82,15 @@ public class CloseableInvalidatingBase extends CloseableBase {
     }
 
     /**
+     * If stream is closed, throw an exception.
+     */
+    protected void ensureOpen() {
+        if (isClosed()) {
+            throw new ResourceClosedException("The object is closed", invalidation);
+        }
+    }
+
+    /**
      * Ensure that the object is still valid.
      *
      * @throws Throwable if there is in an invalidation

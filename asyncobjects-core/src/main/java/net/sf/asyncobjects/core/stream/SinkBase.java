@@ -40,7 +40,7 @@ public abstract class SinkBase<A> extends CloseableInvalidatingBase implements A
             notifySuccess(finished.resolver(), null);
             startClosing();
         }
-        return super.closeAction();    //To change body of overridden methods use File | Settings | File Templates.
+        return super.closeAction();
     }
 
     @Override

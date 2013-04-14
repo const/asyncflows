@@ -42,6 +42,7 @@
         <module>asyncobjects-net-selector</module>
         <module>asyncobjects-net-blocking</module>
         <module>asyncobjects-awt</module>
+        <module>asyncobjects-protocol</module>
         <module>asyncobjects-http</module>
         <module>asyncobjects-spring</module>
         <module>asyncobjects-spring-net</module>

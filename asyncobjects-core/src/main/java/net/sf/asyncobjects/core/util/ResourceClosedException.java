@@ -1,9 +1,9 @@
-package net.sf.asyncobjects.core.stream;
+package net.sf.asyncobjects.core.util;
 
 /**
  * The promise fails with this exception when stream is alredy closed.
  */
-public class StreamClosedException extends RuntimeException {
+public class ResourceClosedException extends RuntimeException {
 
     /**
      * Constructs a new exception with the specified detail message.
@@ -13,8 +13,8 @@ public class StreamClosedException extends RuntimeException {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public StreamClosedException(final String message) {
-        super(message);    //To change body of overridden methods use File | Settings | File Templates.
+    public ResourceClosedException(final String message) {
+        super(message);
     }
 
     /**
@@ -30,7 +30,7 @@ public class StreamClosedException extends RuntimeException {
      *                permitted, and indicates that the cause is nonexistent or
      *                unknown.)
      */
-    public StreamClosedException(final String message, final Throwable cause) {
-        super(message, cause);    //To change body of overridden methods use File | Settings | File Templates.
+    public ResourceClosedException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

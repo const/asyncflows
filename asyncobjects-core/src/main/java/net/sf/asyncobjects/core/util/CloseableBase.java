@@ -32,9 +32,9 @@ public abstract class CloseableBase implements ACloseable {
     /**
      * If stream is closed, throw an exception.
      */
-    protected final void ensureOpen() {
+    protected void ensureOpen() {
         if (isClosed()) {
-            throw new IllegalStateException("The object is closed");
+            throw new ResourceClosedException("The object is closed");
         }
     }
 
