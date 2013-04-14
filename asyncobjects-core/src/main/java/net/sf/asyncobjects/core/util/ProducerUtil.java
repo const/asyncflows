@@ -3,10 +3,12 @@ package net.sf.asyncobjects.core.util;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Maybe;
 
 import java.util.Iterator;
 
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.failureCallable;
 
 /**
  * Utilities for creating producers.
@@ -15,15 +17,15 @@ public final class ProducerUtil {
     /**
      * Empty value.
      */
-    private static final Promise<OptionalValue<Object>> EMPTY_VALUE = aSuccess(OptionalValue.empty());
+    private static final Promise<Maybe<Object>> EMPTY_VALUE = aSuccess(Maybe.empty());
     /**
-     * The wrapper into {@link OptionalValue}.
+     * The wrapper into {@link net.sf.asyncobjects.core.data.Maybe}.
      */
-    private static final AFunction<OptionalValue<Object>, Object> OPTIONAL_WRAPPER
-            = new AFunction<OptionalValue<Object>, Object>() {
+    private static final AFunction<Maybe<Object>, Object> OPTIONAL_WRAPPER
+            = new AFunction<Maybe<Object>, Object>() {
         @Override
-        public Promise<OptionalValue<Object>> apply(final Object value) throws Throwable {
-            return aSuccess(OptionalValue.value(value));
+        public Promise<Maybe<Object>> apply(final Object value) throws Throwable {
+            return aSuccess(Maybe.value(value));
         }
     };
 
@@ -37,16 +39,30 @@ public final class ProducerUtil {
      * Create producer from collection.
      *
      * @param iterable the iterable
-     * @param <T>      the collection
+     * @param <T>      the collection element type
      * @return a created producer
      */
-    public static <T> ACallable<OptionalValue<T>> fromIterable(final Iterable<T> iterable) {
-        final Iterator<T> iterator = iterable.iterator();
-        return new ACallable<OptionalValue<T>>() {
+    public static <T> ACallable<Maybe<T>> fromIterable(final Iterable<T> iterable) {
+        try {
+            return fromIterator(iterable.iterator());
+        } catch (Throwable t) {
+            return failureCallable(t);
+        }
+    }
+
+    /**
+     * Create producer from iterator.
+     *
+     * @param iterator the iterator
+     * @param <T>      the collection element type
+     * @return a created producer
+     */
+    public static <T> ACallable<Maybe<T>> fromIterator(final Iterator<T> iterator) {
+        return new ACallable<Maybe<T>>() {
             @Override
-            public Promise<OptionalValue<T>> call() throws Throwable {
+            public Promise<Maybe<T>> call() throws Throwable {
                 if (iterator.hasNext()) {
-                    return aSuccess(OptionalValue.value(iterator.next()));
+                    return aSuccess(Maybe.value(iterator.next()));
                 } else {
                     return aEmptyOption();
                 }
@@ -62,14 +78,14 @@ public final class ProducerUtil {
      * @param end   the iteration end
      * @return the iteration
      */
-    public static ACallable<OptionalValue<Integer>> fromRange(final int start, final int end) {
-        return new ACallable<OptionalValue<Integer>>() {
+    public static ACallable<Maybe<Integer>> fromRange(final int start, final int end) {
+        return new ACallable<Maybe<Integer>>() {
             private int current = start;
 
             @Override
-            public Promise<OptionalValue<Integer>> call() throws Throwable {
-                if (current < end) {
-                    return aSuccess(OptionalValue.value(current++));
+            public Promise<Maybe<Integer>> call() throws Throwable {
+                if (current <= end) {
+                    return aSuccess(Maybe.value(current++));
                 } else {
                     return aEmptyOption();
                 }
@@ -86,23 +102,34 @@ public final class ProducerUtil {
      * @param <A>      the source producer type
      * @return the new producer that first get value from original and then maps to using mapper
      */
-    public static <B, A> ACallable<OptionalValue<B>> mapProducer(final ACallable<OptionalValue<A>> producer,
-                                                                 final AFunction<B, A> mapper) {
-        final AFunction<OptionalValue<B>, OptionalValue<A>> optionalMapper =
-                new AFunction<OptionalValue<B>, OptionalValue<A>>() {
-                    @Override
-                    public Promise<OptionalValue<B>> apply(final OptionalValue<A> value) throws Throwable {
-                        if (value.isEmpty()) {
-                            return aEmptyOption();
-                        } else {
-                            return mapper.apply(value.value()).map(ProducerUtil.<B>optionalValueWrapper());
-                        }
-                    }
-                };
-        return new ACallable<OptionalValue<B>>() {
+    public static <B, A> ACallable<Maybe<B>> mapProducer(final ACallable<Maybe<A>> producer,
+                                                         final AFunction<B, A> mapper) {
+        final AFunction<Maybe<B>, Maybe<A>> optionalMapper = toProducerMapper(mapper);
+        return new ACallable<Maybe<B>>() {
             @Override
-            public Promise<OptionalValue<B>> call() throws Throwable {
+            public Promise<Maybe<B>> call() throws Throwable {
                 return producer.call().map(optionalMapper);
+            }
+        };
+    }
+
+    /**
+     * Create producer mapper from normal mapper.
+     *
+     * @param mapper the mapper
+     * @param <B>    the input type
+     * @param <A>    the output type
+     * @return the producer mapper
+     */
+    public static <B, A> AFunction<Maybe<B>, Maybe<A>> toProducerMapper(final AFunction<B, A> mapper) {
+        return new AFunction<Maybe<B>, Maybe<A>>() {
+            @Override
+            public Promise<Maybe<B>> apply(final Maybe<A> value) throws Throwable {
+                if (value.isEmpty()) {
+                    return aEmptyOption();
+                } else {
+                    return mapper.apply(value.value()).map(ProducerUtil.<B>optionalValueWrapper());
+                }
             }
         };
     }
@@ -115,8 +142,8 @@ public final class ProducerUtil {
      * @return the value
      */
     @SuppressWarnings("unchecked")
-    public static <T> AFunction<OptionalValue<T>, T> optionalValueWrapper() {
-        return (AFunction<OptionalValue<T>, T>) (AFunction) OPTIONAL_WRAPPER;
+    public static <T> AFunction<Maybe<T>, T> optionalValueWrapper() {
+        return (AFunction<Maybe<T>, T>) (AFunction) OPTIONAL_WRAPPER;
     }
 
     /**
@@ -126,7 +153,7 @@ public final class ProducerUtil {
      * @return the resolved promise for empty value
      */
     @SuppressWarnings("unchecked")
-    public static <T> Promise<OptionalValue<T>> aEmptyOption() {
-        return (Promise<OptionalValue<T>>) (Promise) EMPTY_VALUE;
+    public static <T> Promise<Maybe<T>> aEmptyOption() {
+        return (Promise<Maybe<T>>) (Promise) EMPTY_VALUE;
     }
 }

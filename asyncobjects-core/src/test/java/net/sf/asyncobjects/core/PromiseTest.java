@@ -1,6 +1,6 @@
 package net.sf.asyncobjects.core;
 
-import net.sf.asyncobjects.core.util.Cell;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.vats.SingleThreadVat;
 import org.junit.Test;
 

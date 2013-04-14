@@ -1,9 +1,10 @@
 package net.sf.asyncobjects.core.util;
 
+import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Promise;
 
-import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 
 /**
  * The base for closeable.
@@ -12,26 +13,26 @@ public abstract class CloseableBase implements ACloseable {
     /**
      * The close promise.
      */
-    private Promise<Void> closePromise;
+    private final Promise<Void> closePromise = new Promise<Void>();
 
     /**
      * @return true if stream is closed
      */
-    protected final boolean isClosed() {
-        return closePromise != null;
+    public final boolean isClosed() {
+        return closePromise.getState() != Promise.State.INITIAL;
     }
 
     /**
      * @return true if stream is open
      */
-    protected final boolean isOpen() {
+    public final boolean isOpen() {
         return !isClosed();
     }
 
     /**
      * If stream is closed, throw an exception.
      */
-    protected void ensureOpen() {
+    protected final void ensureOpen() {
         if (isClosed()) {
             throw new IllegalStateException("The object is closed");
         }
@@ -48,13 +49,21 @@ public abstract class CloseableBase implements ACloseable {
 
     @Override
     public Promise<Void> close() {
-        if (closePromise == null) {
+        startClosing();
+        return closePromise;
+    }
+
+    /**
+     * Start closing a stream if needed.
+     */
+    protected void startClosing() {
+        if (isOpen()) {
+            final AResolver<Void> resolver = closePromise.resolver();
             try {
-                closePromise = closeAction();
-            } catch (Throwable ex) {
-                closePromise = aFailure(ex);
+                closeAction().listen(resolver);
+            } catch (Throwable problem) {
+                notifyFailure(resolver, problem);
             }
         }
-        return closePromise;
     }
 }

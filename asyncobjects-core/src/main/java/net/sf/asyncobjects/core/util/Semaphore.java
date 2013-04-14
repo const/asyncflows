@@ -37,7 +37,7 @@ public final class Semaphore implements ASemaphore, ExportsSelf<ASemaphore> {
             return;
         }
         permits += releasedPermits;
-        requests.awake();
+        requests.resume();
     }
 
     @Override

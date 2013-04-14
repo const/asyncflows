@@ -7,16 +7,10 @@ import net.sf.asyncobjects.core.Failure;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.ResolverUtil;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.Vat;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
-import static net.sf.asyncobjects.core.AsyncControl.aTrue;
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyResolver;
 
 /**
@@ -39,31 +33,6 @@ public final class SeqControl {
     public static <T> SeqBuilder<T> aSeq(final ACallable<T> start) {
         return new SeqBuilder<T>(start);
     }
-
-    /**
-     * Iterate over collection.
-     *
-     * @param iterable the collection
-     * @param <T>      the value to iterate over
-     * @return the builder for seq for
-     */
-    public static <T> SeqForBuilder<T> aSeqForCollection(final Iterable<T> iterable) {
-        final ACallable<OptionalValue<T>> producer = ProducerUtil.fromIterable(iterable);
-        return new SeqForBuilder<T>(producer);
-    }
-
-    /**
-     * Iterate over range.
-     *
-     * @param start the start of range
-     * @param end   the end of range
-     * @return the builder for seq for
-     */
-    public static SeqForBuilder<Integer> aSeqForRange(final int start, final int end) {
-        final ACallable<OptionalValue<Integer>> producer = ProducerUtil.fromRange(start, end);
-        return new SeqForBuilder<Integer>(producer);
-    }
-
 
     /**
      * Generic loop that executes body until it returns false.
@@ -110,15 +79,15 @@ public final class SeqControl {
      * @param <A>  the result type
      * @return the promises that resolves when body fails or returns non-empty value
      */
-    public static <A> Promise<A> aSeqOptionLoop(final ACallable<OptionalValue<A>> body) {
+    public static <A> Promise<A> aSeqOptionLoop(final ACallable<Maybe<A>> body) {
         final Promise<A> result = new Promise<A>();
         final AResolver<A> resolver = result.resolver();
         final Vat vat = Vat.current();
-        ResolverUtil.notifySuccess(new AResolver<OptionalValue<A>>() {
-            private final AResolver<OptionalValue<A>> self = this;
+        ResolverUtil.notifySuccess(new AResolver<Maybe<A>>() {
+            private final AResolver<Maybe<A>> self = this;
 
             @Override
-            public void resolve(final Outcome<OptionalValue<A>> resolution) throws Throwable {
+            public void resolve(final Outcome<Maybe<A>> resolution) throws Throwable {
                 try {
                     if (resolution.isSuccess()) {
                         if (resolution.value().isEmpty()) {
@@ -138,10 +107,9 @@ public final class SeqControl {
                     ResolverUtil.notifyFailure(resolver, t);
                 }
             }
-        }, OptionalValue.<A>empty());
+        }, Maybe.<A>empty());
         return result;
     }
-
 
     /**
      * Builder for the sequence of operations.
@@ -170,7 +138,6 @@ public final class SeqControl {
             return aNow(action);
         }
 
-
         /**
          * Add next step to the sequence.
          *
@@ -197,7 +164,6 @@ public final class SeqControl {
         public <N> Promise<N> thenLast(final AFunction<N, T> mapper) {
             return then(mapper).finish();
         }
-
 
         /**
          * Add next step to the sequence.
@@ -226,7 +192,6 @@ public final class SeqControl {
             return thenI(nextAction).finish();
         }
 
-
         /**
          * Handle exception thrown by the previous steps.
          *
@@ -251,7 +216,6 @@ public final class SeqControl {
             });
         }
 
-
         /**
          * Add next step to the sequence.
          *
@@ -261,7 +225,6 @@ public final class SeqControl {
         public Promise<T> failedLast(final AFunction<T, Throwable> mapper) {
             return failed(mapper).finish();
         }
-
 
         /**
          * Execute action in any case and the end of sequence operator.
@@ -292,174 +255,6 @@ public final class SeqControl {
                 }
             });
             return rc;
-        }
-    }
-
-    /**
-     * The seq for builder.
-     *
-     * @param <T> the element type
-     */
-    public static final class SeqForBuilder<T> {
-        /**
-         * THe loop body.
-         */
-        private final ACallable<OptionalValue<T>> body;
-
-        /**
-         * The constructor.
-         *
-         * @param body the body
-         */
-        public SeqForBuilder(final ACallable<OptionalValue<T>> body) {
-            this.body = body;
-        }
-
-        /**
-         * The sequential left fold for the collection.
-         *
-         * @param initial the initial value
-         * @param folder  the folder
-         * @param <R>     the result value
-         * @return the folded value
-         */
-        public <R> Promise<R> leftFold(final R initial, final AFunction2<R, R, T> folder) {
-            final Cell<R> result = new Cell<R>(initial);
-            final AFunction<Boolean, OptionalValue<T>> foldStep = new AFunction<Boolean, OptionalValue<T>>() {
-                @Override
-                public Promise<Boolean> apply(final OptionalValue<T> value) throws Throwable {
-                    if (!value.hasValue()) {
-                        return aFalse();
-                    } else {
-                        return folder.apply(result.getValue(), value.value()).map(new AFunction<Boolean, R>() {
-                            @Override
-                            public Promise<Boolean> apply(final R value) throws Throwable {
-                                result.setValue(value);
-                                return aTrue();
-                            }
-                        });
-                    }
-                }
-            };
-            return aSeqLoop(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    return aNow(body).map(foldStep);
-                }
-            }).then(new ACallable<R>() {
-                @Override
-                public Promise<R> call() throws Throwable {
-                    return aSuccess(result.getValue());
-                }
-            });
-        }
-
-
-        /**
-         * Map the value.
-         *
-         * @param mapper the value mapper
-         * @param <I>    the new produced type
-         * @return the value
-         */
-        public <I> SeqForBuilder<I> map(final AFunction<I, T> mapper) {
-            return new SeqForBuilder<I>(ProducerUtil.<I, T>mapProducer(body, mapper));
-        }
-
-        /**
-         * The sequential right fold for the collection. It first collects elements using left fold, than does
-         * a fold starting from the last element. This is slower version than left fold.
-         *
-         * @param initial the initial value
-         * @param folder  the folder
-         * @param <R>     the result value
-         * @return the folded value
-         */
-        public <R> Promise<R> rightFold(final R initial, final AFunction2<R, R, T> folder) {
-            final ArrayList<T> results = new ArrayList<T>();
-            final Cell<R> result = new Cell<R>(initial);
-            return leftFold(null, new AFunction2<Void, Void, T>() {
-                @Override
-                public Promise<Void> apply(final Void result, final T item) throws Throwable {
-                    results.add(item);
-                    return aVoid();
-                }
-            }).then(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    return aSeqLoop(new ACallable<Boolean>() {
-                        @Override
-                        public Promise<Boolean> call() throws Throwable {
-                            if (results.isEmpty()) {
-                                return aFalse();
-                            } else {
-                                final T nextElement = results.remove(results.size() - 1);
-                                return folder.apply(result.getValue(), nextElement).map(new AFunction<Boolean, R>() {
-                                    @Override
-                                    public Promise<Boolean> apply(final R value) throws Throwable {
-                                        result.setValue(value);
-                                        return aTrue();
-                                    }
-                                });
-                            }
-                        }
-                    });
-                }
-            }).then(new ACallable<R>() {
-                @Override
-                public Promise<R> call() throws Throwable {
-                    return aSuccess(result.getValue());
-                }
-            });
-        }
-
-        /**
-         * Reduce collection to a single item.
-         *
-         * @param reducer the reducer
-         * @return the promise for result (returns option without value if there were no values)
-         */
-        public Promise<OptionalValue<T>> reduce(final AFunction2<T, T, T> reducer) {
-            return leftFold(OptionalValue.<T>empty(), new AFunction2<OptionalValue<T>, OptionalValue<T>, T>() {
-                @Override
-                public Promise<OptionalValue<T>> apply(final OptionalValue<T> result, final T item) throws Throwable {
-                    if (result.hasValue()) {
-                        return reducer.apply(result.value(), item).map(new AFunction<OptionalValue<T>, T>() {
-                            @Override
-                            public Promise<OptionalValue<T>> apply(final T value) throws Throwable {
-                                return aSuccess(OptionalValue.value(value));
-                            }
-                        });
-                    } else {
-                        return aSuccess(OptionalValue.value(item));
-                    }
-                }
-            });
-        }
-
-        /**
-         * @return the fold to unit value
-         */
-        public Promise<Void> toUnit() {
-            return leftFold(null, new AFunction2<Void, Void, T>() {
-                @Override
-                public Promise<Void> apply(final Void result, final T item) throws Throwable {
-                    return aVoid();
-                }
-            });
-        }
-
-        /**
-         * @return the fold to list
-         */
-        public Promise<List<T>> toList() {
-            return leftFold(new ArrayList<T>(), new AFunction2<List<T>, List<T>, T>() {
-                @Override
-                public Promise<List<T>> apply(final List<T> value1, final T value2) throws Throwable {
-                    value1.add(value2);
-                    return aSuccess(value1);
-                }
-            });
         }
     }
 }

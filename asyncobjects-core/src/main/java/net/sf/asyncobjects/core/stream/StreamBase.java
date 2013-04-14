@@ -5,26 +5,23 @@ import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
-import net.sf.asyncobjects.core.util.ACloseable;
-import net.sf.asyncobjects.core.util.ChainedClosable;
+import net.sf.asyncobjects.core.util.CloseableInvalidatingBase;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 
 /**
- * Build stream that works above some resource.
+ * The base for the simple streams.
  *
- * @param <O> the stream element type
- * @param <I> the type of underlying resource
+ * @param <A> the element type
  */
-public abstract class ChainedStreamBase<O, I extends ACloseable>
-        extends ChainedClosable<I> implements AStream<O>, ExportsSelf<AStream<O>> {
+public abstract class StreamBase<A> extends CloseableInvalidatingBase implements AStream<A>, ExportsSelf<AStream<A>> {
     /**
      * The observer for the stream outcome.
      */
-    private final AResolver<Maybe<O>> streamOutcomeObserver = new AResolver<Maybe<O>>() {
+    private final AResolver<Maybe<A>> streamOutcomeObserver = new AResolver<Maybe<A>>() {
         @Override
-        public void resolve(final Outcome<Maybe<O>> resolution) throws Throwable {
+        public void resolve(final Outcome<Maybe<A>> resolution) throws Throwable {
             if (!resolution.isSuccess()) {
                 invalidate(resolution.failure());
                 startClosing();
@@ -34,21 +31,9 @@ public abstract class ChainedStreamBase<O, I extends ACloseable>
         }
     };
 
-    /**
-     * The constructor from the underlying object.
-     *
-     * @param wrapped the underlying object
-     */
-    protected ChainedStreamBase(final I wrapped) {
-        super(wrapped);
-    }
-
     @Override
-    public Promise<Maybe<O>> next() {
-        if (!isValidAndOpen()) {
-            return invalidationPromise();
-        }
-        Promise<Maybe<O>> result;
+    public final Promise<Maybe<A>> next() {
+        Promise<Maybe<A>> result;
         try {
             result = produce();
         } catch (Throwable t) {
@@ -58,17 +43,20 @@ public abstract class ChainedStreamBase<O, I extends ACloseable>
     }
 
     /**
+     * The producer the next element.
+     *
      * @return the next produced element
+     * @throws Throwable in case if the next element could not be produced.
      */
-    protected abstract Promise<Maybe<O>> produce();
+    public abstract Promise<Maybe<A>> produce() throws Throwable;
 
     @Override
-    public AStream<O> export() {
+    public AStream<A> export() {
         return export(Vat.current());
     }
 
     @Override
-    public AStream<O> export(final Vat vat) {
+    public AStream<A> export(final Vat vat) {
         return StreamExportUtil.export(vat, this);
     }
 }

@@ -4,6 +4,7 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;

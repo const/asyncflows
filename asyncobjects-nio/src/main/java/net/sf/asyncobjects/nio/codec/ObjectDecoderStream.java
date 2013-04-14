@@ -3,9 +3,9 @@ package net.sf.asyncobjects.nio.codec;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.stream.AStream;
 import net.sf.asyncobjects.core.stream.ChainedStreamBase;
-import net.sf.asyncobjects.core.util.OptionalValue;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.BufferOperations;
@@ -37,10 +37,6 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
      */
     private final B buffer;
     /**
-     * true means that eof has been seen from underlying buffer.
-     */
-    private boolean eofSeen;
-    /**
      * The request queue.
      */
     private final RequestQueue requests = new RequestQueue();
@@ -48,6 +44,10 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
      * The buffer operations.
      */
     private final BufferOperations<B, ?> bufferOperations;
+    /**
+     * true means that eof has been seen from underlying buffer.
+     */
+    private boolean eofSeen;
 
     /**
      * The constructor.
@@ -63,58 +63,6 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
         this.decoder = decoder;
         this.buffer = buffer;
         this.bufferOperations = bufferOperations;
-    }
-
-    @Override
-    protected Promise<OptionalValue<O>> produce() {
-        return requests.run(new ACallable<OptionalValue<O>>() {
-            @Override
-            public Promise<OptionalValue<O>> call() throws Throwable {
-                return aSeqOptionLoop(new ACallable<OptionalValue<OptionalValue<O>>>() {
-                    @Override
-                    public Promise<OptionalValue<OptionalValue<O>>> call() {
-                        if (isNotValidAndOpen()) {
-                            return failureInvalidOrClosed();
-                        }
-                        return decoder.decode(buffer, eofSeen).map(new AFunction<OptionalValue<OptionalValue<O>>,
-                                ObjectDecoder.DecodeResult>() {
-                            @Override
-                            public Promise<OptionalValue<OptionalValue<O>>> apply(
-                                    final ObjectDecoder.DecodeResult decodeResult) {
-                                if (decodeResult == ObjectDecoder.DecodeResult.EOF) {
-                                    return aSuccess(OptionalValue.<OptionalValue<O>>value(OptionalValue.<O>empty()));
-                                }
-                                if (decodeResult == ObjectDecoder.DecodeResult.OBJECT_READY) {
-                                    return aSuccess(OptionalValue.<OptionalValue<O>>value(
-                                            OptionalValue.<O>value(decoder.getObject())));
-                                }
-                                if (decodeResult == ObjectDecoder.DecodeResult.FAILURE) {
-                                    return aFailure(decoder.getFailure());
-                                }
-                                if (decodeResult != ObjectDecoder.DecodeResult.BUFFER_UNDERFLOW) {
-                                    return aFailure(new IllegalStateException("Unknown result from decoder: "
-                                            + decodeResult));
-                                }
-                                bufferOperations.compact(buffer);
-                                return wrapped.read(buffer).map(new AFunction<OptionalValue<OptionalValue<O>>,
-                                        Integer>() {
-                                    @Override
-                                    public Promise<OptionalValue<OptionalValue<O>>> apply(final Integer value) {
-                                        buffer.flip();
-                                        if (value < 0) {
-                                            eofSeen = true;
-                                        } else if (value == 0) {
-                                            return aFailure(new IOException("Nothing has been read"));
-                                        }
-                                        return aEmptyOption();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
     }
 
     /**
@@ -173,6 +121,56 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
         final CharBuffer buffer = CharBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
         buffer.limit(0);
         return decodeChars(input, decoder, buffer);
+    }
+
+    @Override
+    protected Promise<Maybe<O>> produce() {
+        return requests.run(new ACallable<Maybe<O>>() {
+            @Override
+            public Promise<Maybe<O>> call() throws Throwable {
+                return aSeqOptionLoop(new ACallable<Maybe<Maybe<O>>>() {
+                    @Override
+                    public Promise<Maybe<Maybe<O>>> call() throws Throwable {
+                        ensureValidAndOpen();
+                        return decoder.decode(buffer, eofSeen).map(new AFunction<Maybe<Maybe<O>>,
+                                ObjectDecoder.DecodeResult>() {
+                            @Override
+                            public Promise<Maybe<Maybe<O>>> apply(
+                                    final ObjectDecoder.DecodeResult decodeResult) {
+                                if (decodeResult == ObjectDecoder.DecodeResult.EOF) {
+                                    return aSuccess(Maybe.<Maybe<O>>value(Maybe.<O>empty()));
+                                }
+                                if (decodeResult == ObjectDecoder.DecodeResult.OBJECT_READY) {
+                                    return aSuccess(Maybe.<Maybe<O>>value(
+                                            Maybe.<O>value(decoder.getObject())));
+                                }
+                                if (decodeResult == ObjectDecoder.DecodeResult.FAILURE) {
+                                    return aFailure(decoder.getFailure());
+                                }
+                                if (decodeResult != ObjectDecoder.DecodeResult.BUFFER_UNDERFLOW) {
+                                    return aFailure(new IllegalStateException("Unknown result from decoder: "
+                                            + decodeResult));
+                                }
+                                bufferOperations.compact(buffer);
+                                return wrapped.read(buffer).map(new AFunction<Maybe<Maybe<O>>,
+                                        Integer>() {
+                                    @Override
+                                    public Promise<Maybe<Maybe<O>>> apply(final Integer value) {
+                                        buffer.flip();
+                                        if (value < 0) {
+                                            eofSeen = true;
+                                        } else if (value == 0) {
+                                            return aFailure(new IOException("Nothing has been read"));
+                                        }
+                                        return aEmptyOption();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
 }

@@ -4,11 +4,11 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Tuple2;
+import net.sf.asyncobjects.core.data.Tuple3;
 import net.sf.asyncobjects.core.util.AFunction2;
 import net.sf.asyncobjects.core.util.AFunction3;
 import net.sf.asyncobjects.core.util.AllControl;
-import net.sf.asyncobjects.core.util.Tuple2;
-import net.sf.asyncobjects.core.util.Tuple3;
 import org.junit.Test;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;

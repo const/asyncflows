@@ -4,7 +4,7 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.util.Cell;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.util.ChainedClosable;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -74,8 +74,8 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
         return requests.run(new ACallable<Integer>() {
             @Override
             public Promise<Integer> call() throws Throwable { // NOPMD
-                if (isNotValidAndOpen()) {
-                    return failureInvalidOrClosed();
+                if (!isValidAndOpen()) {
+                    return invalidationPromise();
                 }
                 if (eofDecoded) {
                     return aSuccess(-1);
@@ -84,9 +84,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                 return aSeqLoop(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
-                        if (isNotValidAndOpen()) {
-                            return failureInvalidOrClosed();
-                        }
+                        ensureValidAndOpen();
                         final int position = buffer.position();
                         final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
                         eofDecoded = eofSeen && !bytes.hasRemaining();

@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.core.util;
+package net.sf.asyncobjects.core.data;
 
 /**
  * The tuple of three values.
@@ -87,6 +87,16 @@ public final class Tuple3<T1, T2, T3> {
         result = prime * result + (value2 != null ? value2.hashCode() : 0);
         result = prime * result + (value3 != null ? value3.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("(");
+        sb.append(value1);
+        sb.append(", ").append(value2);
+        sb.append(", ").append(value3);
+        sb.append(')');
+        return sb.toString();
     }
 
     /**

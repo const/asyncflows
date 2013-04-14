@@ -23,6 +23,24 @@ public final class CoreExportUtil {
     }
 
     /**
+     * Export an object if it implements {@link ExportsSelf} interface.
+     *
+     * @param value the value to to export
+     * @param <T>   the value type
+     * @return exported value
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T exportIfNeeded(final T value) {
+        if (value instanceof ExportsSelf) {
+            // needs export
+            return (T) ((ExportsSelf) value).export();
+        } else {
+            // safe to use
+            return value;
+        }
+    }
+
+    /**
      * Export resolver on the vat.
      *
      * @param resolver the resolver

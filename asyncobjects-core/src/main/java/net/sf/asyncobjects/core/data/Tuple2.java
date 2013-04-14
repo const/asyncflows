@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.core.util;
+package net.sf.asyncobjects.core.data;
 
 /**
  * The tuple of two values.
@@ -69,6 +69,15 @@ public final class Tuple2<T1, T2> {
         final int prime = 31;
         result = prime * result + (value2 != null ? value2.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("(");
+        sb.append(value1);
+        sb.append(", ").append(value2);
+        sb.append(')');
+        return sb.toString();
     }
 
     /**

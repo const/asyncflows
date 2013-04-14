@@ -1,15 +1,15 @@
-package net.sf.asyncobjects.core.util;
+package net.sf.asyncobjects.core.data;
 
 /**
- * The optional type. It is intentionally named differently from the JDK 8 type.
+ * The optional value type. It is intentionally named differently from the JDK8 Optional and Scala Option types.
  *
  * @param <T> the value type
  */
-public final class OptionalValue<T> {
+public final class Maybe<T> {
     /**
      * The empty value.
      */
-    private static final OptionalValue<?> EMPTY_VALUE = new OptionalValue<Object>(false, null);
+    private static final Maybe<?> EMPTY_VALUE = new Maybe<Object>(false, null);
     /**
      * If true there is a value.
      */
@@ -25,7 +25,7 @@ public final class OptionalValue<T> {
      * @param valuePresent if true, there is a value
      * @param value        the value
      */
-    private OptionalValue(final boolean valuePresent, final T value) {
+    private Maybe(final boolean valuePresent, final T value) {
         this.valuePresent = valuePresent;
         this.value = value;
     }
@@ -61,8 +61,8 @@ public final class OptionalValue<T> {
      * @return the empty value
      */
     @SuppressWarnings("unchecked")
-    public static <A> OptionalValue<A> empty() {
-        return (OptionalValue<A>) EMPTY_VALUE;
+    public static <A> Maybe<A> empty() {
+        return (Maybe<A>) EMPTY_VALUE;
     }
 
     /**
@@ -72,8 +72,8 @@ public final class OptionalValue<T> {
      * @param <A>   the value type
      * @return the option value
      */
-    public static <A> OptionalValue<A> value(final A value) {
-        return new OptionalValue<A>(true, value);
+    public static <A> Maybe<A> value(final A value) {
+        return new Maybe<A>(true, value);
     }
 
     @Override
@@ -85,7 +85,7 @@ public final class OptionalValue<T> {
             return false;
         }
 
-        final OptionalValue that = (OptionalValue) o;
+        final Maybe that = (Maybe) o;
 
         if (valuePresent != that.valuePresent) {
             return false;
@@ -108,7 +108,7 @@ public final class OptionalValue<T> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("OptionalValue{");
+        final StringBuilder sb = new StringBuilder("Maybe{");
         if (valuePresent) {
             sb.append(value);
         }

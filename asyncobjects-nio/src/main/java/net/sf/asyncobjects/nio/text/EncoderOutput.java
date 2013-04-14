@@ -114,8 +114,8 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
         return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
-                if (eof ? !isValid() : isNotValidAndOpen()) {
-                    return failureInvalidOrClosed();
+                if (eof ? !isValid() : !isValidAndOpen()) {
+                    return invalidationPromise();
                 }
                 final CoderResult result = encoder.encode(chars, bytes, eof);
                 if (result.isOverflow() || result.isUnderflow() && bytes.position() > 0) {

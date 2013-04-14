@@ -38,6 +38,12 @@ public final class Promise<T> {
      */
     private ListenerCell<T> listenersTail;
 
+    /**
+     * @return the state of the promise
+     */
+    public State getState() {
+        return state;
+    }
 
     /**
      * @return the resolver for the promise, it could be got only once

@@ -40,8 +40,8 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
 
     @Override
     public Promise<Integer> read(final ByteBuffer buffer) {
-        if (isNotValidAndOpen()) {
-            return failureInvalidOrClosed();
+        if (!isValidAndOpen()) {
+            return invalidationPromise();
         }
         final int positionBeforeRead = buffer.position();
         final Promise<Integer> read = aNow(new ACallable<Integer>() {

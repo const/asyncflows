@@ -1,7 +1,9 @@
-package net.sf.asyncobjects.core.util;
+package net.sf.asyncobjects.core.data;
 
 /**
- * The simple mutable cell for values.
+ * The simple mutable cell for values. It is mostly used as mutable variable available
+ * in inner class scope as well. The array type does not work well in that case since
+ * it could not be easily created for generic values.
  *
  * @param <T> the value type
  */

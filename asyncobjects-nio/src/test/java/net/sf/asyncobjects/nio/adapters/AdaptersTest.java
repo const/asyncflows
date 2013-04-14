@@ -2,8 +2,8 @@ package net.sf.asyncobjects.nio.adapters;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.util.AFunction2;
-import net.sf.asyncobjects.core.util.Tuple2;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.IOUtil;

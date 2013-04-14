@@ -2,7 +2,7 @@ package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.util.OptionalValue;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.ResourceUtil;
 import net.sf.asyncobjects.core.vats.Vat;
 
@@ -16,7 +16,6 @@ public final class StreamExportUtil {
      * The private constructor for utility class.
      */
     private StreamExportUtil() {
-
     }
 
     /**
@@ -30,10 +29,10 @@ public final class StreamExportUtil {
     public static <T> AStream<T> export(final Vat vat, final AStream<T> stream) {
         return new AStream<T>() {
             @Override
-            public Promise<OptionalValue<T>> next() {
-                return aLater(vat, new ACallable<OptionalValue<T>>() {
+            public Promise<Maybe<T>> next() {
+                return aLater(vat, new ACallable<Maybe<T>>() {
                     @Override
-                    public Promise<OptionalValue<T>> call() throws Throwable {
+                    public Promise<Maybe<T>> call() throws Throwable {
                         return stream.next();
                     }
                 });
@@ -42,6 +41,53 @@ public final class StreamExportUtil {
             @Override
             public Promise<Void> close() {
                 return ResourceUtil.closeResource(vat, stream);
+            }
+        };
+    }
+
+    /**
+     * Export sink.
+     *
+     * @param vat  the vat for the sink
+     * @param sink the sink
+     * @param <T>  the element type
+     * @return the exported sink
+     */
+    public static <T> ASink<T> export(final Vat vat, final ASink<T> sink) {
+        return new ASink<T>() {
+            @Override
+            public Promise<Void> put(final T value) {
+                return aLater(vat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return sink.put(value);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> fail(final Throwable error) {
+                return aLater(vat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return sink.fail(error);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> finished() {
+                return aLater(vat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return sink.finished();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> close() {
+                return ResourceUtil.closeResource(vat, sink);
             }
         };
     }

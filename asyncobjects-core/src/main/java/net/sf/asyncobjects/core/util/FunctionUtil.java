@@ -2,6 +2,8 @@ package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Tuple2;
+import net.sf.asyncobjects.core.data.Tuple3;
 
 /**
  * The additional utilities for functions.

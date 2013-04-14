@@ -4,6 +4,7 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.vats.Vat;
 import org.junit.Test;
 

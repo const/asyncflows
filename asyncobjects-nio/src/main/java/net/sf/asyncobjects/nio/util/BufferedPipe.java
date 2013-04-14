@@ -117,8 +117,8 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
         @Override
         public Promise<Void> close() {
             closed = true;
-            input.requests.awake();
-            output.requests.awake();
+            input.requests.resume();
+            output.requests.resume();
             return aVoid();
         }
 
@@ -146,7 +146,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                             }
                             if (pipeBuffer.hasRemaining()) {
                                 notifySuccess(result.resolver(), operations.put(buffer, pipeBuffer));
-                                output.requests.awake();
+                                output.requests.resume();
                                 return aFalse();
                             }
                             if (output.closed) {

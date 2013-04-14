@@ -5,12 +5,12 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertNull;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
+import static net.sf.asyncobjects.core.stream.Streams.aForRange;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqForRange;
+import static org.junit.Assert.assertSame;
 
 /**
  * The semaphore test.
@@ -48,7 +48,7 @@ public class SemaphoreTest {
                         return aSeq(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
-                                return aSeqForRange(0, 10).toUnit();
+                                return aForRange(0, 10).toUnit();
                             }
                         }).thenI(new ACallable<Void>() {
                             @Override
@@ -59,7 +59,7 @@ public class SemaphoreTest {
                         }).thenI(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
-                                return aSeqForRange(0, 10).toUnit();
+                                return aForRange(0, 10).toUnit();
                             }
                         }).thenLastI(new ACallable<Void>() {
                             @Override
@@ -73,6 +73,6 @@ public class SemaphoreTest {
                 }).toUnit();
             }
         });
-        assertNull(t);
+        assertSame(null, t);
     }
 }

@@ -190,4 +190,21 @@ public final class CoreFunctionUtil {
             }
         };
     }
+
+    /**
+     * The callable that always fails with the specified failure.
+     *
+     * @param throwable the throwable
+     * @param <A>       the type of callable
+     * @return the value
+     */
+    public static <A> ACallable<A> failureCallable(final Throwable throwable) {
+        final Promise<A> failure = aFailure(throwable);
+        return new ACallable<A>() {
+            @Override
+            public Promise<A> call() throws Throwable {
+                return failure;
+            }
+        };
+    }
 }

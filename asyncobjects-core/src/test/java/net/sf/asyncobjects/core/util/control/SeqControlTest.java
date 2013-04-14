@@ -4,9 +4,8 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.util.AFunction2;
-import net.sf.asyncobjects.core.util.Cell;
-import net.sf.asyncobjects.core.util.OptionalValue;
 import net.sf.asyncobjects.core.vats.Vat;
 import org.junit.Test;
 
@@ -19,8 +18,8 @@ import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
+import static net.sf.asyncobjects.core.stream.Streams.aForArray;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqForCollection;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static org.junit.Assert.assertEquals;
 
@@ -221,18 +220,13 @@ public class SeqControlTest {
         final int rc = doAsync(new ACallable<Integer>() {
             @Override
             public Promise<Integer> call() throws Throwable {
-                return aSeqForCollection(Arrays.asList(0, 1, 2, 3, 4)).reduce(
+                return aForArray(0, 1, 2, 3, 4).leftFold(0,
                         new AFunction2<Integer, Integer, Integer>() {
                             @Override
                             public Promise<Integer> apply(final Integer result, final Integer item) throws Throwable {
                                 return aSuccess(result + item);
                             }
-                        }).map(new AFunction<Integer, OptionalValue<Integer>>() {
-                    @Override
-                    public Promise<Integer> apply(final OptionalValue<Integer> value) throws Throwable {
-                        return aSuccess(value.value());
-                    }
-                });
+                        });
             }
         });
         assertEquals(10, rc);

@@ -55,7 +55,7 @@ public abstract class Outcome<T> {
      * @param <A>   the value type
      * @return the success outcome
      */
-    public static <A> Success<A> success(final A value) {
+    public static <A> Outcome<A> success(final A value) {
         return new Success<A>(value);
     }
 
@@ -66,7 +66,7 @@ public abstract class Outcome<T> {
      * @param <A>     the value type
      * @return the failure outcome
      */
-    public static <A> Failure<A> failure(final Throwable failure) {
+    public static <A> Outcome<A> failure(final Throwable failure) {
         return new Failure<A>(failure);
     }
 

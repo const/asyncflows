@@ -8,9 +8,8 @@ import org.junit.Test;
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
+import static net.sf.asyncobjects.core.stream.Streams.aForRange;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
-import static net.sf.asyncobjects.core.util.AllControl.aAllForRange;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqForRange;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -27,7 +26,7 @@ public class QueueTest {
                 return aAll(new ACallable<Void>() {
                     @Override
                     public Promise<Void> call() throws Throwable {
-                        return aSeqForRange(1, 11).map(new AFunction<Void, Integer>() {
+                        return aForRange(1, 10).map(new AFunction<Void, Integer>() {
                             @Override
                             public Promise<Void> apply(final Integer value) throws Throwable {
                                 return aLater(new ACallable<Void>() {
@@ -42,7 +41,7 @@ public class QueueTest {
                 }).and(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
-                        return aAllForRange(-11, 0).withIdentity().map(new AFunction<Integer, Integer>() {
+                        return aForRange(-11, -1).all().map(new AFunction<Integer, Integer>() {
                             @Override
                             public Promise<Integer> apply(final Integer value) throws Throwable {
                                 return queue.take();

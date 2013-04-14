@@ -3,24 +3,15 @@ package net.sf.asyncobjects.core.util;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Tuple2;
+import net.sf.asyncobjects.core.data.Tuple3;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
-import static net.sf.asyncobjects.core.AsyncControl.aTrue;
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * The utility class with aAll operators.
@@ -57,30 +48,6 @@ public final class AllControl {
      */
     public static <T> AllBuilder<T> aAll(final ACallable<T> start) {
         return new AllBuilder<T>(start);
-    }
-
-    /**
-     * Start interleaved processing the collection. The processing start for all elements at the same time with
-     * map/(fold|reduce) pattern after the construction is finished.
-     *
-     * @param collection the collection to create a loop for
-     * @param <T>        the result
-     * @return the builder for loop.
-     */
-    public static <T> AllForCallableBuilder.Start<T> aAllForCollection(final Iterable<T> collection) {
-        return new AllForCallableBuilder.Start<T>(ProducerUtil.fromIterable(collection));
-    }
-
-    /**
-     * Start interleaved processing the integer range. The processing start for all elements at the same time with
-     * map/(fold|reduce) pattern after the construction is finished.
-     *
-     * @param start the start of integer range
-     * @param end   the end of range (not included)
-     * @return the builder for loop.
-     */
-    public static AllForCallableBuilder.Start<Integer> aAllForRange(final int start, final int end) {
-        return new AllForCallableBuilder.Start<Integer>(ProducerUtil.fromRange(start, end));
     }
 
     /**
@@ -226,7 +193,6 @@ public final class AllControl {
                 });
             }
 
-
             /**
              * Add new branch and finish it.
              *
@@ -335,7 +301,6 @@ public final class AllControl {
                 });
             }
 
-
             /**
              * @return the value of the second branch (ignore all others)
              */
@@ -360,168 +325,6 @@ public final class AllControl {
                 });
             }
 
-        }
-    }
-
-    /**
-     * The builder for the for loop.
-     *
-     * @param <T> the element type
-     * @param <R> the mapper result type
-     */
-    public static final class AllForCallableBuilder<T, R> {
-        /**
-         * The action that produces values.
-         */
-        private final ACallable<OptionalValue<T>> producer;
-        /**
-         * The action that maps values.
-         */
-        private final AFunction<R, T> mapper;
-
-        /**
-         * The constructor.
-         *
-         * @param producer the action that produces values
-         * @param mapper   the action that maps values
-         */
-        public AllForCallableBuilder(final ACallable<OptionalValue<T>> producer, final AFunction<R, T> mapper) {
-            this.producer = producer;
-            this.mapper = mapper;
-        }
-
-        /**
-         * Add another mapper into the chain of mappers.
-         *
-         * @param nextMapper the next mapper
-         * @param <O>        the new result type
-         * @return the builder with chained mapper
-         */
-        public <O> AllForCallableBuilder<T, O> map(final AFunction<O, R> nextMapper) {
-            return new AllForCallableBuilder<T, O>(producer, CoreFunctionUtil.chain(mapper, nextMapper));
-        }
-
-
-        /**
-         * This fold operation iterates collection from left to right returning result for the fold.
-         * If mapper returns an exception, folding stops at it. If folder fails, the folding stops as well.
-         * Iteration stops if empty option is returned or failure encountered.
-         *
-         * @param initial the initial value
-         * @param folder  the folder
-         * @param <X>     the result type
-         * @return the fold result.
-         */
-        public <X> Promise<X> leftFold(final X initial, final AFunction2<X, X, R> folder) {
-            final Cell<Promise<X>> result = new Cell<Promise<X>>(aSuccess(initial));
-            return aSeq(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    return aSeqLoop(new ACallable<Boolean>() {
-                        @Override
-                        public Promise<Boolean> call() throws Throwable {
-                            return aNow(producer).mapOutcome(new AFunction<Boolean, Outcome<OptionalValue<T>>>() {
-                                @Override
-                                public Promise<Boolean> apply(final Outcome<OptionalValue<T>> value) throws Throwable {
-                                    if (value.isSuccess() && value.value() != null && !value.value().hasValue()) {
-                                        return aFalse();
-                                    }
-                                    final Promise<X> previous = result.getValue();
-                                    result.setValue(aAll(new ACallable<X>() {
-                                        @Override
-                                        public Promise<X> call() throws Throwable {
-                                            return previous;
-                                        }
-                                    }).and(new ACallable<R>() {
-                                        @Override
-                                        public Promise<R> call() throws Throwable {
-                                            // it is either failure or success and the value is present
-                                            if (value.isSuccess()) {
-                                                return evaluate(value.force().value(), mapper);
-                                            } else {
-                                                return aFailure(value.failure());
-                                            }
-                                        }
-                                    }).unzip(folder));
-                                    return aTrue();
-                                }
-                            });
-                        }
-                    });
-                }
-            }).thenLastI(new ACallable<X>() {
-                @Override
-                public Promise<X> call() throws Throwable {
-                    return result.getValue();
-                }
-            });
-        }
-
-        /**
-         * @return promise for a list of values
-         */
-        public Promise<List<R>> toList() {
-            return leftFold(new ArrayList<R>(), new AFunction2<List<R>, List<R>, R>() {
-                @Override
-                public Promise<List<R>> apply(final List<R> result, final R item) throws Throwable {
-                    result.add(item);
-                    return aSuccess(result);
-                }
-            });
-        }
-
-
-        /**
-         * Transforms result to void.
-         *
-         * @return the promise for void value
-         */
-        public Promise<Void> toVoid() {
-            return leftFold(null, new AFunction2<Void, Void, R>() {
-                @Override
-                public Promise<Void> apply(final Void result, final R item) throws Throwable {
-                    return aVoid();
-                }
-            });
-        }
-
-        /**
-         * The initial action for this builder.
-         *
-         * @param <T> the produced item type
-         */
-        public static final class Start<T> {
-            /**
-             * The action that produces values.
-             */
-            private final ACallable<OptionalValue<T>> producer;
-
-            /**
-             * The constructor.
-             *
-             * @param producer the producer for values
-             */
-            public Start(final ACallable<OptionalValue<T>> producer) {
-                this.producer = producer;
-            }
-
-            /**
-             * Apply map action.
-             *
-             * @param mapper the mapper
-             * @param <R>    the result type
-             * @return the builder for the action.
-             */
-            public <R> AllForCallableBuilder<T, R> map(final AFunction<R, T> mapper) {
-                return new AllForCallableBuilder<T, R>(producer, mapper);
-            }
-
-            /**
-             * @return create new builder with identity mapper.
-             */
-            public AllForCallableBuilder<T, T> withIdentity() {
-                return map(CoreFunctionUtil.<T>identity());
-            }
         }
     }
 }

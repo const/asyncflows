@@ -3,8 +3,8 @@ package net.sf.asyncobjects.core;
 import net.sf.asyncobjects.core.vats.Vat;
 
 /**
- * An interface for objects that export self. The exporting object means that a proxy is created that is
- * delegating all calls to the specified vat.
+ * This interface must be implemented by all services that need to be exported for safe usage from other vats.
+ * If this interface is not implemented, it is assumed that object is safe to use on other vats.
  *
  * @param <T> the exported type
  */

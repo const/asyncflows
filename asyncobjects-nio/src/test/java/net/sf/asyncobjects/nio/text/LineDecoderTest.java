@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
-import static net.sf.asyncobjects.core.stream.StreamBuilder.forStream;
+import static net.sf.asyncobjects.core.stream.Streams.aForStream;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -22,7 +22,7 @@ public class LineDecoderTest {
         final List<String> result = doAsync(new ACallable<List<String>>() {
             @Override
             public Promise<List<String>> call() throws Throwable {
-                return forStream(LineDecoder.decodeLines(StringInput.wrap(input))).toList();
+                return aForStream(LineDecoder.decodeLines(StringInput.wrap(input))).toList();
             }
         });
         assertEquals(Arrays.asList("first", "", "", "", "fifth", "last"), result);
