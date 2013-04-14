@@ -45,7 +45,6 @@ public abstract class BufferOperations<B extends Buffer, A> {
             destination.put(source);
         }
     };
-
     /**
      * The operations for character buffers.
      */

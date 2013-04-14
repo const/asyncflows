@@ -53,7 +53,6 @@ public class AdaptersTest {
         assertArrayEquals(empty, result.getValue2());
     }
 
-
     @Test
     public void testStringCopy() {
         final CharBuffer buffer = CharBuffer.allocate(2);
@@ -94,7 +93,6 @@ public class AdaptersTest {
         assertEquals(test.length(), tuple2.getValue1().longValue());
         assertEquals(test, tuple2.getValue2());
     }
-
 
     /**
      * Execute copy test.

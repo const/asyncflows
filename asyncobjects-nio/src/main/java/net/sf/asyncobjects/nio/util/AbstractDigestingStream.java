@@ -19,13 +19,13 @@ import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
  */
 public abstract class AbstractDigestingStream<S extends ACloseable> extends ChainedClosable<S> {
     /**
-     * The digest resolver.
-     */
-    private AResolver<byte[]> digestResolver;
-    /**
      * The message digest to use.
      */
     private final MessageDigest digest;
+    /**
+     * The digest resolver.
+     */
+    private AResolver<byte[]> digestResolver;
 
     /**
      * The constructor from the underlying object.

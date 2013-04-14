@@ -52,6 +52,61 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
         this.includeNewLine = includeNewLine;
     }
 
+    /**
+     * <p>Check if codepoint is a new line. The Unicode standard specifies the following new lines.</p>
+     * <table>
+     * <tr><td>CR</td><td>carriage return</td><td>000D</td></tr>
+     * <tr><td>LF</td><td>line feed</td><td>000A</td></tr>
+     * <tr><td>CRLF</td><td> carriage return and    line feed</td><td>000D 000A</td></tr>
+     * <tr><td>NEL</td><td> next line </td><td>0085</td></tr>
+     * <tr><td>VT</td><td>vertical tab</td><td>000B</td></tr>
+     * <tr><td>FF</td><td> form feed</td><td> 000C</td></tr>
+     * <tr><td>LS</td><td> line separator</td><td>2028</td></tr>
+     * <tr><td>PS</td><td> paragraph separator</td><td>2029</td></tr>
+     * </table>
+     *
+     * @param codepoint the codepoint to check
+     * @return the new lines
+     */
+    private static boolean isNewline(final int codepoint) {
+        // CHECKSTYLE:OFF
+        switch (codepoint) {
+            case LF:     // Cc: LINE FEED (LF)
+            case 0x000B: // Cc: LINE TABULATION
+            case 0x000C: // Cc: FORM FEED (FF)
+            case CR:     // Cc: CARRIAGE RETURN (CR)
+            case 0x0085: // Cc: NEXT LINE (NEL)
+            case 0x2029: // Zp: PARAGRAPH SEPARATOR
+            case 0x2028: // Zl: LINE SEPARATOR
+                return true;
+            default:
+                return false;
+        }
+        // CHECKSTYLE:ON
+    }
+
+    /**
+     * Decode lines as stream.
+     *
+     * @param input  the input
+     * @param buffer the buffer to use
+     * @return the line stream
+     */
+    public static AStream<String> decodeLines(final AInput<CharBuffer> input, final CharBuffer buffer) {
+        return ObjectDecoderStream.decodeChars(input, new LineDecoder(false), buffer);
+
+    }
+
+    /**
+     * Decode lines as stream.
+     *
+     * @param input the input
+     * @return the line stream
+     */
+    public static AStream<String> decodeLines(final AInput<CharBuffer> input) {
+        return ObjectDecoderStream.decodeChars(input, new LineDecoder(false));
+    }
+
     @Override
     public String getObject() {
         if (status == DecodeResult.OBJECT_READY) {
@@ -120,60 +175,5 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
             }
         }
         return aSuccess(status);
-    }
-
-    /**
-     * <p>Check if codepoint is a new line. The Unicode standard specifies the following new lines.</p>
-     * <table>
-     * <tr><td>CR</td><td>carriage return</td><td>000D</td></tr>
-     * <tr><td>LF</td><td>line feed</td><td>000A</td></tr>
-     * <tr><td>CRLF</td><td> carriage return and    line feed</td><td>000D 000A</td></tr>
-     * <tr><td>NEL</td><td> next line </td><td>0085</td></tr>
-     * <tr><td>VT</td><td>vertical tab</td><td>000B</td></tr>
-     * <tr><td>FF</td><td> form feed</td><td> 000C</td></tr>
-     * <tr><td>LS</td><td> line separator</td><td>2028</td></tr>
-     * <tr><td>PS</td><td> paragraph separator</td><td>2029</td></tr>
-     * </table>
-     *
-     * @param codepoint the codepoint to check
-     * @return the new lines
-     */
-    private static boolean isNewline(final int codepoint) {
-        // CHECKSTYLE:OFF
-        switch (codepoint) {
-            case LF:     // Cc: LINE FEED (LF)
-            case 0x000B: // Cc: LINE TABULATION
-            case 0x000C: // Cc: FORM FEED (FF)
-            case CR:     // Cc: CARRIAGE RETURN (CR)
-            case 0x0085: // Cc: NEXT LINE (NEL)
-            case 0x2029: // Zp: PARAGRAPH SEPARATOR
-            case 0x2028: // Zl: LINE SEPARATOR
-                return true;
-            default:
-                return false;
-        }
-        // CHECKSTYLE:ON
-    }
-
-    /**
-     * Decode lines as stream.
-     *
-     * @param input  the input
-     * @param buffer the buffer to use
-     * @return the line stream
-     */
-    public static AStream<String> decodeLines(final AInput<CharBuffer> input, final CharBuffer buffer) {
-        return ObjectDecoderStream.decodeChars(input, new LineDecoder(false), buffer);
-
-    }
-
-    /**
-     * Decode lines as stream.
-     *
-     * @param input the input
-     * @return the line stream
-     */
-    public static AStream<String> decodeLines(final AInput<CharBuffer> input) {
-        return ObjectDecoderStream.decodeChars(input, new LineDecoder(false));
     }
 }

@@ -20,7 +20,6 @@ public final class SingleThreadVat extends BatchedVat {
      */
     private final AtomicBoolean stopped = new AtomicBoolean();
 
-
     /**
      * The constructor with the specified batch size.
      *

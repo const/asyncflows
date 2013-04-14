@@ -134,7 +134,6 @@ public final class ProducerUtil {
         };
     }
 
-
     /**
      * Provider a function that wraps a value into an option.
      *

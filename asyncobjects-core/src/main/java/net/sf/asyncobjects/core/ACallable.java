@@ -1,7 +1,7 @@
 package net.sf.asyncobjects.core;
 
 /**
- * An asynchronous runnable action.
+ * An asynchronous action that returns result.
  *
  * @param <T> the result type
  */

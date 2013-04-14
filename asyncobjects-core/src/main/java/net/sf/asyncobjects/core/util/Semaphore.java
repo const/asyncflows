@@ -14,13 +14,13 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
  */
 public final class Semaphore implements ASemaphore, ExportsSelf<ASemaphore> {
     /**
-     * The permits.
-     */
-    private int permits;
-    /**
      * The acquire requests.
      */
     private final RequestQueue requests = new RequestQueue();
+    /**
+     * The permits.
+     */
+    private int permits;
 
     /**
      * The constructor.

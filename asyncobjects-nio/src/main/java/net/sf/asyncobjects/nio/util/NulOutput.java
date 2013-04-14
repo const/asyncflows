@@ -19,6 +19,20 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
  * @param <B> the buffer type
  */
 public class NulOutput<B extends Buffer> extends CloseableBase implements AOutput<B>, ExportsSelf<AOutput<B>> {
+    /**
+     * @return null output for bytes
+     */
+    public static AOutput<ByteBuffer> bytes() {
+        return new NulOutput<ByteBuffer>().export();
+    }
+
+    /**
+     * @return null output for characters
+     */
+    public static AOutput<CharBuffer> chars() {
+        return new NulOutput<CharBuffer>().export();
+    }
+
     @Override
     public Promise<Void> write(final B buffer) {
         ensureOpen();
@@ -40,19 +54,5 @@ public class NulOutput<B extends Buffer> extends CloseableBase implements AOutpu
     @Override
     public AOutput<B> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * @return null output for bytes
-     */
-    public static AOutput<ByteBuffer> bytes() {
-        return new NulOutput<ByteBuffer>().export();
-    }
-
-    /**
-     * @return null output for characters
-     */
-    public static AOutput<CharBuffer> chars() {
-        return new NulOutput<CharBuffer>().export();
     }
 }

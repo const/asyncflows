@@ -38,6 +38,25 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
         super(wrapped, resolver, digest);
     }
 
+    /**
+     * Create a digest factory that digests input using the algorithm specified as the next call.
+     *
+     * @param input    the input
+     * @param resolver the resolver
+     * @return the digested input factory
+     */
+    public static DigestFactory<AInput<ByteBuffer>> digestInput(final AInput<ByteBuffer> input,
+                                                                final AResolver<byte[]> resolver) {
+        return new DigestFactory<AInput<ByteBuffer>>(input, resolver) {
+            @Override
+            protected AInput<ByteBuffer> make(final AInput<ByteBuffer> digestedStream,
+                                              final AResolver<byte[]> resolver,
+                                              final MessageDigest digest) {
+                return new DigestingInput(digestedStream, resolver, digest).export();
+            }
+        };
+    }
+
     @Override
     public Promise<Integer> read(final ByteBuffer buffer) {
         if (!isValidAndOpen()) {
@@ -68,7 +87,6 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
         });
     }
 
-
     @Override
     public AInput<ByteBuffer> export() {
         return export(Vat.current());
@@ -77,24 +95,5 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
     @Override
     public AInput<ByteBuffer> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * Create a digest factory that digests input using the algorithm specified as the next call.
-     *
-     * @param input    the input
-     * @param resolver the resolver
-     * @return the digested input factory
-     */
-    public static DigestFactory<AInput<ByteBuffer>> digestInput(final AInput<ByteBuffer> input,
-                                                                final AResolver<byte[]> resolver) {
-        return new DigestFactory<AInput<ByteBuffer>>(input, resolver) {
-            @Override
-            protected AInput<ByteBuffer> make(final AInput<ByteBuffer> digestedStream,
-                                              final AResolver<byte[]> resolver,
-                                              final MessageDigest digest) {
-                return new DigestingInput(digestedStream, resolver, digest).export();
-            }
-        };
     }
 }

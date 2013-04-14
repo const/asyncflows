@@ -34,7 +34,6 @@ public class IOUtil<B extends Buffer, A> {
      * Character version of IO utils.
      */
     public static final IOUtil<CharBuffer, char[]> CHAR = new IOUtil<CharBuffer, char[]>(BufferOperations.CHAR);
-
     /**
      * The buffer operations.
      */

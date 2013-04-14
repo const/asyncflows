@@ -33,7 +33,6 @@ public final class ResourceUtil {
         return new Try1<A>(openBody);
     }
 
-
     /**
      * Start building a try with resources.
      *
@@ -43,6 +42,53 @@ public final class ResourceUtil {
      */
     public static <A extends ACloseable> Try1<A> aTry(final Promise<A> openPromise) {
         return new Try1<A>(promiseCallable(openPromise));
+    }
+
+    /**
+     * Close the resource action.
+     *
+     * @param resourceCell the cell with resource
+     * @param <A>          the resource type
+     * @return the close resource action
+     */
+    private static <A extends ACloseable> ACallable<Void> closeResourceCellAction(final Cell<A> resourceCell) {
+        return new ACallable<Void>() {
+            @Override
+            public Promise<Void> call() throws Throwable {
+                if (resourceCell.isEmpty()) {
+                    return aVoid();
+                } else {
+                    return resourceCell.getValue().close();
+                }
+            }
+        };
+    }
+
+    /**
+     * Close object on the specified vat. This method is mostly used for proxy implementation.
+     *
+     * @param vat    the vat
+     * @param stream the object to close
+     * @return the promise that resolves when close is finished
+     */
+    public static Promise<Void> closeResource(final Vat vat, final ACloseable stream) {
+        return aLater(vat, closeResourceAction(stream));
+    }
+
+    /**
+     * Create an action that closes resource. This method is mostly used for utility classes that work
+     * with closeable resources.
+     *
+     * @param stream the closeable object
+     * @return the action that closes it
+     */
+    public static ACallable<Void> closeResourceAction(final ACloseable stream) {
+        return new ACallable<Void>() {
+            @Override
+            public Promise<Void> call() throws Throwable {
+                return stream.close();
+            }
+        };
     }
 
     /**
@@ -107,54 +153,6 @@ public final class ResourceUtil {
     }
 
     /**
-     * Close the resource action.
-     *
-     * @param resourceCell the cell with resource
-     * @param <A>          the resource type
-     * @return the close resource action
-     */
-    private static <A extends ACloseable> ACallable<Void> closeResourceCellAction(final Cell<A> resourceCell) {
-        return new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if (resourceCell.isEmpty()) {
-                    return aVoid();
-                } else {
-                    return resourceCell.getValue().close();
-                }
-            }
-        };
-    }
-
-    /**
-     * Close object on the specified vat. This method is mostly used for proxy implementation.
-     *
-     * @param vat    the vat
-     * @param stream the object to close
-     * @return the promise that resolves when close is finished
-     */
-    public static Promise<Void> closeResource(final Vat vat, final ACloseable stream) {
-        return aLater(vat, closeResourceAction(stream));
-    }
-
-    /**
-     * Create an action that closes resource. This method is mostly used for utility classes that work
-     * with closeable resources.
-     *
-     * @param stream the closeable object
-     * @return the action that closes it
-     */
-    public static ACallable<Void> closeResourceAction(final ACloseable stream) {
-        return new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return stream.close();
-            }
-        };
-    }
-
-
-    /**
      * The builder for two resource actions.
      *
      * @param <A> the first resource type
@@ -180,7 +178,6 @@ public final class ResourceUtil {
             this.outer = outer;
             this.openAction = openAction;
         }
-
 
         /**
          * Add new resource to open.
@@ -261,7 +258,6 @@ public final class ResourceUtil {
             this.outer = outer;
             this.openAction = openAction;
         }
-
 
         /**
          * Run body with two open resources.

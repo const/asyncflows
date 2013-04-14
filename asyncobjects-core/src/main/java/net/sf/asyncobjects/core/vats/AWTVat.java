@@ -14,32 +14,13 @@ public final class AWTVat extends Vat {
      */
     private static final Logger LOG = LoggerFactory.getLogger(AWTVat.class);
     /**
-     * AWT vat.
-     */
-    private static AWTVat vat;
-    /**
      * The lock.
      */
     private static final Object INIT_LOCK = new Object();
-
-    @Override
-    public void execute(final Vat currentVat, final Runnable action) {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    action.run();
-                } catch (Throwable t) {
-                    LOG.error("Failed to execute action on the vat", t);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void execute(final Runnable action) {
-        execute(null, action);
-    }
+    /**
+     * AWT vat.
+     */
+    private static AWTVat vat;
 
     /**
      * Get instance of AWT vat.
@@ -59,5 +40,24 @@ public final class AWTVat extends Vat {
             }
             return vat;
         }
+    }
+
+    @Override
+    public void execute(final Vat currentVat, final Runnable action) {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    action.run();
+                } catch (Throwable t) {
+                    LOG.error("Failed to execute action on the vat", t);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void execute(final Runnable action) {
+        execute(null, action);
     }
 }

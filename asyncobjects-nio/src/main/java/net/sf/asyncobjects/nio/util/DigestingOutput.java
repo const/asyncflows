@@ -37,6 +37,25 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
         super(wrapped, digestResolver, digest);
     }
 
+    /**
+     * Create a digest factory that digests output using the algorithm specified as the next call.
+     *
+     * @param output   the output
+     * @param resolver the resolver
+     * @return the digested output factory
+     */
+    public static DigestFactory<AOutput<ByteBuffer>> digestOutput(final AOutput<ByteBuffer> output,
+                                                                  final AResolver<byte[]> resolver) {
+        return new DigestFactory<AOutput<ByteBuffer>>(output, resolver) {
+            @Override
+            protected AOutput<ByteBuffer> make(final AOutput<ByteBuffer> digestedStream,
+                                               final AResolver<byte[]> resolver,
+                                               final MessageDigest digest) {
+                return new DigestingOutput(digestedStream, resolver, digest).export();
+            }
+        };
+    }
+
     @Override
     public Promise<Void> write(final ByteBuffer buffer) {
         final int positionBeforeWrite = buffer.position();
@@ -73,25 +92,6 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
     @Override
     public AOutput<ByteBuffer> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * Create a digest factory that digests output using the algorithm specified as the next call.
-     *
-     * @param output   the output
-     * @param resolver the resolver
-     * @return the digested output factory
-     */
-    public static DigestFactory<AOutput<ByteBuffer>> digestOutput(final AOutput<ByteBuffer> output,
-                                                                  final AResolver<byte[]> resolver) {
-        return new DigestFactory<AOutput<ByteBuffer>>(output, resolver) {
-            @Override
-            protected AOutput<ByteBuffer> make(final AOutput<ByteBuffer> digestedStream,
-                                               final AResolver<byte[]> resolver,
-                                               final MessageDigest digest) {
-                return new DigestingOutput(digestedStream, resolver, digest).export();
-            }
-        };
     }
 
 }

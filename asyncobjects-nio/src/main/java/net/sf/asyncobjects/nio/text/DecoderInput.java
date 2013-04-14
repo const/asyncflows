@@ -69,6 +69,59 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
         this.bytes = bytes;
     }
 
+    /**
+     * Get decoder input.
+     *
+     * @param input   the input to decode
+     * @param decoder the decoder
+     * @param bytes   the byte buffer used to decode
+     * @return the decoded text stream
+     */
+    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input,
+                                            final CharsetDecoder decoder, final ByteBuffer bytes) {
+        return new DecoderInput(input, decoder, bytes).export();
+    }
+
+    /**
+     * Get decoder input.
+     *
+     * @param input      the input to decode
+     * @param charset    the character set
+     * @param bufferSize the buffer size
+     * @return the decoded text stream
+     */
+    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input,
+                                            final Charset charset, final int bufferSize) {
+        final ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+        buffer.limit(0);
+        final CharsetDecoder charsetDecoder = charset.newDecoder();
+        charsetDecoder.onMalformedInput(CodingErrorAction.REPLACE);
+        charsetDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
+        return decode(input, charsetDecoder, buffer);
+    }
+
+    /**
+     * Get decoder input.
+     *
+     * @param input   the input to decode
+     * @param charset the character set
+     * @return the decoded text stream
+     */
+    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input, final Charset charset) {
+        return decode(input, charset, IOUtil.DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Get decoder input.
+     *
+     * @param input    the input to decode
+     * @param encoding the character set
+     * @return the decoded text stream
+     */
+    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input, final String encoding) {
+        return decode(input, Charset.forName(encoding));
+    }
+
     @Override
     public Promise<Integer> read(final CharBuffer buffer) { // NOPMD
         return requests.run(new ACallable<Integer>() {
@@ -143,58 +196,5 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
     @Override
     public AInput<CharBuffer> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * Get decoder input.
-     *
-     * @param input   the input to decode
-     * @param decoder the decoder
-     * @param bytes   the byte buffer used to decode
-     * @return the decoded text stream
-     */
-    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input,
-                                            final CharsetDecoder decoder, final ByteBuffer bytes) {
-        return new DecoderInput(input, decoder, bytes).export();
-    }
-
-    /**
-     * Get decoder input.
-     *
-     * @param input      the input to decode
-     * @param charset    the character set
-     * @param bufferSize the buffer size
-     * @return the decoded text stream
-     */
-    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input,
-                                            final Charset charset, final int bufferSize) {
-        final ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
-        buffer.limit(0);
-        final CharsetDecoder charsetDecoder = charset.newDecoder();
-        charsetDecoder.onMalformedInput(CodingErrorAction.REPLACE);
-        charsetDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-        return decode(input, charsetDecoder, buffer);
-    }
-
-    /**
-     * Get decoder input.
-     *
-     * @param input   the input to decode
-     * @param charset the character set
-     * @return the decoded text stream
-     */
-    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input, final Charset charset) {
-        return decode(input, charset, IOUtil.DEFAULT_BUFFER_SIZE);
-    }
-
-    /**
-     * Get decoder input.
-     *
-     * @param input    the input to decode
-     * @param encoding the character set
-     * @return the decoded text stream
-     */
-    public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input, final String encoding) {
-        return decode(input, Charset.forName(encoding));
     }
 }

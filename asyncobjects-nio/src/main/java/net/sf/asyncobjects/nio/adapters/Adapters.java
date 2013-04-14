@@ -98,7 +98,6 @@ public final class Adapters {
         return adapter.export();
     }
 
-
     /**
      * Byte array input stream.
      *

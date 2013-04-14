@@ -71,7 +71,6 @@ public final class AsyncControl {
         return value ? TRUE_PROMISE : FALSE_PROMISE;
     }
 
-
     /**
      * An operation that fails with the specified problem.
      *
@@ -82,7 +81,6 @@ public final class AsyncControl {
     public static <T> Promise<T> aFailure(final Throwable problem) {
         return Promise.failure(problem);
     }
-
 
     /**
      * An operation that fails with the specified problem.
@@ -173,7 +171,6 @@ public final class AsyncControl {
         vat.execute(action);
     }
 
-
     /**
      * Set action to the current vat.
      *
@@ -183,7 +180,6 @@ public final class AsyncControl {
         final Vat vat = Vat.current();
         vat.execute(vat, action);
     }
-
 
     /**
      * Execute body with throwable.

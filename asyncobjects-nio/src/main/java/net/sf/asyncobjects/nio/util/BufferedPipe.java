@@ -67,6 +67,30 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
     }
 
     /**
+     * Allocate byte pipe.
+     *
+     * @param size the pipe size
+     * @return the pipe working on the current vat
+     */
+    public static AChannel<ByteBuffer> bytePipe(final int size) {
+        final ByteBuffer buffer = ByteBuffer.allocate(size);
+        buffer.limit(0);
+        return new BufferedPipe<ByteBuffer>(BufferOperations.BYTE, buffer).export();
+    }
+
+    /**
+     * Allocate character pipe.
+     *
+     * @param size the pipe size
+     * @return the pipe working on the current vat
+     */
+    public static AChannel<CharBuffer> charPipe(final int size) {
+        final CharBuffer buffer = CharBuffer.allocate(size);
+        buffer.limit(0);
+        return new BufferedPipe<CharBuffer>(BufferOperations.CHAR, buffer).export();
+    }
+
+    /**
      * @return the input for the channel.
      */
     @Override
@@ -217,7 +241,6 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
             });
         }
 
-
         /**
          * Create a failure.
          *
@@ -235,29 +258,5 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
         private Promise<Boolean> outputClosed() {
             return aFailure(new IllegalStateException("The output stream is closed"));
         }
-    }
-
-    /**
-     * Allocate byte pipe.
-     *
-     * @param size the pipe size
-     * @return the pipe working on the current vat
-     */
-    public static AChannel<ByteBuffer> bytePipe(final int size) {
-        final ByteBuffer buffer = ByteBuffer.allocate(size);
-        buffer.limit(0);
-        return new BufferedPipe<ByteBuffer>(BufferOperations.BYTE, buffer).export();
-    }
-
-    /**
-     * Allocate character pipe.
-     *
-     * @param size the pipe size
-     * @return the pipe working on the current vat
-     */
-    public static AChannel<CharBuffer> charPipe(final int size) {
-        final CharBuffer buffer = CharBuffer.allocate(size);
-        buffer.limit(0);
-        return new BufferedPipe<CharBuffer>(BufferOperations.CHAR, buffer).export();
     }
 }

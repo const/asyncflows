@@ -53,7 +53,6 @@ public final class FunctionUtil {
         };
     }
 
-
     /**
      * Build a two argument function from one argument function that. The resulting function uses the second
      * argument as input.

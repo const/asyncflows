@@ -69,6 +69,73 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
         this.chars = chars;
     }
 
+    /**
+     * The character set encoder.
+     *
+     * @param output  the input
+     * @param encoder the encoder
+     * @param bytes   the byte buffer to use (ready for put)
+     * @param chars   the character buffer to use (ready for get)
+     * @return the encoder
+     */
+    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
+                                             final ByteBuffer bytes, final CharBuffer chars) {
+        return new EncoderOutput(output, encoder, bytes, chars).export();
+    }
+
+    /**
+     * The character set encoder.
+     *
+     * @param output     the input
+     * @param encoder    the encoder
+     * @param bufferSize the character buffer size (byte buffer size is derived from it using
+     *                   {@link java.nio.charset.CharsetEncoder#averageBytesPerChar()})
+     * @return the encoder
+     */
+    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
+                                             final int bufferSize) {
+        final CharBuffer chars = CharBuffer.allocate(bufferSize);
+        chars.limit(0);
+        final ByteBuffer bytes = ByteBuffer.allocate((int) (bufferSize * encoder.averageBytesPerChar()) + BUFFER_PAD);
+        return encode(output, encoder, bytes, chars);
+    }
+
+    /**
+     * The character set encoder.
+     *
+     * @param output     the input
+     * @param charset    the character set
+     * @param bufferSize the character buffer size (byte buffer size is derived from it using
+     *                   {@link java.nio.charset.CharsetEncoder#averageBytesPerChar()})
+     * @return the encoder
+     */
+    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final Charset charset,
+                                             final int bufferSize) {
+        return encode(output, charset.newEncoder(), bufferSize);
+    }
+
+    /**
+     * The character set encoder.
+     *
+     * @param output  the input
+     * @param charset the character set
+     * @return the encoder
+     */
+    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final Charset charset) {
+        return encode(output, charset, IOUtil.DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * The character set encoder.
+     *
+     * @param output   the input
+     * @param encoding the encoding name
+     * @return the encoder
+     */
+    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final String encoding) {
+        return encode(output, Charset.forName(encoding));
+    }
+
     @Override
     public Promise<Void> write(final CharBuffer buffer) {
         return requests.run(new ACallable<Void>() {
@@ -170,72 +237,5 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
     @Override
     public AOutput<CharBuffer> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * The character set encoder.
-     *
-     * @param output  the input
-     * @param encoder the encoder
-     * @param bytes   the byte buffer to use (ready for put)
-     * @param chars   the character buffer to use (ready for get)
-     * @return the encoder
-     */
-    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
-                                             final ByteBuffer bytes, final CharBuffer chars) {
-        return new EncoderOutput(output, encoder, bytes, chars).export();
-    }
-
-    /**
-     * The character set encoder.
-     *
-     * @param output     the input
-     * @param encoder    the encoder
-     * @param bufferSize the character buffer size (byte buffer size is derived from it using
-     *                   {@link java.nio.charset.CharsetEncoder#averageBytesPerChar()})
-     * @return the encoder
-     */
-    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
-                                             final int bufferSize) {
-        final CharBuffer chars = CharBuffer.allocate(bufferSize);
-        chars.limit(0);
-        final ByteBuffer bytes = ByteBuffer.allocate((int) (bufferSize * encoder.averageBytesPerChar()) + BUFFER_PAD);
-        return encode(output, encoder, bytes, chars);
-    }
-
-    /**
-     * The character set encoder.
-     *
-     * @param output     the input
-     * @param charset    the character set
-     * @param bufferSize the character buffer size (byte buffer size is derived from it using
-     *                   {@link java.nio.charset.CharsetEncoder#averageBytesPerChar()})
-     * @return the encoder
-     */
-    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final Charset charset,
-                                             final int bufferSize) {
-        return encode(output, charset.newEncoder(), bufferSize);
-    }
-
-    /**
-     * The character set encoder.
-     *
-     * @param output  the input
-     * @param charset the character set
-     * @return the encoder
-     */
-    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final Charset charset) {
-        return encode(output, charset, IOUtil.DEFAULT_BUFFER_SIZE);
-    }
-
-    /**
-     * The character set encoder.
-     *
-     * @param output   the input
-     * @param encoding the encoding name
-     * @return the encoder
-     */
-    public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final String encoding) {
-        return encode(output, Charset.forName(encoding));
     }
 }

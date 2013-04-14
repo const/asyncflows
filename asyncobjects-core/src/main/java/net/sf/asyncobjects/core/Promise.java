@@ -39,6 +39,42 @@ public final class Promise<T> {
     private ListenerCell<T> listenersTail;
 
     /**
+     * The success promise.
+     *
+     * @param value the value
+     * @param <T>   the value type
+     * @return the promise resolved to the specified outcome
+     */
+    public static <T> Promise<T> success(final T value) {
+        return forOutcome(new Success<T>(value));
+    }
+
+    /**
+     * The failure promise.
+     *
+     * @param problem the problem
+     * @param <T>     the value type
+     * @return the promise resolved to the failure
+     */
+    public static <T> Promise<T> failure(final Throwable problem) {
+        return forOutcome(new Failure<T>(problem));
+    }
+
+    /**
+     * The promise with the specified outcome.
+     *
+     * @param outcome outcome
+     * @param <T>     the value type
+     * @return the promise
+     */
+    public static <T> Promise<T> forOutcome(final Outcome<T> outcome) {
+        final Promise<T> promise = new Promise<T>();
+        promise.state = State.RESOLVED;
+        promise.outcome = outcome;
+        return promise;
+    }
+
+    /**
      * @return the state of the promise
      */
     public State getState() {
@@ -73,7 +109,6 @@ public final class Promise<T> {
         });
     }
 
-
     /**
      * Execute action after this promise finishes successfully. It is used instead of {@link #map(AFunction)},
      * when the result of executing this promise is not needed for the next action (for example if it is
@@ -98,7 +133,6 @@ public final class Promise<T> {
         });
         return promise;
     }
-
 
     /**
      * Map the promise. In case of the failure, the body is not called.
@@ -203,40 +237,16 @@ public final class Promise<T> {
         return this;
     }
 
-    /**
-     * The success promise.
-     *
-     * @param value the value
-     * @param <T>   the value type
-     * @return the promise resolved to the specified outcome
-     */
-    public static <T> Promise<T> success(final T value) {
-        return forOutcome(new Success<T>(value));
-    }
-
-    /**
-     * The failure promise.
-     *
-     * @param problem the problem
-     * @param <T>     the value type
-     * @return the promise resolved to the failure
-     */
-    public static <T> Promise<T> failure(final Throwable problem) {
-        return forOutcome(new Failure<T>(problem));
-    }
-
-    /**
-     * The promise with the specified outcome.
-     *
-     * @param outcome outcome
-     * @param <T>     the value type
-     * @return the promise
-     */
-    public static <T> Promise<T> forOutcome(final Outcome<T> outcome) {
-        final Promise<T> promise = new Promise<T>();
-        promise.state = State.RESOLVED;
-        promise.outcome = outcome;
-        return promise;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Promise{");
+        if (state == State.RESOLVED) {
+            sb.append(outcome);
+        } else {
+            sb.append(state);
+        }
+        sb.append('}');
+        return sb.toString();
     }
 
     /**
@@ -280,17 +290,5 @@ public final class Promise<T> {
         private ListenerCell(final AResolver<? super A> resolver) {
             this.listener = resolver;
         }
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Promise{");
-        if (state == State.RESOLVED) {
-            sb.append(outcome);
-        } else {
-            sb.append(state);
-        }
-        sb.append('}');
-        return sb.toString();
     }
 }

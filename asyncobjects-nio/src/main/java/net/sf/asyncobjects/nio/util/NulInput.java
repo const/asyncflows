@@ -20,6 +20,20 @@ import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
  */
 public class NulInput<B extends Buffer> extends CloseableBase implements AInput<B>, ExportsSelf<AInput<B>> {
 
+    /**
+     * @return null input for bytes
+     */
+    public static AInput<ByteBuffer> bytes() {
+        return new NulInput<ByteBuffer>().export();
+    }
+
+    /**
+     * @return null input for characters
+     */
+    public static AInput<CharBuffer> chars() {
+        return new NulInput<CharBuffer>().export();
+    }
+
     @Override
     public Promise<Integer> read(final B buffer) {
         ensureOpen();
@@ -34,19 +48,5 @@ public class NulInput<B extends Buffer> extends CloseableBase implements AInput<
     @Override
     public AInput<B> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * @return null input for bytes
-     */
-    public static AInput<ByteBuffer> bytes() {
-        return new NulInput<ByteBuffer>().export();
-    }
-
-    /**
-     * @return null input for characters
-     */
-    public static AInput<CharBuffer> chars() {
-        return new NulInput<CharBuffer>().export();
     }
 }

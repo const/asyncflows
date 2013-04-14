@@ -25,6 +25,10 @@ public abstract class BatchedVat extends Vat {
      */
     private final Object lock = new Object();
     /**
+     * The batch size to execute.
+     */
+    private final int batchSize;
+    /**
      * The synchronized head, used for access from other vats.
      */
     private Cell head;
@@ -40,10 +44,6 @@ public abstract class BatchedVat extends Vat {
      * Execution tail, used for access from this vat.
      */
     private Cell execTail;
-    /**
-     * The batch size to execute.
-     */
-    private final int batchSize;
     /**
      * The amount of optimized entries to add before, list is added.
      */
@@ -68,7 +68,6 @@ public abstract class BatchedVat extends Vat {
     protected BatchedVat(final int maxBatchSize) {
         this.batchSize = maxBatchSize;
     }
-
 
     /**
      * Execute the action, this method allows vats to execute actions faster

@@ -32,6 +32,20 @@ public class NulChannel<B extends Buffer> extends CloseableBase implements AChan
      */
     private final AOutput<B> output = new NulOutput<B>().export();
 
+    /**
+     * @return null input for bytes
+     */
+    public static AChannel<ByteBuffer> bytes() {
+        return new NulChannel<ByteBuffer>().export();
+    }
+
+    /**
+     * @return null input for characters
+     */
+    public static AChannel<CharBuffer> chars() {
+        return new NulChannel<CharBuffer>().export();
+    }
+
     @Override
     public AChannel<B> export() {
         return export(Vat.current());
@@ -55,19 +69,5 @@ public class NulChannel<B extends Buffer> extends CloseableBase implements AChan
     @Override
     protected Promise<Void> closeAction() {
         return aAll(closeResourceAction(input)).andLast(closeResourceAction(output)).toUnit();
-    }
-
-    /**
-     * @return null input for bytes
-     */
-    public static AChannel<ByteBuffer> bytes() {
-        return new NulChannel<ByteBuffer>().export();
-    }
-
-    /**
-     * @return null input for characters
-     */
-    public static AChannel<CharBuffer> chars() {
-        return new NulChannel<CharBuffer>().export();
     }
 }

@@ -30,6 +30,16 @@ public class StringInput extends CloseableBase implements AInput<CharBuffer>, Ex
         this.data = data;
     }
 
+    /**
+     * Wrap character sequence into the input.
+     *
+     * @param chars the characters to wrap
+     * @return the input
+     */
+    public static AInput<CharBuffer> wrap(final CharSequence chars) {
+        return new StringInput(CharBuffer.wrap(chars)).export();
+    }
+
     @Override
     public Promise<Integer> read(final CharBuffer buffer) {
         ensureOpen();
@@ -48,15 +58,5 @@ public class StringInput extends CloseableBase implements AInput<CharBuffer>, Ex
     @Override
     public AInput<CharBuffer> export(final Vat vat) {
         return NIOExportUtil.export(vat, this);
-    }
-
-    /**
-     * Wrap character sequence into the input.
-     *
-     * @param chars the characters to wrap
-     * @return the input
-     */
-    public static AInput<CharBuffer> wrap(final CharSequence chars) {
-        return new StringInput(CharBuffer.wrap(chars)).export();
     }
 }
