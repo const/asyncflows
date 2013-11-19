@@ -191,8 +191,8 @@ public final class ResourceUtil {
         }
 
         /**
-         * Add new resource to open (the case of {@link #andChainBoth(AFunction2)} that depends o
-         * n the second resource only.
+         * Add new resource to open (the case of {@link #andChainBoth(AFunction2)} that depends on
+         * the second resource only.
          *
          * @param otherOpen other open operation
          * @param <C>       the other resource type
@@ -200,6 +200,18 @@ public final class ResourceUtil {
          */
         public <C extends ACloseable> Try3<A, B, C> andChainSecond(final AFunction<C, B> otherOpen) {
             return andChainBoth(FunctionUtil.<C, A, B>useUseSecondArg(otherOpen));
+        }
+
+        /**
+         * Add new resource to open (the case of {@link #andChainBoth(AFunction2)} that depends on
+         * the first resource only.
+         *
+         * @param otherOpen other open operation
+         * @param <C>       the other resource type
+         * @return the next builder
+         */
+        public <C extends ACloseable> Try3<A, B, C> andChainFirst(final AFunction<C, A> otherOpen) {
+            return andChainBoth(FunctionUtil.<C, A, B>useUseFirstArg(otherOpen));
         }
 
         /**

@@ -72,4 +72,23 @@ public final class FunctionUtil {
         };
     }
 
+    /**
+     * Build a two argument function from one argument function that. The resulting function uses the first
+     * argument as input.
+     *
+     * @param function input function
+     * @param <R>      the result type
+     * @param <A>      the first argument type
+     * @param <B>      the second argument type
+     * @return the result function
+     */
+    public static <R, A, B> AFunction2<R, A, B> useUseFirstArg(final AFunction<R, A> function) {
+        return new AFunction2<R, A, B>() {
+            @Override
+            public Promise<R> apply(final A value1, final B value2) throws Throwable {
+                return function.apply(value1);
+            }
+        };
+    }
+
 }

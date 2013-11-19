@@ -19,6 +19,18 @@ import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
  */
 public abstract class AbstractDigestingStream<S extends ACloseable> extends ChainedClosable<S> {
     /**
+     * The MD5 digest name.
+     */
+    public static final String MD5 = "MD5";
+    /**
+     * The SHA-256 digest name.
+     */
+    public static final String SHA_256 = "SHA-256";
+    /**
+     * The SHA-1 digest name.
+     */
+    public static final String SHA_1 = "SHA-1";
+    /**
      * The message digest to use.
      */
     private final MessageDigest digest;
@@ -144,21 +156,21 @@ public abstract class AbstractDigestingStream<S extends ACloseable> extends Chai
          * @return stream digested using SHA-1
          */
         public final S sha1() {
-            return using("SHA-1");
+            return using(SHA_1);
         }
 
         /**
          * @return stream digested using SHA-256
          */
         public final S sha256() {
-            return using("SHA-256");
+            return using(SHA_256);
         }
 
         /**
          * @return stream digested using MD5
          */
         public final S md5() {
-            return using("SHA-256");
+            return using(MD5);
         }
     }
 }

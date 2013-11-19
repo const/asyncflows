@@ -1,5 +1,6 @@
 package net.sf.asyncobjects.core;
 
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.SingleThreadVat;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -194,25 +195,24 @@ public final class AsyncControl {
      * @return the result value
      * @throws Throwable the problem if there is any
      */
-    @SuppressWarnings("unchecked")
     public static <T> T doAsyncThrowable(final ACallable<T> body) throws Throwable {
         final Object stopKey = new Object();
         final SingleThreadVat vat = new SingleThreadVat(stopKey);
-        final Outcome[] value = new Outcome[1];
+        final Cell<Outcome<T>> value = new Cell<Outcome<T>>();
         vat.execute(vat, new Runnable() {
             @Override
             public void run() {
                 aNow(body).listen(new AResolver<T>() {
                     @Override
                     public void resolve(final Outcome<T> resolution) throws Throwable {
-                        value[0] = resolution;
+                        value.setValue(resolution);
                         vat.stop(stopKey);
                     }
                 });
             }
         });
         vat.runInCurrentThread();
-        return (T) value[0].force();
+        return value.getValue().force();
     }
 
     /**
@@ -248,13 +248,13 @@ public final class AsyncControl {
     }
 
     /**
-     * The maybe with value
+     * The maybe with value.
      *
      * @param value the value
      * @param <T>   the type
      * @return the maybe with value
      */
-    public static <T> Promise<Maybe<T>> aMaybeValue(T value) {
+    public static <T> Promise<Maybe<T>> aMaybeValue(final T value) {
         return aSuccess(Maybe.value(value));
     }
 }

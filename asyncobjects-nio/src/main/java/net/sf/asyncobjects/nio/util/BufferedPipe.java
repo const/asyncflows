@@ -210,6 +210,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                             if (!buffer.hasRemaining()) {
                                 return aFalse();
                             }
+                            input.requests.resume();
                             return requests.suspendThenTrue();
                         }
                     });

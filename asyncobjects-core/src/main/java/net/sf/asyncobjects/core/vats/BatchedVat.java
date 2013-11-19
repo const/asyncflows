@@ -125,7 +125,7 @@ public abstract class BatchedVat extends Vat {
 
     @Override
     public final void execute(final Runnable action) {
-        execute(Vat.current(), action);
+        execute(null, action);
     }
 
     /**
@@ -135,9 +135,12 @@ public abstract class BatchedVat extends Vat {
 
     /**
      * Run a batch and leave.
+     *
+     * @return true if the vat is scheduled
      */
-    protected final void runBatch() {
+    protected final boolean runBatch() {
         enter();
+        boolean scheduleNeeded;
         try {
             for (int step = batchSize; step > 0; step--) {
                 Cell current = execHead;
@@ -145,7 +148,7 @@ public abstract class BatchedVat extends Vat {
                     synchronized (lock) {
                         current = head;
                         if (current == null) {
-                            return;
+                            break;
                         }
                         if (current.next != null) {
                             execHead = current.next;
@@ -172,17 +175,15 @@ public abstract class BatchedVat extends Vat {
             }
         } finally {
             leave();
-            boolean scheduleNeeded;
             synchronized (lock) {
                 scheduleNeeded = !this.scheduled && (execHead != null || head != null);
-                if (scheduleNeeded) {
-                    this.scheduled = true;
-                }
+                this.scheduled = scheduleNeeded;
             }
             if (scheduleNeeded) {
                 schedule();
             }
         }
+        return scheduleNeeded;
     }
 
     /**

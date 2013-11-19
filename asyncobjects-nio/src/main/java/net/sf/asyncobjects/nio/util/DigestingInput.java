@@ -8,6 +8,7 @@ import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.ByteBuffer;
@@ -15,6 +16,7 @@ import java.security.MessageDigest;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 
 /**
  * The input that forwards requests further and digests the input.
@@ -55,6 +57,20 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
                 return new DigestingInput(digestedStream, resolver, digest).export();
             }
         };
+    }
+
+    /**
+     * Digest the input and discard.
+     *
+     * @param input  the input stream
+     * @param digest the digest name
+     * @return the digest
+     */
+    public static Promise<byte[]> digestAndDiscardInput(final AInput<ByteBuffer> input, final String digest) {
+        final Promise<byte[]> rc = new Promise<byte[]>();
+        final ByteBuffer buffer = ByteBuffer.allocate(1024);
+        return IOUtil.BYTE.discard(digestInput(input, rc.resolver()).using(digest), buffer)
+                .then(promiseCallable(rc));
     }
 
     @Override

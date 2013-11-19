@@ -28,7 +28,7 @@ public final class StreamExportUtil {
      */
     public static <T> AStream<T> export(final Vat vat, final AStream<T> stream) {
         return new AStream<T>() {
-            final ACallable<Maybe<T>> nextElement = StreamUtil.producerFromStream(stream);
+            private final ACallable<Maybe<T>> nextElement = StreamUtil.producerFromStream(stream);
 
             @Override
             public Promise<Maybe<T>> next() {

@@ -5,6 +5,7 @@ import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
+import net.sf.asyncobjects.core.util.ResourceUtil;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -13,6 +14,7 @@ import java.nio.CharBuffer;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -46,6 +48,28 @@ public class IOUtil<B extends Buffer, A> {
      */
     public IOUtil(final BufferOperations<B, A> operations) {
         this.operations = operations;
+    }
+
+    /**
+     * Try action for the channel.
+     *
+     * @param channel the channel
+     * @param <C>     the channel type
+     * @return the action
+     */
+    public <C extends AChannel<B>> ResourceUtil.Try3<C, AInput<B>, AOutput<B>> tryChannel(final ACallable<C> channel) {
+        return aTry(channel).andChain(new AFunction<AInput<B>, C>() {
+            @Override
+            public Promise<AInput<B>> apply(final C value) throws Throwable {
+                return value.getInput();
+            }
+        }).andChainFirst(new AFunction<AOutput<B>, C>() {
+            @Override
+            public Promise<AOutput<B>> apply(final C value) throws Throwable {
+                return value.getOutput();
+            }
+        });
+
     }
 
     /**
