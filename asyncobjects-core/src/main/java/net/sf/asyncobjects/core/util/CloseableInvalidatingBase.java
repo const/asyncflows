@@ -132,4 +132,11 @@ public class CloseableInvalidatingBase extends CloseableBase {
         }
         return aFailure(new IllegalStateException("The object is neither invalid nor closed"));
     }
+
+    /**
+     * @return the invalidation value
+     */
+    protected final Throwable invalidation() {
+        return invalidation;
+    }
 }

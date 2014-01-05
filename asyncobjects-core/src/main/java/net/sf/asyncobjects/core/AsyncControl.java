@@ -4,8 +4,12 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.SingleThreadVat;
 import net.sf.asyncobjects.core.vats.Vat;
+import net.sf.asyncobjects.core.vats.Vats;
 
 import java.lang.reflect.UndeclaredThrowableException;
+
+import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
+import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
 /**
  * The asynchronous control flow utilities.
@@ -185,6 +189,30 @@ public final class AsyncControl {
     public static void aSend(final Runnable action) {
         final Vat vat = Vat.current();
         vat.execute(vat, action);
+    }
+
+    /**
+     * Run action on the daemon executor and resolve promise when that action finishes.
+     *
+     * @param action the action to execute (the action will not have a vat context)
+     * @return promise that resolves to the result of the execution
+     */
+    public static Promise<Void> aDaemonRun(final Runnable action) {
+        final Promise<Void> rc = new Promise<Void>();
+        final AResolver<Void> resolver = rc.resolver();
+        Vats.DAEMON_EXECUTOR.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    action.run();
+                } catch (Throwable t) {
+                    notifyFailure(resolver, t);
+                    return;
+                }
+                notifySuccess(resolver, null);
+            }
+        });
+        return rc;
     }
 
     /**

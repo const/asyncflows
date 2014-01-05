@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 
 /**
@@ -132,6 +133,17 @@ public final class Promise<T> {
             }
         });
         return promise;
+    }
+
+    /**
+     * Return promise that resolves to the specified value after current promise resolves.
+     *
+     * @param value the value
+     * @param <X>   the value type
+     * @return the promise
+     */
+    public <X> Promise<X> thenValue(final X value) {
+        return then(constantCallable(value));
     }
 
     /**

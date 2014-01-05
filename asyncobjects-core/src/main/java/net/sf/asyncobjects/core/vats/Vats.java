@@ -13,7 +13,7 @@ public final class Vats {
     /**
      * Daemon executor.
      */
-    private static final ExecutorService DAEMON_EXECUTOR =
+    public static final ExecutorService DAEMON_EXECUTOR =
             Executors.newCachedThreadPool(new ThreadFactory() {
                 private final AtomicInteger threadCount = new AtomicInteger(0);
 
