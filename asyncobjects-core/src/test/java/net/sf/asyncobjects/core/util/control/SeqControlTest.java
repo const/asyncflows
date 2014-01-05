@@ -40,13 +40,13 @@ public class SeqControlTest {
                         list.add(1);
                         return aSuccess(1);
                     }
-                }).then(new AFunction<Object, Integer>() {
+                }).map(new AFunction<Object, Integer>() {
                     @Override
                     public Promise<Object> apply(final Integer value) throws Throwable {
                         list.add(value + 1);
                         throw new IllegalStateException();
                     }
-                }).thenI(new ACallable<Integer>() {
+                }).then(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
                         // never called
@@ -83,7 +83,7 @@ public class SeqControlTest {
                     public Promise<Integer> call() throws Exception {
                         return aSuccess(42);
                     }
-                }).then(new AFunction<String, Integer>() {
+                }).map(new AFunction<String, Integer>() {
                     @Override
                     public Promise<String> apply(final Integer value) throws Throwable {
                         return aLater(new ACallable<String>() {

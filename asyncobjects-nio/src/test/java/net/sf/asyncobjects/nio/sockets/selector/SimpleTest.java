@@ -55,7 +55,7 @@ public class SimpleTest {
                                     }
                                 });
                             }
-                        }).thenLast(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, SocketAddress>() {
+                        }).mapLast(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, SocketAddress>() {
                             @Override
                             public Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> apply(final SocketAddress socketAddress) throws Throwable {
                                 return aAll(new ACallable<Long>() {

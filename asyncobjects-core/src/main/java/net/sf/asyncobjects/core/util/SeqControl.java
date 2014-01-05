@@ -145,7 +145,7 @@ public final class SeqControl {
          * @param <N>    the next type
          * @return the sequence builder with next step
          */
-        public <N> SeqBuilder<N> then(final AFunction<N, T> mapper) {
+        public <N> SeqBuilder<N> map(final AFunction<N, T> mapper) {
             return new SeqBuilder<N>(new ACallable<N>() {
                 @Override
                 public Promise<N> call() throws Throwable {
@@ -161,8 +161,8 @@ public final class SeqControl {
          * @param <N>    the next type
          * @return the sequence builder with next step
          */
-        public <N> Promise<N> thenLast(final AFunction<N, T> mapper) {
-            return then(mapper).finish();
+        public <N> Promise<N> mapLast(final AFunction<N, T> mapper) {
+            return map(mapper).finish();
         }
 
         /**
@@ -172,8 +172,8 @@ public final class SeqControl {
          * @param <N>        the next type
          * @return the sequence builder with next step
          */
-        public <N> SeqBuilder<N> thenI(final ACallable<N> nextAction) {
-            return then(new AFunction<N, T>() {
+        public <N> SeqBuilder<N> then(final ACallable<N> nextAction) {
+            return map(new AFunction<N, T>() {
                 @Override
                 public Promise<N> apply(final T value) throws Throwable {
                     return aNow(nextAction);
@@ -188,8 +188,8 @@ public final class SeqControl {
          * @param <N>        the next type
          * @return the sequence builder with next step
          */
-        public <N> Promise<N> thenLastI(final ACallable<N> nextAction) {
-            return thenI(nextAction).finish();
+        public <N> Promise<N> thenLast(final ACallable<N> nextAction) {
+            return then(nextAction).finish();
         }
 
         /**

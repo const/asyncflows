@@ -219,7 +219,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         input.reads.resume();
         tasks.resume();
         engine.closeOutbound();
-        return aAll(promiseCallable(input.unwrapsDone)).andLast(promiseCallable(output.wrapsDone)).toUnit();
+        return aAll(promiseCallable(input.unwrapsDone)).andLast(promiseCallable(output.wrapsDone)).toVoid();
     }
 
     /**

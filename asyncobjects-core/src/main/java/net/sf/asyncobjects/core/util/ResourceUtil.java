@@ -142,7 +142,7 @@ public final class ResourceUtil {
          */
         public <R> Promise<R> run(final AFunction<R, A> body) {
             final Cell<A> resource1 = new Cell<A>();
-            return aSeq(openAction).then(new AFunction<R, A>() {
+            return aSeq(openAction).map(new AFunction<R, A>() {
                 @Override
                 public Promise<R> apply(final A value) throws Throwable {
                     resource1.setValue(value);
@@ -231,7 +231,7 @@ public final class ResourceUtil {
                         public Promise<B> call() throws Throwable {
                             return openAction.apply(value1);
                         }
-                    }).then(new AFunction<R, B>() {
+                    }).map(new AFunction<R, B>() {
                         @Override
                         public Promise<R> apply(final B value2) throws Throwable {
                             resource.setValue(value2);
@@ -288,7 +288,7 @@ public final class ResourceUtil {
                         public Promise<C> call() throws Throwable {
                             return openAction.apply(value1, value2);
                         }
-                    }).then(new AFunction<R, C>() {
+                    }).map(new AFunction<R, C>() {
                         @Override
                         public Promise<R> apply(final C value3) throws Throwable {
                             resource.setValue(value3);

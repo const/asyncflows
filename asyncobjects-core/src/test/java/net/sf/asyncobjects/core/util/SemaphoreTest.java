@@ -30,12 +30,12 @@ public class SemaphoreTest {
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire();
                             }
-                        }).thenI(new ACallable<Void>() {
+                        }).then(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire(3);
                             }
-                        }).thenLastI(new ACallable<Void>() {
+                        }).thenLast(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire();
@@ -50,18 +50,18 @@ public class SemaphoreTest {
                             public Promise<Void> call() throws Throwable {
                                 return aForRange(0, 10).toUnit();
                             }
-                        }).thenI(new ACallable<Void>() {
+                        }).then(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 semaphore.release(2);
                                 return aVoid();
                             }
-                        }).thenI(new ACallable<Void>() {
+                        }).then(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return aForRange(0, 10).toUnit();
                             }
-                        }).thenLastI(new ACallable<Void>() {
+                        }).thenLast(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 semaphore.release();
@@ -70,7 +70,7 @@ public class SemaphoreTest {
                             }
                         });
                     }
-                }).toUnit();
+                }).toVoid();
             }
         });
         assertSame(null, t);

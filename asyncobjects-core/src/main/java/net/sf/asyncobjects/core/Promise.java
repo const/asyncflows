@@ -195,7 +195,7 @@ public final class Promise<T> {
     /**
      * @return to unit promise
      */
-    public Promise<Void> toUnit() {
+    public Promise<Void> toVoid() {
         if (state == State.RESOLVED) {
             return aVoid();
         }

@@ -99,12 +99,12 @@ public final class StreamUtil {
                     }
                 });
             }
-        }).thenI(new ACallable<Void>() {
+        }).then(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
                 return stopped.isEmpty() ? aVoid() : Promise.forOutcome(stopped.getValue());
             }
-        }).thenI(new ACallable<Long>() {
+        }).then(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
                 return aSuccess(count[0]);
@@ -112,7 +112,7 @@ public final class StreamUtil {
         }).finallyDo(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return aAll(closeResourceAction(sink)).andLast(closeResourceAction(stream)).toUnit();
+                return aAll(closeResourceAction(sink)).andLast(closeResourceAction(stream)).toVoid();
             }
         });
     }
