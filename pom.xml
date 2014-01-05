@@ -36,13 +36,13 @@
         <module>asyncobjects-core</module>
         <module>asyncobjects-junit</module>
         <module>asyncobjects-nio</module>
+        <module>asyncobjects-groovy</module>
         <!--
+        <module>asyncobjects-scala</module>
         <module>asyncobjects-awt</module>
         <module>asyncobjects-protocol</module>
         <module>asyncobjects-http</module>
         <module>asyncobjects-ssh</module>
-        <module>asyncobjects-spring</module>
-        <module>asyncobjects-spring-net</module>
         <module>asyncobjects-net-sample</module>
         -->
     </modules>
