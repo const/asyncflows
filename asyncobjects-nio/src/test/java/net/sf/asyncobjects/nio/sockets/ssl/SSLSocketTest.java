@@ -24,7 +24,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
@@ -61,7 +61,7 @@ public class SSLSocketTest {
                         final InetSocketAddress inetSocketAddress = (InetSocketAddress) value;
                         SSLEngine rc = sslTestData.getSslClientContext().createSSLEngine(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                         rc.setUseClientMode(true);
-                        return aSuccess(rc);
+                        return aValue(rc);
                     }
                 });
                 sslFactory.setServerEngineFactory(new AFunction<SSLEngine, SocketAddress>() {
@@ -69,7 +69,7 @@ public class SSLSocketTest {
                     public Promise<SSLEngine> apply(final SocketAddress value) throws Throwable {
                         final SSLEngine rc = sslTestData.getSslServerContext().createSSLEngine();
                         rc.setUseClientMode(false);
-                        return aSuccess(rc);
+                        return aValue(rc);
                     }
                 });
 
@@ -121,7 +121,7 @@ public class SSLSocketTest {
                                                                         return socket.getOutput().map(new AFunction<AOutput<ByteBuffer>, AOutput<ByteBuffer>>() {
                                                                             @Override
                                                                             public Promise<AOutput<ByteBuffer>> apply(final AOutput<ByteBuffer> output) throws Throwable {
-                                                                                return aSuccess(digestOutput(output, digest.resolver()).md5());
+                                                                                return aValue(digestOutput(output, digest.resolver()).md5());
                                                                             }
                                                                         });
                                                                     }

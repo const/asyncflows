@@ -9,7 +9,7 @@ import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.data.Tuple3;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
@@ -30,13 +30,13 @@ public final class AllControl {
      * <pre>{@code
      * aAll(new ACallable<String>() {
      *   public Promise<String> call() throws Throwable {
-     *     return aSuccess("The answer");
+     *     return aValue("The answer");
      *   }
      * }).andLast(new ACallable<Integer>() {
      *   public Promise<Integer> call() throws Throwable {
      *     return aLater(new ACallable<Integer>() {
      *       public Promise<Integer> call() throws Throwable {
-     *         return aSuccess(42);
+     *         return aValue(42);
      *       }
      *     });
      *   }
@@ -176,7 +176,7 @@ public final class AllControl {
                 return finish().map(new AFunction<T1, Tuple2<T1, T2>>() {
                     @Override
                     public Promise<T1> apply(final Tuple2<T1, T2> value) throws Throwable {
-                        return aSuccess(value.getValue1());
+                        return aValue(value.getValue1());
                     }
                 });
             }
@@ -188,7 +188,7 @@ public final class AllControl {
                 return finish().map(new AFunction<T2, Tuple2<T1, T2>>() {
                     @Override
                     public Promise<T2> apply(final Tuple2<T1, T2> value) throws Throwable {
-                        return aSuccess(value.getValue2());
+                        return aValue(value.getValue2());
                     }
                 });
             }
@@ -296,7 +296,7 @@ public final class AllControl {
                 return finish().map(new AFunction<T1, Tuple3<T1, T2, T3>>() {
                     @Override
                     public Promise<T1> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aSuccess(value.getValue1());
+                        return aValue(value.getValue1());
                     }
                 });
             }
@@ -308,7 +308,7 @@ public final class AllControl {
                 return finish().map(new AFunction<T2, Tuple3<T1, T2, T3>>() {
                     @Override
                     public Promise<T2> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aSuccess(value.getValue2());
+                        return aValue(value.getValue2());
                     }
                 });
             }
@@ -320,7 +320,7 @@ public final class AllControl {
                 return finish().map(new AFunction<T3, Tuple3<T1, T2, T3>>() {
                     @Override
                     public Promise<T3> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aSuccess(value.getValue3());
+                        return aValue(value.getValue3());
                     }
                 });
             }

@@ -17,7 +17,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
@@ -76,7 +76,7 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
     @Override
     public Promise<SocketAddress> getLocalSocketAddress() {
         try {
-            return aSuccess(serverSocket.getLocalSocketAddress());
+            return aValue(serverSocket.getLocalSocketAddress());
         } catch (Throwable e) {
             return aFailure(e);
         }
@@ -94,7 +94,7 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
                 accepted.close();
                 return aFailure(t);
             }
-            return aSuccess(new BlockingSocket(accepted).export());
+            return aValue(new BlockingSocket(accepted).export());
         } catch (Throwable e) {
             return aFailure(e);
         }

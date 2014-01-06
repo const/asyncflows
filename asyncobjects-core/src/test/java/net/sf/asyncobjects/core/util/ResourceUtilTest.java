@@ -8,7 +8,7 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.vats.Vat;
 import org.junit.Test;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
@@ -30,17 +30,17 @@ public class ResourceUtilTest {
                 return aTry(new ACallable<ACloseable>() {
                     @Override
                     public Promise<ACloseable> call() throws Throwable {
-                        return aSuccess(new SampleResource(r1).export());
+                        return aValue(new SampleResource(r1).export());
                     }
                 }).andChain(new AFunction<ACloseable, ACloseable>() {
                     @Override
                     public Promise<ACloseable> apply(final ACloseable value) throws Throwable {
-                        return aSuccess(new SampleResource(r2).export());
+                        return aValue(new SampleResource(r2).export());
                     }
                 }).andChainSecond(new AFunction<ACloseable, ACloseable>() {
                     @Override
                     public Promise<ACloseable> apply(final ACloseable value) throws Throwable {
-                        return aSuccess(new SampleResource(r3).export());
+                        return aValue(new SampleResource(r3).export());
                     }
                 }).run(new AFunction3<Void, ACloseable, ACloseable, ACloseable>() {
                     @Override

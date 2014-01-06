@@ -10,7 +10,7 @@ import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The input over character sequence.
@@ -44,9 +44,9 @@ public class StringInput extends CloseableBase implements AInput<CharBuffer>, Ex
     public Promise<Integer> read(final CharBuffer buffer) {
         ensureOpen();
         if (data.hasRemaining()) {
-            return aSuccess(BufferOperations.CHAR.put(buffer, data));
+            return aValue(BufferOperations.CHAR.put(buffer, data));
         } else {
-            return aSuccess(-1);
+            return aValue(-1);
         }
     }
 

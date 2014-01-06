@@ -12,7 +12,7 @@ import net.sf.asyncobjects.nio.net.SocketExportUtil;
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The SSL socket factory.
@@ -39,7 +39,7 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
         return getSocketFactory().makeSocket().map(new AFunction<ASocket, ASocket>() {
             @Override
             public Promise<ASocket> apply(final ASocket value) throws Throwable {
-                return aSuccess((ASocket) new SSLSocket(value, getClientEngineFactory()).export());
+                return aValue((ASocket) new SSLSocket(value, getClientEngineFactory()).export());
             }
         });
     }
@@ -52,7 +52,7 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
         return getSocketFactory().makeServerSocket().map(new AFunction<AServerSocket, AServerSocket>() {
             @Override
             public Promise<AServerSocket> apply(final AServerSocket value) throws Throwable {
-                return aSuccess(new SSLServerSocket(value, getServerEngineFactory()).export());
+                return aValue(new SSLServerSocket(value, getServerEngineFactory()).export());
             }
         });
     }

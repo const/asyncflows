@@ -12,25 +12,25 @@ import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
 /**
- * The asynchronous control flow utilities.
+ * The basic asynchronous control flow utilities.
  */
 public final class AsyncControl {
     /**
      * The null promise.
      */
-    private static final Promise<?> NULL_PROMISE = aSuccess(null);
+    private static final Promise<?> NULL_PROMISE = aValue(null);
     /**
      * The true promise.
      */
-    private static final Promise<Boolean> TRUE_PROMISE = aSuccess(true);
+    private static final Promise<Boolean> TRUE_PROMISE = aValue(true);
     /**
      * The false promise.
      */
-    private static final Promise<Boolean> FALSE_PROMISE = aSuccess(false);
+    private static final Promise<Boolean> FALSE_PROMISE = aValue(false);
     /**
      * Empty value.
      */
-    private static final Promise<Maybe<Object>> EMPTY_VALUE = aSuccess(Maybe.empty());
+    private static final Promise<Maybe<Object>> EMPTY_VALUE = aValue(Maybe.empty());
 
     /**
      * The private constructor for utility class.
@@ -93,13 +93,13 @@ public final class AsyncControl {
     }
 
     /**
-     * An operation that fails with the specified problem.
+     * An operation that succeed with the specified value.
      *
      * @param value the result value
      * @param <T>   the type of promise
-     * @return the promise with problem
+     * @return the promise with value
      */
-    public static <T> Promise<T> aSuccess(final T value) {
+    public static <T> Promise<T> aValue(final T value) {
         return Promise.success(value);
     }
 
@@ -283,6 +283,6 @@ public final class AsyncControl {
      * @return the maybe with value
      */
     public static <T> Promise<Maybe<T>> aMaybeValue(final T value) {
-        return aSuccess(Maybe.value(value));
+        return aValue(Maybe.value(value));
     }
 }

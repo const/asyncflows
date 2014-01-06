@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static org.junit.Assert.assertEquals;
@@ -28,7 +28,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("The answer");
+                        return aValue("The answer");
                     }
                 }).andLast(new ACallable<Integer>() {
                     @Override
@@ -36,7 +36,7 @@ public class AllControlTest {
                         return aLater(new ACallable<Integer>() {
                             @Override
                             public Promise<Integer> call() throws Throwable {
-                                return aSuccess(42);
+                                return aValue(42);
                             }
                         });
                     }
@@ -73,7 +73,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("1");
+                        return aValue("1");
                     }
                 }).andLast(new ACallable<Integer>() {
                     @Override
@@ -107,7 +107,7 @@ public class AllControlTest {
                     @Override
                     public Promise<Tuple2<String, Integer>> apply(final String value1, final Integer value2)
                             throws Throwable {
-                        return aSuccess(Tuple2.of(value1, value2));
+                        return aValue(Tuple2.of(value1, value2));
                     }
                 });
             }
@@ -116,7 +116,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("The answer");
+                        return aValue("The answer");
                     }
                 }).and(new ACallable<Integer>() {
                     @Override
@@ -124,7 +124,7 @@ public class AllControlTest {
                         return aLater(new ACallable<Integer>() {
                             @Override
                             public Promise<Integer> call() throws Throwable {
-                                return aSuccess(42);
+                                return aValue(42);
                             }
                         });
                     }
@@ -159,7 +159,7 @@ public class AllControlTest {
                     @Override
                     public Promise<Tuple3<String, Integer, Boolean>> apply(
                             final String value1, final Integer value2, final Boolean value3) throws Throwable {
-                        return aSuccess(Tuple3.of(value1, value2, value3));
+                        return aValue(Tuple3.of(value1, value2, value3));
                     }
                 });
             }
@@ -168,7 +168,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("The answer");
+                        return aValue("The answer");
                     }
                 }).and(new ACallable<Integer>() {
                     @Override
@@ -176,7 +176,7 @@ public class AllControlTest {
                         return aLater(new ACallable<Integer>() {
                             @Override
                             public Promise<Integer> call() throws Throwable {
-                                return aSuccess(42);
+                                return aValue(42);
                             }
                         });
                     }
@@ -200,7 +200,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("The answer");
+                        return aValue("The answer");
                     }
                 }).and(new ACallable<Integer>() {
                     @Override
@@ -208,14 +208,14 @@ public class AllControlTest {
                         return aLater(new ACallable<Integer>() {
                             @Override
                             public Promise<Integer> call() throws Throwable {
-                                return aSuccess(42);
+                                return aValue(42);
                             }
                         });
                     }
                 }).andLast(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
-                        return aSuccess(true);
+                        return aValue(true);
                     }
                 });
             }
@@ -231,7 +231,7 @@ public class AllControlTest {
                 return aAll(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("The answer");
+                        return aValue("The answer");
                     }
                 }).and(new ACallable<Integer>() {
                     @Override
@@ -239,19 +239,19 @@ public class AllControlTest {
                         return aLater(new ACallable<Integer>() {
                             @Override
                             public Promise<Integer> call() throws Throwable {
-                                return aSuccess(42);
+                                return aValue(42);
                             }
                         });
                     }
                 }).and(new ACallable<String>() {
                     @Override
                     public Promise<String> call() throws Throwable {
-                        return aSuccess("is");
+                        return aValue("is");
                     }
                 }).unzip(new AFunction3<String, String, Integer, String>() {
                     @Override
                     public Promise<String> apply(final String noun, final Integer definition, final String verb) {
-                        return aSuccess(noun + " " + verb + " " + definition);
+                        return aValue(noun + " " + verb + " " + definition);
                     }
                 });
             }

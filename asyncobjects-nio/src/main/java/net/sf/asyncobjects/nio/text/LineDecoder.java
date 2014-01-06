@@ -8,7 +8,7 @@ import net.sf.asyncobjects.nio.codec.ObjectDecoderStream;
 
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The line decoder.
@@ -133,7 +133,7 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
         if (status == DecodeResult.OBJECT_READY
                 || status == DecodeResult.FAILURE
                 || status == DecodeResult.EOF) {
-            return aSuccess(status);
+            return aValue(status);
         }
         while (buffer.hasRemaining()) {
             if (afterCr) {
@@ -146,7 +146,7 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
                 }
                 afterCr = false;
                 status = DecodeResult.OBJECT_READY;
-                return aSuccess(status);
+                return aValue(status);
             } else {
                 final char c = buffer.get();
                 if (c == CR) {
@@ -159,7 +159,7 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
                         line.append(c);
                     }
                     status = DecodeResult.OBJECT_READY;
-                    return aSuccess(status);
+                    return aValue(status);
                 } else {
                     line.append(c);
                 }
@@ -168,12 +168,12 @@ public class LineDecoder implements ObjectDecoder<CharBuffer, String> {
         if (eof && !buffer.hasRemaining()) {
             if (line.length() == 0) {
                 status = DecodeResult.EOF;
-                return aSuccess(status);
+                return aValue(status);
             } else {
                 status = DecodeResult.OBJECT_READY;
-                return aSuccess(status);
+                return aValue(status);
             }
         }
-        return aSuccess(status);
+        return aValue(status);
     }
 }

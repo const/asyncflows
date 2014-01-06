@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 
 /**
@@ -96,7 +96,7 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
                         } else {
                             updateDigest(buffer, positionBeforeRead);
                         }
-                        return aSuccess(value);
+                        return aValue(value);
                     }
                 });
             }

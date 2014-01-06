@@ -12,7 +12,7 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
@@ -67,12 +67,12 @@ public class AdaptersTest {
                         return aTry(new ACallable<AInput<CharBuffer>>() {
                             @Override
                             public Promise<AInput<CharBuffer>> call() throws Throwable {
-                                return aSuccess(Adapters.getStringInput(test));
+                                return aValue(Adapters.getStringInput(test));
                             }
                         }).andOther(new ACallable<AOutput<CharBuffer>>() {
                             @Override
                             public Promise<AOutput<CharBuffer>> call() throws Throwable {
-                                return aSuccess(Adapters.getStringOutput(second.resolver()));
+                                return aValue(Adapters.getStringOutput(second.resolver()));
                             }
                         }).run(new AFunction2<Long, AInput<CharBuffer>, AOutput<CharBuffer>>() {
                             @Override
@@ -113,12 +113,12 @@ public class AdaptersTest {
                         return aTry(new ACallable<AInput<ByteBuffer>>() {
                             @Override
                             public Promise<AInput<ByteBuffer>> call() throws Throwable {
-                                return aSuccess(Adapters.getByteArrayInput(inputData));
+                                return aValue(Adapters.getByteArrayInput(inputData));
                             }
                         }).andOther(new ACallable<AOutput<ByteBuffer>>() {
                             @Override
                             public Promise<AOutput<ByteBuffer>> call() throws Throwable {
-                                return aSuccess(Adapters.getByteArrayOutput(array.resolver()));
+                                return aValue(Adapters.getByteArrayOutput(array.resolver()));
                             }
                         }).run(new AFunction2<Long, AInput<ByteBuffer>, AOutput<ByteBuffer>>() {
                             @Override

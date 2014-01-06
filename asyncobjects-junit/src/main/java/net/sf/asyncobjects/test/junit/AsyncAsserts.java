@@ -5,7 +5,7 @@ import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,7 +31,7 @@ public final class AsyncAsserts {
             @Override
             public Promise<R> apply(final R value) throws Throwable {
                 assertEquals(expected, value);
-                return aSuccess(value);
+                return aValue(value);
             }
         });
     }

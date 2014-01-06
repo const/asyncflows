@@ -15,7 +15,7 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
@@ -50,7 +50,7 @@ public class DecoderEncoderTest {
                             public Promise<AOutput<CharBuffer>> apply(final AOutput<ByteBuffer> value) {
                                 final AOutput<ByteBuffer> digested =
                                         digestOutput(value, outputDigest.resolver()).sha256();
-                                return aSuccess(EncoderOutput.encode(digested, CharIOUtil.UTF8, 4));
+                                return aValue(EncoderOutput.encode(digested, CharIOUtil.UTF8, 4));
                             }
                         })).run(new AFunction<Void, AOutput<CharBuffer>>() {
                             @Override
@@ -67,7 +67,7 @@ public class DecoderEncoderTest {
                             public Promise<AInput<CharBuffer>> apply(final AInput<ByteBuffer> value) {
                                 final AInput<ByteBuffer> digested =
                                         digestInput(value, inputDigest.resolver()).sha256();
-                                return aSuccess(DecoderInput.decode(digested, CharIOUtil.UTF8, 5));
+                                return aValue(DecoderInput.decode(digested, CharIOUtil.UTF8, 5));
                             }
                         })).run(new AFunction<String, AInput<CharBuffer>>() {
                             @Override

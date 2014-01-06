@@ -28,8 +28,8 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
@@ -122,17 +122,17 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
 
     @Override
     public Promise<SocketAddress> getRemoteAddress() {
-        return aSuccess(socketChannel.socket().getRemoteSocketAddress());
+        return aValue(socketChannel.socket().getRemoteSocketAddress());
     }
 
     @Override
     public Promise<AInput<ByteBuffer>> getInput() {
-        return aSuccess(input.export());
+        return aValue(input.export());
     }
 
     @Override
     public Promise<AOutput<ByteBuffer>> getOutput() {
-        return aSuccess(output.export());
+        return aValue(output.export());
     }
 
     @Override

@@ -15,10 +15,10 @@ class AllControlTest {
     void testAll2() {
         def rc = doAsync {
             aAll {
-                aSuccess("The answer")
+                aValue("The answer")
             } andLast {
                 aLater {
-                    aSuccess(42)
+                    aValue(42)
                 }
             }
         }

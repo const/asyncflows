@@ -13,7 +13,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.closeResourceAction;
 
@@ -58,12 +58,12 @@ public class NulChannel<B extends Buffer> extends CloseableBase implements AChan
 
     @Override
     public Promise<AInput<B>> getInput() {
-        return aSuccess(input);
+        return aValue(input);
     }
 
     @Override
     public Promise<AOutput<B>> getOutput() {
-        return aSuccess(output);
+        return aValue(output);
     }
 
     @Override

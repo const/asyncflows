@@ -8,7 +8,7 @@ import net.sf.asyncobjects.core.vats.Vat;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
@@ -34,7 +34,7 @@ public final class SimpleQueue<T> implements AQueue<T>, ExportsSelf<AQueue<T>> {
             resolvers.addLast(rc.resolver());
             return rc;
         } else {
-            return aSuccess(elements.removeFirst());
+            return aValue(elements.removeFirst());
         }
     }
 

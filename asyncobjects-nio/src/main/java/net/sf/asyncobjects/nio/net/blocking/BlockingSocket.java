@@ -22,7 +22,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
@@ -80,7 +80,7 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
 
     @Override
     public Promise<SocketAddress> getRemoteAddress() {
-        return aSuccess(socket.getRemoteSocketAddress());
+        return aValue(socket.getRemoteSocketAddress());
     }
 
     @Override
@@ -89,7 +89,7 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
             if (input == null) {
                 input = new SocketInput(socket.getInputStream()).exportBlocking();
             }
-            return aSuccess(input);
+            return aValue(input);
         } catch (Throwable e) {
             return aFailure(e);
         }
@@ -101,7 +101,7 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
             if (output == null) {
                 output = new SocketOutput(socket.getOutputStream()).exportBlocking();
             }
-            return aSuccess(output);
+            return aValue(output);
         } catch (Throwable e) {
             return aFailure(e);
         }

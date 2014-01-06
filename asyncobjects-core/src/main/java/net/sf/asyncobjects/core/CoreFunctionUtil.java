@@ -3,8 +3,8 @@ package net.sf.asyncobjects.core;
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
@@ -17,7 +17,7 @@ public final class CoreFunctionUtil {
     private static final AFunction<Object, Object> IDENTITY = new AFunction<Object, Object>() {
         @Override
         public Promise<Object> apply(final Object value) throws Throwable {
-            return aSuccess(value);
+            return aValue(value);
         }
     };
     /**
@@ -149,7 +149,7 @@ public final class CoreFunctionUtil {
      * @return the callable instance
      */
     public static <T> ACallable<T> constantCallable(final T value) {
-        final Promise<T> rc = aSuccess(value);
+        final Promise<T> rc = aValue(value);
         return new ACallable<T>() {
             @Override
             public Promise<T> call() throws Throwable {

@@ -37,8 +37,8 @@
         <module>asyncobjects-junit</module>
         <module>asyncobjects-nio</module>
         <module>asyncobjects-groovy</module>
-        <!--
         <module>asyncobjects-scala</module>
+        <!--
         <module>asyncobjects-awt</module>
         <module>asyncobjects-protocol</module>
         <module>asyncobjects-http</module>

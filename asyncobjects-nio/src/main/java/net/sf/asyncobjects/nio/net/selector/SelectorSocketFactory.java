@@ -11,7 +11,7 @@ import net.sf.asyncobjects.nio.net.SocketExportUtil;
 import java.io.IOException;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * Selector based socket factory.
@@ -67,7 +67,7 @@ public class SelectorSocketFactory implements ASocketFactory, ExportsSelf<ASocke
     public Promise<ASocket> makeSocket() {
         final SelectorVat vat = getSelectorVat();
         try {
-            return aSuccess(new SelectorSocket(vat.getSelector()).export(vat));
+            return aValue(new SelectorSocket(vat.getSelector()).export(vat));
         } catch (IOException e) {
             return aFailure(e);
         }
@@ -87,7 +87,7 @@ public class SelectorSocketFactory implements ASocketFactory, ExportsSelf<ASocke
     public Promise<AServerSocket> makeServerSocket() {
         final SelectorVat vat = getSelectorVat();
         try {
-            return aSuccess(new SelectorServerSocket(vat.getSelector()).export(vat));
+            return aValue(new SelectorServerSocket(vat.getSelector()).export(vat));
         } catch (IOException e) {
             return aFailure(e);
         }

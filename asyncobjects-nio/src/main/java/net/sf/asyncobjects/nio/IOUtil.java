@@ -12,8 +12,8 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
@@ -120,7 +120,7 @@ public class IOUtil<B extends Buffer, A> {
             @Override
             public Promise<Long> call() throws Throwable {
                 if (flush.isEmpty()) {
-                    return aSuccess(result.getValue());
+                    return aValue(result.getValue());
                 } else {
                     return flush.getValue().thenDo(CoreFunctionUtil.constantCallable(result.getValue()));
                 }
@@ -157,7 +157,7 @@ public class IOUtil<B extends Buffer, A> {
         }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
-                return aSuccess(result.getValue());
+                return aValue(result.getValue());
             }
         });
     }

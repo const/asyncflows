@@ -11,7 +11,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The null input.
@@ -37,7 +37,7 @@ public class NulInput<B extends Buffer> extends CloseableBase implements AInput<
     @Override
     public Promise<Integer> read(final B buffer) {
         ensureOpen();
-        return aSuccess(-1);
+        return aValue(-1);
     }
 
     @Override

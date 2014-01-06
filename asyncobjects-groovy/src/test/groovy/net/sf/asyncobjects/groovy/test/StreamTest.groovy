@@ -20,25 +20,25 @@ class StreamTest {
                 aForRange(0, 5).map {
                     aLater(constantCallable(it + 5))
                 }.pull().window(3).filter {
-                    aSuccess((it & 1) == 0)
+                    aValue((it & 1) == 0)
                 }.flatMapIterable {
                     def rc = new ArrayList<Integer>();
                     for (int i = 0; i < it; i++) {
                         rc.add(it as Integer)
                     }
-                    aSuccess(rc);
+                    aValue(rc);
                 }.window(10).toList();
             }.andLast {
                 aForRange(0, 5).push().window(10).map {
                     aLater(constantCallable(it + 5))
                 }.filter {
-                    aSuccess((it & 1) == 0);
+                    aValue((it & 1) == 0);
                 }.flatMapIterable {
                     def rc = new ArrayList<Integer>();
                     for (int i = 0; i < it; i++) {
                         rc.add(it as Integer)
                     }
-                    aSuccess(rc);
+                    aValue(rc);
                 }.window(3).pull().push().toList()
             }
         }

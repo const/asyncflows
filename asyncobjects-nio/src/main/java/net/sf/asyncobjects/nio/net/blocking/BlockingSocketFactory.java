@@ -10,7 +10,7 @@ import net.sf.asyncobjects.nio.net.ASocketFactory;
 import net.sf.asyncobjects.nio.net.SocketExportUtil;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * Blocking socket factory.
@@ -18,13 +18,13 @@ import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 public class BlockingSocketFactory implements ASocketFactory, ExportsSelf<ASocketFactory> {
     @Override
     public Promise<ASocket> makeSocket() {
-        return aSuccess(new BlockingSocket().export());
+        return aValue(new BlockingSocket().export());
     }
 
     @Override
     public Promise<AServerSocket> makeServerSocket() {
         try {
-            return aSuccess(new BlockingServerSocket().export());
+            return aValue(new BlockingServerSocket().export());
         } catch (Throwable e) {
             return aFailure(e);
         }

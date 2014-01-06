@@ -8,7 +8,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 import static net.sf.asyncobjects.core.AsyncControl.aBoolean;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -54,7 +54,7 @@ public final class CharIOUtil {
         }).thenDo(new ACallable<String>() {
             @Override
             public Promise<String> call() throws Throwable {
-                return aSuccess(builder.toString());
+                return aValue(builder.toString());
             }
         });
     }

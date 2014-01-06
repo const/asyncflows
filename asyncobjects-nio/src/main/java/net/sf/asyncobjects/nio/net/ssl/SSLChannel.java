@@ -26,8 +26,8 @@ import static net.sf.asyncobjects.core.AsyncControl.aDaemonRun;
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
@@ -284,7 +284,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         if (input == null) {
             return aFailure(new IOException("Not connected yet"));
         }
-        return aSuccess(NIOExportUtil.export(Vat.current(), input));
+        return aValue(NIOExportUtil.export(Vat.current(), input));
     }
 
     /**
@@ -298,14 +298,14 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         if (output == null) {
             return aFailure(new IOException("Not connected yet"));
         }
-        return aSuccess(NIOExportUtil.export(Vat.current(), output));
+        return aValue(NIOExportUtil.export(Vat.current(), output));
     }
 
     /**
      * @return the SSL session
      */
     public Promise<SSLSession> getSession() {
-        return aSuccess(engine.getSession());
+        return aValue(engine.getSession());
     }
 
     /**

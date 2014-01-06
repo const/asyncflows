@@ -6,7 +6,7 @@ import net.sf.asyncobjects.core.Promise;
 import org.junit.Test;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.stream.Streams.aForRange;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
@@ -49,7 +49,7 @@ public class QueueTest {
                         }).leftFold(0, new AFunction2<Integer, Integer, Integer>() {
                             @Override
                             public Promise<Integer> apply(final Integer value1, final Integer value2) throws Throwable {
-                                return aSuccess(value1 + value2);
+                                return aValue(value1 + value2);
                             }
                         });
                     }

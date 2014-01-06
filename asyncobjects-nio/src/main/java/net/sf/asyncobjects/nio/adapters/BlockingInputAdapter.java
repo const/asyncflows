@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.Buffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The simple adapter for JDK input. The adapter is not thread safe.
@@ -58,7 +58,7 @@ public abstract class BlockingInputAdapter<B extends Buffer, I extends Closeable
     @Override
     public final Promise<Integer> read(final B buffer) {
         if (buffer.remaining() == 0) {
-            return aSuccess(0);
+            return aValue(0);
         }
         final BufferOperations<B, A> operations = operations();
         A b;
@@ -85,7 +85,7 @@ public abstract class BlockingInputAdapter<B extends Buffer, I extends Closeable
                     operations.put(buffer, b, offset, rc);
                 }
             }
-            return aSuccess(rc);
+            return aValue(rc);
         } catch (IOException e) {
             return aFailure(e);
         }

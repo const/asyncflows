@@ -14,8 +14,8 @@ import java.util.Arrays;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.stream.Streams.aForArray;
@@ -38,7 +38,7 @@ public class SeqControlTest {
                     @Override
                     public Promise<Integer> call() throws Throwable {
                         list.add(1);
-                        return aSuccess(1);
+                        return aValue(1);
                     }
                 }).map(new AFunction<Object, Integer>() {
                     @Override
@@ -51,20 +51,20 @@ public class SeqControlTest {
                     public Promise<Integer> call() throws Throwable {
                         // never called
                         list.add(-1);
-                        return aSuccess(-1);
+                        return aValue(-1);
                     }
                 }).failed(new AFunction<Integer, Throwable>() {
                     @Override
                     public Promise<Integer> apply(final Throwable value) throws Throwable {
                         assertEquals(IllegalStateException.class, value.getClass());
                         list.add(3);
-                        return aSuccess(42);
+                        return aValue(42);
                     }
                 }).finallyDo(new ACallable<Object>() {
                     @Override
                     public Promise<Object> call() throws Throwable {
                         list.add(4);
-                        return aSuccess(null);
+                        return aValue(null);
                     }
                 });
             }
@@ -81,7 +81,7 @@ public class SeqControlTest {
                 return aSeq(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Exception {
-                        return aSuccess(42);
+                        return aValue(42);
                     }
                 }).map(new AFunction<String, Integer>() {
                     @Override
@@ -89,14 +89,14 @@ public class SeqControlTest {
                         return aLater(new ACallable<String>() {
                             @Override
                             public Promise<String> call() throws Exception {
-                                return aSuccess("The answer is " + value);
+                                return aValue("The answer is " + value);
                             }
                         });
                     }
                 }).finallyDo(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Exception {
-                        return aSuccess(24);
+                        return aValue(24);
                     }
                 });
             }
@@ -117,7 +117,7 @@ public class SeqControlTest {
                 }).failedLast(new AFunction<Integer, Throwable>() {
                     @Override
                     public Promise<Integer> apply(final Throwable value) throws Throwable {
-                        return aSuccess(42);  //To change body of implemented methods use File | Settings | File Templates.
+                        return aValue(42);  //To change body of implemented methods use File | Settings | File Templates.
                     }
                 }).toOutcomePromise();
             }
@@ -201,7 +201,7 @@ public class SeqControlTest {
                 return aSeq(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Exception {
-                        return aSuccess(42);
+                        return aValue(42);
                     }
                 }).finallyDo(new ACallable<Void>() {
                     @Override
@@ -224,7 +224,7 @@ public class SeqControlTest {
                         new AFunction2<Integer, Integer, Integer>() {
                             @Override
                             public Promise<Integer> apply(final Integer result, final Integer item) throws Throwable {
-                                return aSuccess(result + item);
+                                return aValue(result + item);
                             }
                         });
             }

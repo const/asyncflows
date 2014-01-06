@@ -21,7 +21,7 @@ import java.nio.channels.SocketChannel;
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
@@ -88,7 +88,7 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
      */
     @Override
     public Promise<SocketAddress> getLocalSocketAddress() {
-        return aSuccess(serverSocketChannel.socket().getLocalSocketAddress());
+        return aValue(serverSocketChannel.socket().getLocalSocketAddress());
     }
 
     @Override

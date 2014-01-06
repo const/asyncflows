@@ -15,8 +15,8 @@ import java.util.List;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreExportUtil.exportIfNeeded;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
@@ -116,7 +116,7 @@ public abstract class ForwardStreamBuilder<T> {
                 return mapper.apply(value).map(new AFunction<AStream<N>, Iterator<N>>() {
                     @Override
                     public Promise<AStream<N>> apply(final Iterator<N> value) throws Throwable {
-                        return aSuccess(Streams.aForIterator(value).localStream());
+                        return aValue(Streams.aForIterator(value).localStream());
                     }
                 });
             }
@@ -140,7 +140,7 @@ public abstract class ForwardStreamBuilder<T> {
                 return evaluate(value, mapper).map(new AFunction<Iterator<N>, C>() {
                     @Override
                     public Promise<Iterator<N>> apply(final C value) throws Throwable {
-                        return aSuccess(value.iterator());
+                        return aValue(value.iterator());
                     }
                 });
             }
@@ -236,7 +236,7 @@ public abstract class ForwardStreamBuilder<T> {
         }).thenDo(new ACallable<R>() {
             @Override
             public Promise<R> call() throws Throwable {
-                return aSuccess(cell.getValue());
+                return aValue(cell.getValue());
             }
         });
     }
@@ -256,7 +256,7 @@ public abstract class ForwardStreamBuilder<T> {
             @Override
             public Promise<List<T>> apply(final List<T> value1, final T value2) throws Throwable {
                 value1.add(value2);
-                return aSuccess(value1);
+                return aValue(value1);
             }
         });
     }

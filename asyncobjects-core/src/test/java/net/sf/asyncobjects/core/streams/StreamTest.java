@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
@@ -38,7 +38,7 @@ public class StreamTest {
                         }).pull().window(3).filter(new AFunction<Boolean, Integer>() {
                             @Override
                             public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                return aSuccess((value & 1) == 0);
+                                return aValue((value & 1) == 0);
                             }
                         }).flatMapIterable(new AFunction<List<Integer>, Integer>() {
                             @Override
@@ -47,7 +47,7 @@ public class StreamTest {
                                 for (int i = 0; i < value; i++) {
                                     rc.add(value);
                                 }
-                                return aSuccess(rc);
+                                return aValue(rc);
                             }
                         }).window(10).toList();
                     }
@@ -62,7 +62,7 @@ public class StreamTest {
                         }).filter(new AFunction<Boolean, Integer>() {
                             @Override
                             public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                return aSuccess((value & 1) == 0);
+                                return aValue((value & 1) == 0);
                             }
                         }).flatMapIterable(new AFunction<List<Integer>, Integer>() {
                             @Override
@@ -71,7 +71,7 @@ public class StreamTest {
                                 for (int i = 0; i < value; i++) {
                                     rc.add(value);
                                 }
-                                return aSuccess(rc);
+                                return aValue(rc);
                             }
                         }).window(3).pull().push().toList();
                     }

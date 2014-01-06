@@ -21,8 +21,8 @@ import java.nio.charset.CodingErrorAction;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -131,7 +131,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                     return invalidationPromise();
                 }
                 if (eofDecoded) {
-                    return aSuccess(-1);
+                    return aValue(-1);
                 }
                 final Cell<Integer> read = new Cell<Integer>();
                 return aSeqLoop(new ACallable<Boolean>() {
@@ -181,7 +181,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                 }).thenDo(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
-                        return aSuccess(read.getValue());
+                        return aValue(read.getValue());
                     }
                 }).observe(outcomeChecker());
             }

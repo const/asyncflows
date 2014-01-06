@@ -13,7 +13,7 @@ import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.Buffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The stream that is limited by the specified size, the {@link #close()} does not close underlying stream.
@@ -72,7 +72,7 @@ public class LimitedInput<B extends Buffer>
                     throw new IllegalStateException("Stream has read too much!");
                 }
                 if (readAmount == limit) {
-                    return aSuccess(-1);
+                    return aValue(-1);
                 }
                 final int savedLimit = buffer.limit();
                 if (limit - readAmount < buffer.remaining()) {

@@ -19,7 +19,7 @@ import java.nio.CharBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
@@ -95,12 +95,12 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
      */
     @Override
     public Promise<AInput<B>> getInput() {
-        return aSuccess(exportedInput);
+        return aValue(exportedInput);
     }
 
     @Override
     public Promise<AOutput<B>> getOutput() {
-        return aSuccess(exportedOutput);
+        return aValue(exportedOutput);
     }
 
     /**

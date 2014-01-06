@@ -11,7 +11,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
 
@@ -152,7 +152,7 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                 if (value.isSuccess()) {
                     return evaluate(value.value(), mapper).toOutcomePromise();
                 } else {
-                    return aSuccess(Outcome.<N>failure(value.failure()));
+                    return aValue(Outcome.<N>failure(value.failure()));
                 }
             }
         }));
@@ -198,14 +198,14 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                         @Override
                         public Promise<AStream<Outcome<N>>> apply(final Outcome<AStream<N>> value) {
                             if (value.isSuccess()) {
-                                return aSuccess(outcomeStream(value.value()));
+                                return aValue(outcomeStream(value.value()));
                             } else {
-                                return aSuccess(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
+                                return aValue(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
                             }
                         }
                     });
                 } else {
-                    return aSuccess(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
+                    return aValue(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
                 }
             }
         }));

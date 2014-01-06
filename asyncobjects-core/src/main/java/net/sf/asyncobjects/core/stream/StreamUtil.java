@@ -11,7 +11,7 @@ import net.sf.asyncobjects.core.data.Maybe;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
@@ -108,7 +108,7 @@ public final class StreamUtil {
         }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
-                return aSuccess(count[0]);
+                return aValue(count[0]);
             }
         }).finallyDo(new ACallable<Void>() {
             @Override

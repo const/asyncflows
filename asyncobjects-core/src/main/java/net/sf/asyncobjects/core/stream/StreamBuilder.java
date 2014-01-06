@@ -17,7 +17,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aSuccess;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
@@ -236,7 +236,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
                                         } else if (value.value().isEmpty()) {
                                             return aMaybeEmpty();
                                         } else {
-                                            return aSuccess(value);
+                                            return aValue(value);
                                         }
                                     }
                                 });
