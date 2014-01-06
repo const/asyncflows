@@ -93,7 +93,7 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
 
     @Override
     public Promise<ASocket> accept() {
-        return queue.runSeqOptionLoop(new ACallable<Maybe<ASocket>>() {
+        return queue.runSeqMaybeLoop(new ACallable<Maybe<ASocket>>() {
             @Override
             public Promise<Maybe<ASocket>> call() throws Throwable {
                 final SocketChannel accepted = serverSocketChannel.accept();

@@ -19,7 +19,7 @@ import java.nio.CharBuffer;
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
  * Object decoder stream that produce uniform data stream form the input.
@@ -128,7 +128,7 @@ public class ObjectDecoderStream<B extends Buffer, O> extends ChainedStreamBase<
         return requests.run(new ACallable<Maybe<O>>() {
             @Override
             public Promise<Maybe<O>> call() throws Throwable {
-                return aSeqOptionLoop(new ACallable<Maybe<Maybe<O>>>() {
+                return aSeqMaybeLoop(new ACallable<Maybe<Maybe<O>>>() {
                     @Override
                     public Promise<Maybe<Maybe<O>>> call() throws Throwable {
                         ensureValidAndOpen();

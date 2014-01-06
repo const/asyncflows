@@ -20,7 +20,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
  * The stream builder provides fluent interfaces for building streams.
@@ -90,7 +90,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
                 return requests.run(new ACallable<Maybe<N>>() {
                     @Override
                     public Promise<Maybe<N>> call() throws Throwable {
-                        return aSeqOptionLoop(new ACallable<Maybe<Maybe<N>>>() {
+                        return aSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
                             @Override
                             public Promise<Maybe<Maybe<N>>> call() throws Throwable {
                                 if (mapped == null) {
@@ -163,7 +163,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
         return new StreamBuilder<T>(new StreamBase<T>() {
             @Override
             public Promise<Maybe<T>> produce() throws Throwable {
-                return reads.runSeqOptionLoop(new ACallable<Maybe<Maybe<T>>>() {
+                return reads.runSeqMaybeLoop(new ACallable<Maybe<Maybe<T>>>() {
                     @Override
                     public Promise<Maybe<Maybe<T>>> call() throws Throwable {
                         if (!isValidAndOpen()) {
@@ -225,7 +225,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
                 return requests.run(new ACallable<Maybe<N>>() {
                     @Override
                     public Promise<Maybe<N>> call() throws Throwable {
-                        return aSeqOptionLoop(new ACallable<Maybe<Maybe<N>>>() {
+                        return aSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
                             @Override
                             public Promise<Maybe<Maybe<N>>> call() throws Throwable {
                                 return wrapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<Maybe<N>>>() {

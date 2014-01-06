@@ -483,7 +483,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         @Override
         public Promise<Integer> read(final ByteBuffer buffer) {
             final int savedPosition = buffer.position();
-            return reads.runSeqOptionLoop(new ACallable<Maybe<Integer>>() {
+            return reads.runSeqMaybeLoop(new ACallable<Maybe<Integer>>() {
                 @Override
                 public Promise<Maybe<Integer>> call() throws Throwable {
                     ensureValidAndOpen();

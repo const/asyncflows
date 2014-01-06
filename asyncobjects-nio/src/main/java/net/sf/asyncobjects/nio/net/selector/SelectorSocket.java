@@ -174,7 +174,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
 
         @Override
         public Promise<Integer> read(final ByteBuffer buffer) {
-            return requests.runSeqOptionLoop(new ACallable<Maybe<Integer>>() {
+            return requests.runSeqMaybeLoop(new ACallable<Maybe<Integer>>() {
                 private boolean firstTime = true;
                 private int zeroCount;
 

@@ -79,7 +79,7 @@ public final class SeqControl {
      * @param <A>  the result type
      * @return the promises that resolves when body fails or returns non-empty value
      */
-    public static <A> Promise<A> aSeqOptionLoop(final ACallable<Maybe<A>> body) {
+    public static <A> Promise<A> aSeqMaybeLoop(final ACallable<Maybe<A>> body) {
         final Promise<A> result = new Promise<A>();
         final AResolver<A> resolver = result.resolver();
         final Vat vat = Vat.current();

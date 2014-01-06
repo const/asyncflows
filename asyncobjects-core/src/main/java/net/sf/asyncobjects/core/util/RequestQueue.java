@@ -13,7 +13,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
  * The asynchronous request queue. It is is similar to non-reentrant mutex.
@@ -161,11 +161,11 @@ public final class RequestQueue {
      * @param <T>  the body return type
      * @return the promise that resolve when loop finishes.
      */
-    public <T> Promise<T> runSeqOptionLoop(final ACallable<Maybe<T>> body) {
+    public <T> Promise<T> runSeqMaybeLoop(final ACallable<Maybe<T>> body) {
         return run(new ACallable<T>() {
             @Override
             public Promise<T> call() throws Throwable {
-                return aSeqOptionLoop(body);
+                return aSeqMaybeLoop(body);
             }
         });
     }

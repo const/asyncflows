@@ -13,7 +13,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqOptionLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
  * Stream builder for all elements.
@@ -105,7 +105,7 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
                                 if (value.value().isSuccess()) {
                                     return aMaybeValue(value.value().value());
                                 }
-                                return aSeqOptionLoop(new ACallable<Maybe<Maybe<T>>>() {
+                                return aSeqMaybeLoop(new ACallable<Maybe<Maybe<T>>>() {
                                     @Override
                                     public Promise<Maybe<Maybe<T>>> call() throws Throwable {
                                         return wrapped.next().map(new AFunction<Maybe<Maybe<T>>, Maybe<Outcome<T>>>() {
