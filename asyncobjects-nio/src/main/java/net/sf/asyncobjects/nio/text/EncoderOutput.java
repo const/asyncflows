@@ -153,7 +153,7 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
                                 return aTrue();
                             } else if (result.isOverflow()) {
                                 bytes.flip();
-                                return wrapped.write(bytes).then(new ACallable<Boolean>() {
+                                return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
                                     @Override
                                     public Promise<Boolean> call() throws Throwable {
                                         bytes.compact();
@@ -187,7 +187,7 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
                 final CoderResult result = encoder.encode(chars, bytes, eof);
                 if (result.isOverflow() || result.isUnderflow() && bytes.position() > 0) {
                     bytes.flip();
-                    return wrapped.write(bytes).then(new ACallable<Boolean>() {
+                    return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
                         @Override
                         public Promise<Boolean> call() throws Throwable {
                             bytes.compact();
@@ -209,7 +209,7 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
         return requests.run(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return internalFlush(false).then(new ACallable<Void>() {
+                return internalFlush(false).thenDo(new ACallable<Void>() {
                     @Override
                     public Promise<Void> call() throws Throwable {
                         return wrapped.flush();

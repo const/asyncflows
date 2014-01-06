@@ -30,12 +30,12 @@ public class SemaphoreTest {
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire();
                             }
-                        }).then(new ACallable<Void>() {
+                        }).thenDo(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire(3);
                             }
-                        }).thenLast(new ACallable<Void>() {
+                        }).thenDoLast(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return semaphore.acquire();
@@ -50,18 +50,18 @@ public class SemaphoreTest {
                             public Promise<Void> call() throws Throwable {
                                 return aForRange(0, 10).toUnit();
                             }
-                        }).then(new ACallable<Void>() {
+                        }).thenDo(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 semaphore.release(2);
                                 return aVoid();
                             }
-                        }).then(new ACallable<Void>() {
+                        }).thenDo(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 return aForRange(0, 10).toUnit();
                             }
-                        }).thenLast(new ACallable<Void>() {
+                        }).thenDoLast(new ACallable<Void>() {
                             @Override
                             public Promise<Void> call() throws Throwable {
                                 semaphore.release();

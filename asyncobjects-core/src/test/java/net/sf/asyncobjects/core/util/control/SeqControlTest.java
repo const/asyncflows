@@ -46,7 +46,7 @@ public class SeqControlTest {
                         list.add(value + 1);
                         throw new IllegalStateException();
                     }
-                }).then(new ACallable<Integer>() {
+                }).thenDo(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
                         // never called

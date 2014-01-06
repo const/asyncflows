@@ -59,7 +59,7 @@ public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, Export
         if (getEngine() != null) {
             throw new IllegalStateException("SSLEngine is already initialized!");
         }
-        return wrapped.connect(address).then(new ACallable<Void>() {
+        return wrapped.connect(address).thenDo(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
                 return engineFactory.apply(address).map(new AFunction<Void, SSLEngine>() {

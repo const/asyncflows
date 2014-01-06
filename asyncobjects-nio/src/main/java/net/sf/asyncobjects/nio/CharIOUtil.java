@@ -51,7 +51,7 @@ public final class CharIOUtil {
                     }
                 });
             }
-        }).then(new ACallable<String>() {
+        }).thenDo(new ACallable<String>() {
             @Override
             public Promise<String> call() throws Throwable {
                 return aSuccess(builder.toString());

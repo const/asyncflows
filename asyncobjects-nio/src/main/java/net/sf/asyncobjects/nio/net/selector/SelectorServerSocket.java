@@ -98,7 +98,7 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
             public Promise<Maybe<ASocket>> call() throws Throwable {
                 final SocketChannel accepted = serverSocketChannel.accept();
                 if (accepted == null) {
-                    return channelContext.waitForAccept().then(new ACallable<Maybe<ASocket>>() {
+                    return channelContext.waitForAccept().thenDo(new ACallable<Maybe<ASocket>>() {
                         @Override
                         public Promise<Maybe<ASocket>> call() throws Throwable {
                             return aMaybeEmpty();

@@ -119,7 +119,7 @@ public final class Promise<T> {
      * @param <X>    the result type
      * @return the mapped promise
      */
-    public <X> Promise<X> then(final ACallable<X> action) {
+    public <X> Promise<X> thenDo(final ACallable<X> action) {
         final Promise<X> promise = new Promise<X>();
         final AResolver<X> resolver = promise.resolver();
         listen(new AResolver<T>() {
@@ -143,7 +143,7 @@ public final class Promise<T> {
      * @return the promise
      */
     public <X> Promise<X> thenValue(final X value) {
-        return then(constantCallable(value));
+        return thenDo(constantCallable(value));
     }
 
     /**

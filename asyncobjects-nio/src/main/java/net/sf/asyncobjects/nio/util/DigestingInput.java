@@ -70,7 +70,7 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
         final Promise<byte[]> rc = new Promise<byte[]>();
         final ByteBuffer buffer = ByteBuffer.allocate(1024);
         return IOUtil.BYTE.discard(digestInput(input, rc.resolver()).using(digest), buffer)
-                .then(promiseCallable(rc));
+                .thenDo(promiseCallable(rc));
     }
 
     @Override

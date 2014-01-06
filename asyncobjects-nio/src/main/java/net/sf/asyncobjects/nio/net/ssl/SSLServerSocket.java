@@ -43,7 +43,7 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
 
     @Override
     public Promise<Void> bind(final SocketAddress address, final int backlog) {
-        return wrapped.bind(address, backlog).then(collectAddress());
+        return wrapped.bind(address, backlog).thenDo(collectAddress());
     }
 
     /**
@@ -68,7 +68,7 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
 
     @Override
     public Promise<Void> bind(final SocketAddress address) {
-        return wrapped.bind(address).then(collectAddress());
+        return wrapped.bind(address).thenDo(collectAddress());
     }
 
     @Override

@@ -79,32 +79,33 @@ public final class StreamUtil {
                                 try {
                                     if (value.isSuccess()) {
                                         if (value.value().isEmpty()) {
-                                            return sink.close().then(booleanCallable(false));
+                                            return sink.close().thenDo(booleanCallable(false));
                                         } else {
                                             if (!stopped.isEmpty()) {
                                                 return aFalse();
                                             }
                                             count[0]++;
-                                            return sink.put(value.value().value()).then(booleanCallable(true));
+                                            return sink.put(value.value().value()).thenDo(booleanCallable(true));
                                         }
                                     } else {
-                                        return sink.fail(value.failure()).then(
+                                        return sink.fail(value.failure()).thenDo(
                                                 CoreFunctionUtil.<Boolean>failureCallable(value.failure()));
                                     }
                                 } catch (Throwable problem) {
-                                    return sink.fail(problem).then(CoreFunctionUtil.<Boolean>failureCallable(problem));
+                                    return sink.fail(problem).thenDo(
+                                            CoreFunctionUtil.<Boolean>failureCallable(problem));
                                 }
                             }
                         });
                     }
                 });
             }
-        }).then(new ACallable<Void>() {
+        }).thenDo(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
                 return stopped.isEmpty() ? aVoid() : Promise.forOutcome(stopped.getValue());
             }
-        }).then(new ACallable<Long>() {
+        }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
                 return aSuccess(count[0]);

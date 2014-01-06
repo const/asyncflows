@@ -179,7 +179,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
                             }
                             return requests.suspendThenTrue();
                         }
-                    }).then(CoreFunctionUtil.promiseCallable(result));
+                    }).thenDo(CoreFunctionUtil.promiseCallable(result));
                 }
             });
         }

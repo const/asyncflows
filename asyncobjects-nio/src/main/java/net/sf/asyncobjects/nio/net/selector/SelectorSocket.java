@@ -113,7 +113,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                         if (socketChannel.finishConnect()) {
                             return aFalse();
                         }
-                        return channelContext.waitForConnect().then(booleanCallable(true));
+                        return channelContext.waitForConnect().thenDo(booleanCallable(true));
                     }
                 });
             }
@@ -225,7 +225,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 return aFailure(ex);
                             }
                         }
-                        return channelContext.waitForRead().then(new ACallable<Maybe<Integer>>() {
+                        return channelContext.waitForRead().thenDo(new ACallable<Maybe<Integer>>() {
                             @Override
                             public Promise<Maybe<Integer>> call() throws Throwable {
                                 return aMaybeEmpty();
@@ -308,7 +308,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 firstRun = true;
                                 return aBoolean(buffer.hasRemaining());
                             } else {
-                                return channelContext.waitForWrite().then(booleanCallable(true));
+                                return channelContext.waitForWrite().thenDo(booleanCallable(true));
                             }
                         } catch (IOException ex) {
                             if (firstRun) {
@@ -316,7 +316,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 // instead of returning zero. In that case, the operation will be repeated until
                                 // after socket is ready for write. This happens on windows platform.
                                 firstRun = false;
-                                return channelContext.waitForWrite().then(booleanCallable(true));
+                                return channelContext.waitForWrite().thenDo(booleanCallable(true));
                             } else {
                                 throw ex;
                             }

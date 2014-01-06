@@ -591,7 +591,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                         return aFalse();
                     }
                     if (flushNeeded != null) {
-                        return wrapped.flush().then(new ACallable<Boolean>() {
+                        return wrapped.flush().thenDo(new ACallable<Boolean>() {
                             @Override
                             public Promise<Boolean> call() throws Throwable {
                                 notifySuccess(flushNeeded, null);
@@ -678,7 +678,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
          */
         private Promise<Boolean> writePacketAndContinue() {
             packet.flip();
-            return wrapped.write(packet).then(new ACallable<Boolean>() {
+            return wrapped.write(packet).thenDo(new ACallable<Boolean>() {
                 @Override
                 public Promise<Boolean> call() throws Throwable {
                     packet.compact();

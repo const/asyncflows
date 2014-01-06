@@ -68,7 +68,7 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
         return requests.run(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return write.observe(outcomeChecker()).then(new ACallable<Void>() {
+                return write.observe(outcomeChecker()).thenDo(new ACallable<Void>() {
                     @Override
                     public Promise<Void> call() throws Throwable {
                         updateDigest(buffer, positionBeforeWrite);

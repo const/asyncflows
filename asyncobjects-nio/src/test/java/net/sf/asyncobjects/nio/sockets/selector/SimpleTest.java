@@ -48,7 +48,7 @@ public class SimpleTest {
                         return aSeq(new ACallable<SocketAddress>() {
                             @Override
                             public Promise<SocketAddress> call() throws Throwable {
-                                return serverSocket.bind(new InetSocketAddress(0)).then(new ACallable<SocketAddress>() {
+                                return serverSocket.bind(new InetSocketAddress(0)).thenDo(new ACallable<SocketAddress>() {
                                     @Override
                                     public Promise<SocketAddress> call() throws Throwable {
                                         return serverSocket.getLocalSocketAddress();
@@ -78,7 +78,7 @@ public class SimpleTest {
                                                 final long length = rnd.nextInt(10240) + 1024;
 
                                                 final SocketAddress connectAddress = new InetSocketAddress("localhost", ((InetSocketAddress) socketAddress).getPort());
-                                                return socket.connect(connectAddress).then(new ACallable<Tuple3<byte[], byte[], Long>>() {
+                                                return socket.connect(connectAddress).thenDo(new ACallable<Tuple3<byte[], byte[], Long>>() {
                                                     @Override
                                                     public Promise<Tuple3<byte[], byte[], Long>> call() throws Throwable {
                                                         return aAll(new ACallable<byte[]>() {
@@ -102,7 +102,7 @@ public class SimpleTest {
                                                                         rnd.nextBytes(data);
                                                                         return output.write(ByteBuffer.wrap(data));
                                                                     }
-                                                                }).then(promiseCallable(digest));
+                                                                }).thenDo(promiseCallable(digest));
                                                             }
                                                         }).and(new ACallable<byte[]>() {
                                                             @Override

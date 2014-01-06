@@ -233,7 +233,7 @@ public abstract class ForwardStreamBuilder<T> {
                     }
                 });
             }
-        }).then(new ACallable<R>() {
+        }).thenDo(new ACallable<R>() {
             @Override
             public Promise<R> call() throws Throwable {
                 return aSuccess(cell.getValue());

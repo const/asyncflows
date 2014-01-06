@@ -130,7 +130,7 @@ public final class RequestQueue {
         if (running) {
             final Promise<Void> blocker = new Promise<Void>();
             queue.addLast(blocker.resolver());
-            return blocker.then(body).observe(resumeObserver);
+            return blocker.thenDo(body).observe(resumeObserver);
         } else {
             running = true;
             return aNow(body).observe(resumeObserver);

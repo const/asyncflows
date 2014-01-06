@@ -147,7 +147,7 @@ public class SinkStreamBuilder<T> extends ForwardStreamBuilder<T> {
                                                     new AFunction<Boolean, N>() {
                                                         @Override
                                                         public Promise<Boolean> apply(final N value) {
-                                                            return nextSink.put(value).then(booleanCallable(true));
+                                                            return nextSink.put(value).thenDo(booleanCallable(true));
                                                         }
                                                     });
                                         } else {

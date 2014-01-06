@@ -102,7 +102,7 @@ public class IOUtil<B extends Buffer, A> {
                                 result.setValue(result.getValue() + value);
                             }
                             buffer.flip();
-                            return output.write(buffer).then(new ACallable<Boolean>() {
+                            return output.write(buffer).thenDo(new ACallable<Boolean>() {
                                 @Override
                                 public Promise<Boolean> call() throws Throwable {
                                     operations.compact(buffer);
@@ -116,13 +116,13 @@ public class IOUtil<B extends Buffer, A> {
                     }
                 });
             }
-        }).then(new ACallable<Long>() {
+        }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
                 if (flush.isEmpty()) {
                     return aSuccess(result.getValue());
                 } else {
-                    return flush.getValue().then(CoreFunctionUtil.constantCallable(result.getValue()));
+                    return flush.getValue().thenDo(CoreFunctionUtil.constantCallable(result.getValue()));
                 }
             }
         });
@@ -154,7 +154,7 @@ public class IOUtil<B extends Buffer, A> {
                     }
                 });
             }
-        }).then(new ACallable<Long>() {
+        }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
                 return aSuccess(result.getValue());

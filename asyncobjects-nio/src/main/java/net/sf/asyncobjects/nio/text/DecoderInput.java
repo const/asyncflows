@@ -178,7 +178,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                         result.throwException();
                         return aFailure(new IllegalStateException("Unknown decode result type: " + result));
                     }
-                }).then(new ACallable<Integer>() {
+                }).thenDo(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
                         return aSuccess(read.getValue());
