@@ -31,12 +31,12 @@ class ScalaStreamTest {
           v => aLater(v + 5)
         }.filter {
           v => (v & 1) == 0
-        }.flatMapIterator { v =>
+        }.flatMapIterable { v =>
           val rc = new ArrayBuffer[Int]
           for (i <- 0 to v) {
             rc += v
           }
-          rc.iterator
+          rc
         }.window(3).pull.push.toList
       }
     }
