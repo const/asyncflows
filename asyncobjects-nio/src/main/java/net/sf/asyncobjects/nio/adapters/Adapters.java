@@ -6,7 +6,9 @@ import net.sf.asyncobjects.nio.AOutput;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -134,5 +136,22 @@ public final class Adapters {
      */
     public static AInput<CharBuffer> getStringInput(final String input) {
         return new ReaderAdapter(new StringReader(input)).export();
+    }
+
+    /**
+     * Get resource as stream.
+     *
+     * @param contextClass the context class
+     * @param name         the resource name
+     * @return the resource stream
+     * @throws FileNotFoundException if resource is not found
+     */
+    public static AInput<ByteBuffer> getResource(final Class<?> contextClass, final String name)
+            throws FileNotFoundException {
+        final InputStream stream = contextClass.getResourceAsStream(name);
+        if (stream == null) {
+            throw new FileNotFoundException("Resource not found: " + name);
+        }
+        return new InputStreamAdapter(stream).export();
     }
 }

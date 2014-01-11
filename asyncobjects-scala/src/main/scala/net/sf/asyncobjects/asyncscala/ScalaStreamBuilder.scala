@@ -112,7 +112,7 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
     new ScalaStreamBuilder[N](builder.flatMapIterable(CoreFunctionConversions.toAFunction(mapper)))
 
   def flatMapIterable[N, C[X] <: Iterable[X]](mapper: T => Promise[C[N]]): ScalaStreamBuilder[N] =
-    flatMapJavaIterable[N, java.lang.Iterable[N]](v =>
+    flatMapJavaIterable[N, java.lang.Iterable](v =>
       mapper.apply(v).flatMap {
         c => asJavaIterable(c).asInstanceOf[java.lang.Iterable[N]]
       })

@@ -9,6 +9,7 @@ import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 
@@ -31,6 +32,17 @@ public final class ResourceUtil {
      */
     public static <A extends ACloseable> Try1<A> aTry(final ACallable<A> openBody) {
         return new Try1<A>(openBody);
+    }
+
+    /**
+     * Start building a try with resources.
+     *
+     * @param resource the open resource
+     * @param <A>      the resource type
+     * @return the opened resource
+     */
+    public static <A extends ACloseable> Try1<A> aTry(final A resource) {
+        return new Try1<A>(constantCallable(resource));
     }
 
     /**

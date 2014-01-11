@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test for the line decoder.
  */
-public class LineDecoderTest {
+public class LineStreamrTest {
 
     @Test
     public void testLines() {
@@ -22,7 +22,7 @@ public class LineDecoderTest {
         final List<String> result = doAsync(new ACallable<List<String>>() {
             @Override
             public Promise<List<String>> call() throws Throwable {
-                return aForStream(LineDecoder.decodeLines(StringInput.wrap(input))).toList();
+                return aForStream(LineStream.readLines(StringInput.wrap(input))).toList();
             }
         });
         assertEquals(Arrays.asList("first", "", "", "", "fifth", "last"), result);
