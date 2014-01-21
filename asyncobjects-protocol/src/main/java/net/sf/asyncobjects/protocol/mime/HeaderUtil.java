@@ -2,8 +2,9 @@ package net.sf.asyncobjects.protocol.mime;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.protocol.InputContext;
-import net.sf.asyncobjects.protocol.OutputContext;
+import net.sf.asyncobjects.nio.util.InputContext;
+import net.sf.asyncobjects.nio.util.OutputContext;
+import net.sf.asyncobjects.protocol.LineUtil;
 import net.sf.asyncobjects.protocol.ProtocolCharsetException;
 import net.sf.asyncobjects.protocol.ProtocolException;
 import net.sf.asyncobjects.protocol.ProtocolLimitExceededException;
@@ -12,22 +13,18 @@ import net.sf.asyncobjects.protocol.ProtocolStreamTruncatedException;
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
-import static net.sf.asyncobjects.protocol.LineUtil.BYTE_MASK;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.protocol.LineUtil.CR;
+import static net.sf.asyncobjects.protocol.LineUtil.HT;
+import static net.sf.asyncobjects.protocol.LineUtil.LF;
+import static net.sf.asyncobjects.protocol.LineUtil.MAX_ISO_8859_1;
+import static net.sf.asyncobjects.protocol.LineUtil.SPACE;
 import static net.sf.asyncobjects.protocol.LineUtil.writeASCII;
 
 /**
  * Some header utils.
  */
 public final class HeaderUtil {
-    /**
-     * The space character code.
-     */
-    public static final int SPACE = 32;
-    /**
-     * The DEL character code.
-     */
-    public static final int DEL = 127;
 
     /**
      * Private constructor for utility class.
@@ -42,7 +39,7 @@ public final class HeaderUtil {
      * @return true if character is a valid field name character.
      */
     public static boolean isFieldNameChar(final char ch) {
-        return ch > SPACE && ch < DEL && ch != ':';
+        return ch > SPACE && ch < (int) LineUtil.DEL && ch != ':';
     }
 
     /**
@@ -54,7 +51,7 @@ public final class HeaderUtil {
      */
     public static Promise<HeaderSet> readHeaders(final InputContext input, final int limit) { // NOPMD
         final HeaderSet headers = new HeaderSet();
-        return aSeqLoop(new ACallable<Boolean>() {
+        return aSeqLoopGreedy(new ACallable<Boolean>() {
             private static final int LINE_START = 0;
             private static final int NAME = 1;
             private static final int NAME_SP = 2;
@@ -73,7 +70,7 @@ public final class HeaderUtil {
                     if (input.isEofSeen()) {
                         throw new ProtocolStreamTruncatedException("EOF before MIME headers ends");
                     } else {
-                        return input.readMore().thenValue(true);
+                        return input.readMore();
                     }
                 }
                 final ByteBuffer buffer = input.buffer();
@@ -81,9 +78,9 @@ public final class HeaderUtil {
                     if (size + 1 >= limit) {
                         throw new ProtocolLimitExceededException("The MIME headers total size is more than " + limit);
                     }
-                    final char c = (char) (buffer.get() & BYTE_MASK);
+                    final char c = (char) (buffer.get() & MAX_ISO_8859_1);
                     size++;
-                    if (c > DEL) {
+                    if (c > (int) LineUtil.DEL) {
                         throw new ProtocolCharsetException("The MIME headers could contains only "
                                 + "ASCII characters: " + (int) c);
                     }
@@ -99,7 +96,7 @@ public final class HeaderUtil {
                                 headers.addHeader(current.toString());
                                 current.setLength(0);
                             }
-                            if (c == '\r') {
+                            if (c == CR) {
                                 state = END_BEFORE_CR;
                             } else {
                                 // the next MIME header
@@ -130,12 +127,12 @@ public final class HeaderUtil {
                             }
                             break;
                         case VALUE:
-                            if (c == '\r') {
+                            if (c == CR) {
                                 state = VALUE_AFTER_CR;
                             }
                             break;
                         case VALUE_AFTER_CR:
-                            if (c == '\n') {
+                            if (c == LF) {
                                 state = LINE_START;
                             } else if (c != '\r') {
                                 state = VALUE;
@@ -145,7 +142,7 @@ public final class HeaderUtil {
                             state = END_AFTER_LF;
                             break;
                         case END_AFTER_LF:
-                            if (c == '\n') {
+                            if (c == LF) {
                                 return aFalse();
                             } else {
                                 throw new ProtocolException("Invalid MIME header name character is encountered: 13 "
@@ -155,7 +152,7 @@ public final class HeaderUtil {
                             throw new IllegalStateException("Invalid state: " + state);
                     }
                 } while (buffer.hasRemaining());
-                return input.readMore().thenValue(true);
+                return input.readMore();
             }
         }).thenValue(headers);
     }
@@ -167,7 +164,7 @@ public final class HeaderUtil {
      * @return true if LWSP character
      */
     private static boolean isLWSP(final char c) {
-        return c == '\t' || c == ' ';
+        return c == HT || c == SPACE;
     }
 
     /**

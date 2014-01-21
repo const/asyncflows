@@ -31,7 +31,6 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
@@ -113,7 +112,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                         if (socketChannel.finishConnect()) {
                             return aFalse();
                         }
-                        return channelContext.waitForConnect().thenDo(booleanCallable(true));
+                        return channelContext.waitForConnect().thenValue(true);
                     }
                 });
             }
@@ -308,7 +307,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 firstRun = true;
                                 return aBoolean(buffer.hasRemaining());
                             } else {
-                                return channelContext.waitForWrite().thenDo(booleanCallable(true));
+                                return channelContext.waitForWrite().thenValue(true);
                             }
                         } catch (IOException ex) {
                             if (firstRun) {
@@ -316,7 +315,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 // instead of returning zero. In that case, the operation will be repeated until
                                 // after socket is ready for write. This happens on windows platform.
                                 firstRun = false;
-                                return channelContext.waitForWrite().thenDo(booleanCallable(true));
+                                return channelContext.waitForWrite().thenValue(true);
                             } else {
                                 throw ex;
                             }

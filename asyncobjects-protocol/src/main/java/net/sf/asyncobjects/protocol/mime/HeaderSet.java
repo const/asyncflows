@@ -1,5 +1,7 @@
 package net.sf.asyncobjects.protocol.mime;
 
+import net.sf.asyncobjects.protocol.LineUtil;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -38,7 +40,7 @@ public class HeaderSet implements Iterable<Header> {
         for (final Header header : this) {
             b.append(header.getRaw());
         }
-        b.append("\r\n");
+        b.append(LineUtil.CRLF);
         return b.toString();
     }
 }

@@ -1,5 +1,7 @@
 package net.sf.asyncobjects.protocol.mime;
 
+import net.sf.asyncobjects.protocol.LineUtil;
+
 /**
  * The MIME header.
  */
@@ -37,7 +39,7 @@ public class Header {
      * @param value the header value
      */
     public Header(final String name, final String value) {
-        this(name.trim() + ": " + value.trim() + "\r\n", name, value);
+        this(name.trim() + ": " + value.trim() + LineUtil.CRLF, name, value);
     }
 
     /**
@@ -68,7 +70,7 @@ public class Header {
     }
 
     /**
-     * @return the header value
+     * @return the header value as it is in the input or output (including CRLF)
      */
     public String getValue() {
         return value;

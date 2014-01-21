@@ -16,7 +16,6 @@ import java.security.MessageDigest;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 
 /**
  * The input that forwards requests further and digests the input.
@@ -69,8 +68,7 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
     public static Promise<byte[]> digestAndDiscardInput(final AInput<ByteBuffer> input, final String digest) {
         final Promise<byte[]> rc = new Promise<byte[]>();
         final ByteBuffer buffer = ByteBuffer.allocate(1024);
-        return IOUtil.BYTE.discard(digestInput(input, rc.resolver()).using(digest), buffer)
-                .thenDo(promiseCallable(rc));
+        return IOUtil.BYTE.discard(digestInput(input, rc.resolver()).using(digest), buffer).thenPromise(rc);
     }
 
     @Override

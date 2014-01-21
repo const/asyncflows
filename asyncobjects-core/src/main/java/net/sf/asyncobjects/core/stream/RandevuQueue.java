@@ -16,7 +16,6 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * <p>Randevu Queue is a queue that provides a pair of facets of types {@link AStream} and {@link ASink}.</p>
@@ -92,27 +91,22 @@ public final class RandevuQueue<T> {
 
         @Override
         public Promise<Void> put(final T value) {
-            return requests.run(new ACallable<Void>() {
+            return requests.runSeqLoop(new ACallable<Boolean>() {
                 @Override
-                public Promise<Void> call() throws Throwable {
-                    return aSeqLoop(new ACallable<Boolean>() {
-                        @Override
-                        public Promise<Boolean> call() throws Throwable {
-                            if (!isValid()) {
-                                return invalidationPromise();
-                            }
-                            if (stream.isClosed()) {
-                                // just discard a value
-                                return aFalse();
-                            }
-                            if (currentRequest != null) {
-                                notifySuccess(currentRequest, Maybe.value(value));
-                                currentRequest = null;
-                                return aFalse();
-                            }
-                            return requests.suspendThenTrue();
-                        }
-                    });
+                public Promise<Boolean> call() throws Throwable {
+                    if (!isValid()) {
+                        return invalidationPromise();
+                    }
+                    if (stream.isClosed()) {
+                        // just discard a value
+                        return aFalse();
+                    }
+                    if (currentRequest != null) {
+                        notifySuccess(currentRequest, Maybe.value(value));
+                        currentRequest = null;
+                        return aFalse();
+                    }
+                    return requests.suspendThenTrue();
                 }
             });
         }

@@ -7,7 +7,6 @@ import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * Asynchronous semaphore class.
@@ -55,20 +54,15 @@ public final class Semaphore implements ASemaphore, ExportsSelf<ASemaphore> {
         if (requestedPermits <= 0) {
             return aFailure(new IllegalArgumentException("The requestedPermits must be positive: " + requestedPermits));
         }
-        return requests.run(new ACallable<Void>() {
+        return requests.runSeqLoop(new ACallable<Boolean>() {
             @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        if (requestedPermits <= permits) {
-                            permits -= requestedPermits;
-                            return aFalse();
-                        } else {
-                            return requests.suspendThenTrue();
-                        }
-                    }
-                });
+            public Promise<Boolean> call() throws Throwable {
+                if (requestedPermits <= permits) {
+                    permits -= requestedPermits;
+                    return aFalse();
+                } else {
+                    return requests.suspendThenTrue();
+                }
             }
         });
     }

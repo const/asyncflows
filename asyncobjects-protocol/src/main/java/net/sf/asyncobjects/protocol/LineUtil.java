@@ -3,13 +3,15 @@ package net.sf.asyncobjects.protocol;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
+import net.sf.asyncobjects.nio.util.InputContext;
+import net.sf.asyncobjects.nio.util.OutputContext;
 
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
@@ -17,13 +19,41 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
  */
 public final class LineUtil {
     /**
+     * Unicode code point for carriage return.
+     */
+    public static final char CR = 0x000D;
+    /**
+     * Unicode code point for carriage return.
+     */
+    public static final char LF = 0x000A;
+    /**
+     * Unicode code point for carriage return.
+     */
+    public static final char HT = '\t';
+    /**
      * The byte mask.
      */
-    public static final int BYTE_MASK = 0xFF;
+    public static final int MAX_ISO_8859_1 = 0xFF;
     /**
      * Max ASCII character.
      */
     public static final int MAX_ASCII = 127;
+    /**
+     * The CRLF.
+     */
+    public static final String CRLF = "\r\n";
+    /**
+     * The max ASCII control text.
+     */
+    public static final char MAX_ASCII_CONTROL = 0x1F;
+    /**
+     * The max ASCII control text.
+     */
+    public static final char DEL = 0x7F;
+    /**
+     * The space character code.
+     */
+    public static final int SPACE = 32;
 
     /**
      * Private constructor for utility class.
@@ -46,10 +76,11 @@ public final class LineUtil {
      * @param builder        the string builder for the line
      * @param limit          the maximum size of the line
      * @param failOnNonASCII if true, the operation fails on non-ASCII characters
+     * @param allowCR        if true, CR without LF is considered as part of the string
      * @return a promise with amount of bytes in the line, null if eof is encountered,
      */
     public static Promise<Integer> readLineCRLF(final InputContext input, final StringBuilder builder,
-                                                final int limit, final boolean failOnNonASCII) {
+                                                final int limit, final boolean failOnNonASCII, final boolean allowCR) {
         return aSeqMaybeLoop(new ACallable<Maybe<Integer>>() {
             private boolean afterCR;
             private int rc;
@@ -64,22 +95,28 @@ public final class LineUtil {
                             throw new ProtocolStreamTruncatedException("The EOF before CRLF in the input");
                         }
                     } else {
-                        return input.readMore().thenValue(Maybe.<Integer>empty());
+                        return input.readMoreEmpty();
                     }
                 }
                 final ByteBuffer buffer = input.buffer();
                 do {
                     final byte b = buffer.get();
                     if (b < 0 && failOnNonASCII) {
-                        throw new ProtocolCharsetException("Non-ASCII character is encountered: " + (b & BYTE_MASK));
+                        throw new ProtocolCharsetException("Non-ASCII character is encountered: "
+                                + (b & MAX_ISO_8859_1));
                     }
                     rc++;
                     if (rc >= limit) {
                         throw new ProtocolLimitExceededException("The string is larger than set up limit: " + limit);
                     }
-                    builder.append((char) (b & BYTE_MASK));
-                    if (afterCR && b == '\n') {
-                        return aMaybeValue(rc);
+                    builder.append((char) (b & MAX_ISO_8859_1));
+                    if (afterCR) {
+                        if (b == '\n') {
+                            return aMaybeValue(rc);
+                        } else {
+                            throw new ProtocolCharsetException("CR without LF encountered");
+
+                        }
                     }
                     afterCR = b == '\r';
                 } while (buffer.hasRemaining());
@@ -97,7 +134,7 @@ public final class LineUtil {
      * @return the text to write
      */
     public static Promise<Void> writeASCII(final OutputContext context, final String text) {
-        return aSeqLoop(new ACallable<Boolean>() {
+        return aSeqLoopGreedy(new ACallable<Boolean>() {
             private int pos;
 
             @Override
@@ -113,7 +150,7 @@ public final class LineUtil {
                 if (pos >= text.length()) {
                     return aFalse();
                 } else {
-                    return context.send().thenValue(true);
+                    return context.send();
                 }
             }
         });

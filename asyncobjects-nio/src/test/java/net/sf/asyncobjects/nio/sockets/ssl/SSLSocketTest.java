@@ -26,7 +26,6 @@ import java.util.Random;
 
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
@@ -132,7 +131,7 @@ public class SSLSocketTest {
                                                                         rnd.nextBytes(data);
                                                                         return output.write(ByteBuffer.wrap(data));
                                                                     }
-                                                                }).thenDo(promiseCallable(digest));
+                                                                }).thenPromise(digest);
                                                             }
                                                         }).and(new ACallable<byte[]>() {
                                                             @Override

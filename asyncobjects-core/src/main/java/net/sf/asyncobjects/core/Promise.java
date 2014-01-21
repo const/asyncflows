@@ -6,7 +6,10 @@ import org.slf4j.LoggerFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 
 /**
@@ -83,6 +86,23 @@ public final class Promise<T> {
     }
 
     /**
+     * @return true if the promise is resolved
+     */
+    public boolean isResolved() {
+        return state == State.RESOLVED;
+    }
+
+    /**
+     * @return the outcome of the promise
+     */
+    public Outcome<T> getOutcome() {
+        if (state != State.RESOLVED) {
+            throw new IllegalStateException("There is no outcome yet! State = " + state);
+        }
+        return outcome;
+    }
+
+    /**
      * @return the resolver for the promise, it could be got only once
      */
     public AResolver<T> resolver() {
@@ -120,19 +140,27 @@ public final class Promise<T> {
      * @return the mapped promise
      */
     public <X> Promise<X> thenDo(final ACallable<X> action) {
-        final Promise<X> promise = new Promise<X>();
-        final AResolver<X> resolver = promise.resolver();
-        listen(new AResolver<T>() {
-            @Override
-            public void resolve(final Outcome<T> resolution) throws Throwable {
-                if (resolution.isSuccess()) {
-                    aNow(action).listen(resolver);
-                } else {
-                    notifyFailure(resolver, resolution.failure());
-                }
+        if (isResolved()) {
+            if (outcome.isSuccess()) {
+                return aNow(action);
+            } else {
+                return failure(outcome.failure());
             }
-        });
-        return promise;
+        } else {
+            final Promise<X> promise = new Promise<X>();
+            final AResolver<X> resolver = promise.resolver();
+            listen(new AResolver<T>() {
+                @Override
+                public void resolve(final Outcome<T> resolution) throws Throwable {
+                    if (resolution.isSuccess()) {
+                        aNow(action).listen(resolver);
+                    } else {
+                        notifyFailure(resolver, resolution.failure());
+                    }
+                }
+            });
+            return promise;
+        }
     }
 
     /**
@@ -147,6 +175,41 @@ public final class Promise<T> {
     }
 
     /**
+     * Return promise that resolves to the specified value after current promise resolves.
+     * This is a specialized value for booleans, because it booleans happen a lot, and this particular
+     * versions creates less objects.
+     *
+     * @param value the value
+     * @return the promise
+     */
+    public Promise<Boolean> thenValue(final boolean value) {
+        return thenDo(booleanCallable(value));
+    }
+
+
+    /**
+     * Return promise that resolves to the specified value after current promise resolves.
+     *
+     * @param promise the value
+     * @param <X>     the value type
+     * @return the promise
+     */
+    public <X> Promise<X> thenPromise(final Promise<X> promise) {
+        return thenDo(promiseCallable(promise));
+    }
+
+    /**
+     * If the current promise completes with success, then fail result with provided failure.
+     *
+     * @param failure the failure
+     * @param <X>     the failure type
+     * @return the failure
+     */
+    public <X> Promise<X> thenFailure(final Throwable failure) {
+        return thenDo(CoreFunctionUtil.<X>failureCallable(failure));
+    }
+
+    /**
      * Map the promise. In case of the failure, the body is not called.
      *
      * @param mapper the asynchronous mapper
@@ -154,19 +217,27 @@ public final class Promise<T> {
      * @return the mapped promise
      */
     public <X> Promise<X> map(final AFunction<X, T> mapper) {
-        final Promise<X> promise = new Promise<X>();
-        final AResolver<X> resolver = promise.resolver();
-        listen(new AResolver<T>() {
-            @Override
-            public void resolve(final Outcome<T> resolution) throws Throwable {
-                try {
-                    mapper.apply(resolution.force()).listen(resolver);
-                } catch (Throwable t) {
-                    ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
-                }
+        if (isResolved()) {
+            if (outcome.isSuccess()) {
+                return evaluate(outcome.value(), mapper);
+            } else {
+                return failure(outcome.failure());
             }
-        });
-        return promise;
+        } else {
+            final Promise<X> promise = new Promise<X>();
+            final AResolver<X> resolver = promise.resolver();
+            listen(new AResolver<T>() {
+                @Override
+                public void resolve(final Outcome<T> resolution) throws Throwable {
+                    try {
+                        mapper.apply(resolution.force()).listen(resolver);
+                    } catch (Throwable t) {
+                        ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
+                    }
+                }
+            });
+            return promise;
+        }
     }
 
     /**
@@ -177,19 +248,23 @@ public final class Promise<T> {
      * @return the mapped promise
      */
     public <X> Promise<X> mapOutcome(final AFunction<X, Outcome<T>> mapper) {
-        final Promise<X> promise = new Promise<X>();
-        final AResolver<X> resolver = promise.resolver();
-        listen(new AResolver<T>() {
-            @Override
-            public void resolve(final Outcome<T> resolution) throws Throwable {
-                try {
-                    mapper.apply(resolution).listen(resolver);
-                } catch (Throwable t) {
-                    ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
+        if (isResolved()) {
+            return evaluate(outcome, mapper);
+        } else {
+            final Promise<X> promise = new Promise<X>();
+            final AResolver<X> resolver = promise.resolver();
+            listen(new AResolver<T>() {
+                @Override
+                public void resolve(final Outcome<T> resolution) throws Throwable {
+                    try {
+                        mapper.apply(resolution).listen(resolver);
+                    } catch (Throwable t) {
+                        ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
+                    }
                 }
-            }
-        });
-        return promise;
+            });
+            return promise;
+        }
     }
 
     /**
@@ -197,7 +272,7 @@ public final class Promise<T> {
      */
     public Promise<Void> toVoid() {
         if (state == State.RESOLVED) {
-            return aVoid();
+            return outcome.isSuccess() ? aVoid() : Promise.<Void>failure(outcome.failure());
         }
         return map(CoreFunctionUtil.<T>voidMapper());
     }

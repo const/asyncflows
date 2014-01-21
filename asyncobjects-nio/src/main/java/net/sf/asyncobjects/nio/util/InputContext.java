@@ -1,14 +1,20 @@
-package net.sf.asyncobjects.protocol;
+package net.sf.asyncobjects.nio.util;
 
+import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
+import net.sf.asyncobjects.core.AsyncControl;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.nio.AInput;
 
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
+import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
 
 /**
  * The context for the protocol implementation. It contains the data is needed for different protocol parts.
@@ -61,9 +67,10 @@ public class InputContext {
      * Read more data into the buffer. The method should be only called when the current data is unsufficient
      * for the operation. The method should be called only if it known that EOF has not been read yet.
      *
-     * @return a promise that resolves when more data is read or EOF is detected, or fails no more data is possible
+     * @return a promise that resolves to true when more data is read or EOF is detected, or fails
+     * no more data is possible to read.
      */
-    public Promise<Void> readMore() {
+    public Promise<Boolean> readMore() {
         if (eofRead) {
             throw new IllegalStateException("EOF has been already read!");
         }
@@ -75,20 +82,51 @@ public class InputContext {
         }
         readMode = true;
         buffer.compact();
-        return input.read(buffer).mapOutcome(new AFunction<Void, Outcome<Integer>>() {
+        return input.read(buffer).mapOutcome(new AFunction<Boolean, Outcome<Integer>>() {
             @Override
-            public Promise<Void> apply(final Outcome<Integer> value) throws Throwable {
+            public Promise<Boolean> apply(final Outcome<Integer> value) throws Throwable {
                 buffer.flip();
                 readMode = false;
                 if (value.isSuccess()) {
                     if (value.value() < 0) {
                         eofRead = true;
                     }
-                    return aVoid();
+                    return aTrue();
                 } else {
                     invalidation = value.failure();
                     return aFailure(invalidation);
                 }
+            }
+        });
+    }
+
+    /**
+     * Read more data then return a promise for empty value.
+     *
+     * @param <T> the type of maybe
+     * @return the promise for empty value
+     */
+    public <T> Promise<Maybe<T>> readMoreEmpty() {
+        return readMore().thenPromise(AsyncControl.<T>aMaybeEmpty());
+    }
+
+    /**
+     * Ensure that specified amount of bytes is available in the buffer. Fail if it could not be read.
+     *
+     * @param amount the amount to read
+     * @return a promise that resolves when bytes are available or fails.
+     */
+    public Promise<Void> ensureAvailable(final int amount) {
+        if (buffer.remaining() >= amount) {
+            return aVoid();
+        }
+        return aSeqLoopGreedy(new ACallable<Boolean>() {
+            @Override
+            public Promise<Boolean> call() throws Throwable {
+                if (buffer.remaining() >= amount) {
+                    return aFalse();
+                }
+                return readMore();
             }
         });
     }

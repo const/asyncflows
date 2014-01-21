@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.protocol;
+package net.sf.asyncobjects.nio.util;
 
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Outcome;
@@ -8,7 +8,7 @@ import net.sf.asyncobjects.nio.AOutput;
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 
 /**
  * The output context.
@@ -45,20 +45,20 @@ public class OutputContext {
     /**
      * Ensure that data is sent to the underlying stream.
      *
-     * @return the promise that resolves when data is sent.
+     * @return the promise that resolves to true when data is sent.
      */
-    public Promise<Void> send() {
+    public Promise<Boolean> send() {
         ensureValid();
         if (buffer.position() > 0) {
             writeMode = true;
             buffer.flip();
-            return output.write(buffer).mapOutcome(new AFunction<Void, Outcome<Void>>() {
+            return output.write(buffer).mapOutcome(new AFunction<Boolean, Outcome<Void>>() {
                 @Override
-                public Promise<Void> apply(final Outcome<Void> value) throws Throwable {
+                public Promise<Boolean> apply(final Outcome<Void> value) throws Throwable {
                     buffer.compact();
                     writeMode = false;
                     if (value.isSuccess()) {
-                        return aVoid();
+                        return aTrue();
                     } else {
                         invalidation = value.failure();
                         return aFailure(invalidation);
@@ -66,7 +66,7 @@ public class OutputContext {
                 }
             });
         } else {
-            return aVoid();
+            return aTrue();
         }
     }
 

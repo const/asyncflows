@@ -4,7 +4,6 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.util.ChainedClosable;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -23,7 +22,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
 
 /**
  * The character decoder input.
@@ -133,8 +132,8 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                 if (eofDecoded) {
                     return aValue(-1);
                 }
-                final Cell<Integer> read = new Cell<Integer>();
-                return aSeqLoop(new ACallable<Boolean>() {
+                final int[] read = new int[1];
+                return aSeqLoopGreedy(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         ensureValidAndOpen();
@@ -142,7 +141,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                         final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
                         eofDecoded = eofSeen && !bytes.hasRemaining();
                         if (eofDecoded && position == buffer.position()) {
-                            read.setValue(-1);
+                            read[0] = -1;
                             return aFalse();
                         }
                         if (result.isOverflow() || buffer.position() > position) {
@@ -159,7 +158,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                             } else {
                                 readZero = false;
                             }
-                            read.setValue(decodedChars);
+                            read[0] = decodedChars;
                             return aFalse();
                         }
                         if (result.isUnderflow() && !eofSeen) {
@@ -181,7 +180,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                 }).thenDo(new ACallable<Integer>() {
                     @Override
                     public Promise<Integer> call() throws Throwable {
-                        return aValue(read.getValue());
+                        return aValue(read[0]);
                     }
                 }).observe(outcomeChecker());
             }

@@ -12,9 +12,10 @@
     <name>AsyncObjects Framework</name>
     <description>The AsyncObjects framework simplifies writing asynchronous event-driven dataflow-based applications in
         Java, Groovy, and Scala. It mainly builds upon ideas and syntax of E programming language. However, it also
-        draws ideas from other programming languages like Occam and frameworks like SEDA as well. In addition to core
-        library that supports common asynchronous communication patterns. The framework provides a wrapper for NIO-based
-        sockets that simplify creation of network applications that support a high number of concurrent connections.
+        draws ideas from other programming languages like Occam and frameworks like SEDA and Akka as well. In addition
+        to core library that supports common asynchronous communication patterns. The framework provides a wrapper for
+        NIO-based sockets that simplify creation of network applications that support a high number of concurrent
+        connections.
     </description>
 
     <developers>
@@ -43,6 +44,7 @@
         <module>asyncobjects-awt</module>
         <module>asyncobjects-http</module>
         <module>asyncobjects-ssh</module>
+        <module>asyncobjects-jee</module>
         <module>asyncobjects-net-sample</module>
         -->
     </modules>

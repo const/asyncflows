@@ -15,7 +15,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
 
 /**
  * The generic IO util class.
@@ -87,9 +87,9 @@ public class IOUtil<B extends Buffer, A> {
         if (buffer.capacity() <= 0) {
             throw new IllegalArgumentException("The buffer capacity must be positive: " + buffer.capacity());
         }
-        final Cell<Long> result = new Cell<Long>(0L);
+        final long[] result = new long[1];
         final Cell<Promise<Void>> flush = new Cell<Promise<Void>>();
-        return aSeqLoop(new ACallable<Boolean>() {
+        return aSeqLoopGreedy(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
@@ -99,7 +99,7 @@ public class IOUtil<B extends Buffer, A> {
                             return aFalse();
                         } else {
                             if (value > 0) {
-                                result.setValue(result.getValue() + value);
+                                result[0] += +value;
                             }
                             buffer.flip();
                             return output.write(buffer).thenDo(new ACallable<Boolean>() {
@@ -120,9 +120,9 @@ public class IOUtil<B extends Buffer, A> {
             @Override
             public Promise<Long> call() throws Throwable {
                 if (flush.isEmpty()) {
-                    return aValue(result.getValue());
+                    return aValue(result[0]);
                 } else {
-                    return flush.getValue().thenDo(CoreFunctionUtil.constantCallable(result.getValue()));
+                    return flush.getValue().thenDo(CoreFunctionUtil.constantCallable(result[0]));
                 }
             }
         });
@@ -137,8 +137,8 @@ public class IOUtil<B extends Buffer, A> {
      * @return the amount of bytes discarded
      */
     public final Promise<Long> discard(final AInput<B> input, final B buffer) {
-        final Cell<Long> result = new Cell<Long>(0L);
-        return aSeqLoop(new ACallable<Boolean>() {
+        final long[] result = new long[1];
+        return aSeqLoopGreedy(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
@@ -147,7 +147,7 @@ public class IOUtil<B extends Buffer, A> {
                         if (value < 0) {
                             return aFalse();
                         } else {
-                            result.setValue(result.getValue() + value);
+                            result[0] += value;
                             buffer.clear();
                             return aTrue();
                         }
@@ -157,7 +157,7 @@ public class IOUtil<B extends Buffer, A> {
         }).thenDo(new ACallable<Long>() {
             @Override
             public Promise<Long> call() throws Throwable {
-                return aValue(result.getValue());
+                return aValue(result[0]);
             }
         });
     }

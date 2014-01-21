@@ -3,14 +3,17 @@ package net.sf.asyncobjects.core.util;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
+import net.sf.asyncobjects.core.AsyncControl;
 import net.sf.asyncobjects.core.Failure;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.ResolverUtil;
+import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
+import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyResolver;
 
 /**
@@ -73,6 +76,90 @@ public final class SeqControl {
     }
 
     /**
+     * Generic loop that executes body until it returns false. This is a greedy version of the loop,
+     * that tries to fit as may iterations in the single vat turn as possible. This is more efficient,
+     * but could be a problem, if there is no external limiting factor for the loop (like need for IO)
+     * and loop is really long, as such loop will not allow others to execute. This version is best used
+     * with IO operations over small objects. So as much as possible of IO buffers will be consumed, before
+     * proceeding with the next action.
+     *
+     * @param body the body to execute
+     * @return the promises that resolves when body fails or returns true
+     */
+    public static Promise<Void> aSeqLoopGreedy(final ACallable<Boolean> body) { // NOPMD
+        final Promise<Void> result = new Promise<Void>();
+        final AResolver<Void> resolver = result.resolver();
+        final Cell<Promise<Void>> adjustedResult = new Cell<Promise<Void>>();
+        ResolverUtil.notifySuccess(new AResolver<Boolean>() { // NOPMD
+
+            @Override
+            public void resolve(final Outcome<Boolean> resolution) throws Throwable {
+                try {
+                    Promise<Boolean> last = null;
+                    Outcome<Boolean> outcome = resolution;
+                    while (outcome != null && outcome.isSuccess() && outcome.value() != null && outcome.value()) {
+                        last = aNow(body);
+                        if (last.isResolved()) {
+                            outcome = last.getOutcome();
+                            last = null;
+                        } else {
+                            outcome = null;
+                        }
+                    }
+                    if (last != null) {
+                        // the delayed outcome
+                        last.listen(this);
+                        return;
+                    }
+                    outcome = outcomeMustBeFalse(outcome);
+                    if (adjustedResult.isEmpty()) {
+                        // all iterations completed.
+                        adjustedResult.setValue(outcome.isSuccess() ? aVoid()
+                                : AsyncControl.<Void>aFailure(outcome.failure()));
+                    } else if (outcome.isSuccess()) {
+                        ResolverUtil.notifySuccess(resolver, null);
+                    } else {
+                        ResolverUtil.notifyFailure(resolver, outcome.failure());
+                    }
+                } catch (Throwable t) {
+                    if (adjustedResult.isEmpty()) {
+                        adjustedResult.setValue(AsyncControl.<Void>aFailure(t));
+                    } else {
+                        ResolverUtil.notifyFailure(resolver, t);
+                    }
+                }
+            }
+
+            /**
+             * Fix outcome in case if incorrect outcome is detected.
+             *
+             * @param srcOutcome the outcome
+             * @return the fixed outcome
+             */
+            private Outcome<Boolean> outcomeMustBeFalse(final Outcome<Boolean> srcOutcome) {
+                Outcome<Boolean> outcome = srcOutcome;
+                if (outcome == null) {
+                    outcome = Outcome.failure(new IllegalStateException("Outcome is null"));
+                }
+                if (outcome.isSuccess()) {
+                    if (outcome.value() == null) {
+                        outcome = Outcome.failure(new IllegalStateException("Outcome value is null"));
+                    } else if (outcome.value()) {
+                        outcome = Outcome.failure(new IllegalStateException("True must not happen at this point"));
+                    }
+                }
+                return outcome;
+            }
+        }, true);
+        if (adjustedResult.isEmpty()) {
+            adjustedResult.setValue(result);
+            return result;
+        } else {
+            return adjustedResult.getValue();
+        }
+    }
+
+    /**
      * Generic loop that executes body until it returns non-empty value.
      *
      * @param body the body to execute
@@ -112,7 +199,8 @@ public final class SeqControl {
     }
 
     /**
-     * Builder for the sequence of operations.
+     * Builder for the sequence of operations. Note that class may call all bodies on the single vat turn,
+     * if they resolve immediately. So amount of bodies should be limited, in order prevent stack overflow.
      *
      * @param <T> the current result type
      */

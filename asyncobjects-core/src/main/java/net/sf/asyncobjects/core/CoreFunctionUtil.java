@@ -199,12 +199,6 @@ public final class CoreFunctionUtil {
      * @return the value
      */
     public static <A> ACallable<A> failureCallable(final Throwable throwable) {
-        final Promise<A> failure = aFailure(throwable);
-        return new ACallable<A>() {
-            @Override
-            public Promise<A> call() throws Throwable {
-                return failure;
-            }
-        };
+        return promiseCallable(AsyncControl.<A>aFailure(throwable));
     }
 }

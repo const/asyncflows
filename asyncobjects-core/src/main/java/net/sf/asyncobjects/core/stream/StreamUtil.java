@@ -3,7 +3,6 @@ package net.sf.asyncobjects.core.stream;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
@@ -13,7 +12,6 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.CoreFunctionUtil.booleanCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.closeResourceAction;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
@@ -79,21 +77,19 @@ public final class StreamUtil {
                                 try {
                                     if (value.isSuccess()) {
                                         if (value.value().isEmpty()) {
-                                            return sink.close().thenDo(booleanCallable(false));
+                                            return sink.close().thenValue(false);
                                         } else {
                                             if (!stopped.isEmpty()) {
                                                 return aFalse();
                                             }
                                             count[0]++;
-                                            return sink.put(value.value().value()).thenDo(booleanCallable(true));
+                                            return sink.put(value.value().value()).thenValue(true);
                                         }
                                     } else {
-                                        return sink.fail(value.failure()).thenDo(
-                                                CoreFunctionUtil.<Boolean>failureCallable(value.failure()));
+                                        return sink.fail(value.failure()).thenFailure(value.failure());
                                     }
                                 } catch (Throwable problem) {
-                                    return sink.fail(problem).thenDo(
-                                            CoreFunctionUtil.<Boolean>failureCallable(problem));
+                                    return sink.fail(problem).thenFailure(problem);
                                 }
                             }
                         });

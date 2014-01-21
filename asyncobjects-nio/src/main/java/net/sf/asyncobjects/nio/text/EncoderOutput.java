@@ -138,37 +138,32 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
 
     @Override
     public Promise<Void> write(final CharBuffer buffer) {
-        return requests.run(new ACallable<Void>() {
+        return requests.runSeqLoop(new ACallable<Boolean>() {
             @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        BufferOperations.CHAR.append(chars, buffer);
-                        if (!buffer.hasRemaining()) {
-                            return aFalse();
-                        } else {
-                            final CoderResult result = encoder.encode(chars, bytes, false);
-                            if (result.isUnderflow()) {
+            public Promise<Boolean> call() throws Throwable {
+                BufferOperations.CHAR.append(chars, buffer);
+                if (!buffer.hasRemaining()) {
+                    return aFalse();
+                } else {
+                    final CoderResult result = encoder.encode(chars, bytes, false);
+                    if (result.isUnderflow()) {
+                        return aTrue();
+                    } else if (result.isOverflow()) {
+                        bytes.flip();
+                        return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
+                            @Override
+                            public Promise<Boolean> call() throws Throwable {
+                                bytes.compact();
                                 return aTrue();
-                            } else if (result.isOverflow()) {
-                                bytes.flip();
-                                return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
-                                    @Override
-                                    public Promise<Boolean> call() throws Throwable {
-                                        bytes.compact();
-                                        return aTrue();
-                                    }
-                                });
-                            } else {
-                                result.throwException();
-                                return aFalse();
                             }
-                        }
+                        });
+                    } else {
+                        result.throwException();
+                        return aFalse();
                     }
-                }).observe(outcomeChecker());
+                }
             }
-        });
+        }).observe(outcomeChecker());
     }
 
     /**
