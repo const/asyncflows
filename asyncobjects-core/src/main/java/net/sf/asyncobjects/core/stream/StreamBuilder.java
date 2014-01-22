@@ -19,8 +19,8 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoopFair;
 
 /**
  * The stream builder provides fluent interfaces for building streams.
@@ -90,7 +90,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
                 return requests.run(new ACallable<Maybe<N>>() {
                     @Override
                     public Promise<Maybe<N>> call() throws Throwable {
-                        return aSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
+                        return aSeqMaybeLoopFair(new ACallable<Maybe<Maybe<N>>>() {
                             @Override
                             public Promise<Maybe<Maybe<N>>> call() throws Throwable {
                                 if (mapped == null) {
@@ -197,7 +197,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
         return aSeq(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
+                return aSeqLoopFair(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         return stream.next().map(new AFunction<Boolean, Maybe<T>>() {
@@ -222,24 +222,19 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
 
             @Override
             protected Promise<Maybe<N>> produce() {
-                return requests.run(new ACallable<Maybe<N>>() {
+                return requests.runSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
                     @Override
-                    public Promise<Maybe<N>> call() throws Throwable {
-                        return aSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
+                    public Promise<Maybe<Maybe<N>>> call() throws Throwable {
+                        return wrapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<Maybe<N>>>() {
                             @Override
-                            public Promise<Maybe<Maybe<N>>> call() throws Throwable {
-                                return wrapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<Maybe<N>>>() {
-                                    @Override
-                                    public Promise<Maybe<Maybe<N>>> apply(final Maybe<Maybe<N>> value) {
-                                        if (value.isEmpty()) {
-                                            return aMaybeValue(Maybe.<N>empty());
-                                        } else if (value.value().isEmpty()) {
-                                            return aMaybeEmpty();
-                                        } else {
-                                            return aValue(value);
-                                        }
-                                    }
-                                });
+                            public Promise<Maybe<Maybe<N>>> apply(final Maybe<Maybe<N>> value) {
+                                if (value.isEmpty()) {
+                                    return aMaybeValue(Maybe.<N>empty());
+                                } else if (value.value().isEmpty()) {
+                                    return aMaybeEmpty();
+                                } else {
+                                    return aValue(value);
+                                }
                             }
                         });
                     }

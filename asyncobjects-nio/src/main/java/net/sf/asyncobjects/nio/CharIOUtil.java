@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 
 import static net.sf.asyncobjects.core.AsyncControl.aBoolean;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 
 /**
  * Character IO utilities.
@@ -38,7 +38,7 @@ public final class CharIOUtil {
             throw new IllegalArgumentException("The buffer capacity must be positive: " + buffer.capacity());
         }
         final StringBuilder builder = new StringBuilder();
-        return aSeqLoop(new ACallable<Boolean>() {
+        return aSeqLoopFair(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {

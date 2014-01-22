@@ -13,7 +13,7 @@ import net.sf.asyncobjects.protocol.ProtocolStreamTruncatedException;
 import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static net.sf.asyncobjects.protocol.LineUtil.CR;
 import static net.sf.asyncobjects.protocol.LineUtil.HT;
 import static net.sf.asyncobjects.protocol.LineUtil.LF;
@@ -51,7 +51,7 @@ public final class HeaderUtil {
      */
     public static Promise<HeaderSet> readHeaders(final InputContext input, final int limit) { // NOPMD
         final HeaderSet headers = new HeaderSet();
-        return aSeqLoopGreedy(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             private static final int LINE_START = 0;
             private static final int NAME = 1;
             private static final int NAME_SP = 2;

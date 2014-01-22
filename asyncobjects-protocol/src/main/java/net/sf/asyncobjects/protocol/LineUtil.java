@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
 
 /**
@@ -134,7 +134,7 @@ public final class LineUtil {
      * @return the text to write
      */
     public static Promise<Void> writeASCII(final OutputContext context, final String text) {
-        return aSeqLoopGreedy(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             private int pos;
 
             @Override

@@ -20,7 +20,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.stream.Streams.aForArray;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -238,7 +238,7 @@ public class SeqControlTest {
         final Outcome<Void> rc = doAsync(new ACallable<Outcome<Void>>() {
             @Override
             public Promise<Outcome<Void>> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
+                return aSeqLoopFair(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         if (flag.getValue()) {

@@ -689,7 +689,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
 
         @Override
         public Promise<Void> write(final ByteBuffer buffer) {
-            return writes.runSeqLoop(new ACallable<Boolean>() {
+            return writes.runSeqLoopFair(new ACallable<Boolean>() {
                 @Override
                 public Promise<Boolean> call() throws Throwable {
                     ensureValidAndOpen();

@@ -31,7 +31,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 
 /**
  * The selector socket.
@@ -106,7 +106,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                 if (b) {
                     return aVoid();
                 }
-                return aSeqLoop(new ACallable<Boolean>() {
+                return aSeqLoopFair(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         if (socketChannel.finishConnect()) {

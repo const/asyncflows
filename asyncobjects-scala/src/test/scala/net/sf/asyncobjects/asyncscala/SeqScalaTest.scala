@@ -123,7 +123,7 @@ class SeqScalaTest {
   def testSeqLoopFail() {
     var flag = true
     val rc = doAsync {
-      aSeqLoop {
+      aSeqLoopFair {
         if (flag) {
           flag = false
           true

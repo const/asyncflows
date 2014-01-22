@@ -15,7 +15,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * The generic IO util class.
@@ -89,7 +89,7 @@ public class IOUtil<B extends Buffer, A> {
         }
         final long[] result = new long[1];
         final Cell<Promise<Void>> flush = new Cell<Promise<Void>>();
-        return aSeqLoopGreedy(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
@@ -138,7 +138,7 @@ public class IOUtil<B extends Buffer, A> {
      */
     public final Promise<Long> discard(final AInput<B> input, final B buffer) {
         final long[] result = new long[1];
-        return aSeqLoopGreedy(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {

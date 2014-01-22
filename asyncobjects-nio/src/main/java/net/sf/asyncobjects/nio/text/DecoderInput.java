@@ -22,7 +22,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * The character decoder input.
@@ -133,7 +133,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                     return aValue(-1);
                 }
                 final int[] read = new int[1];
-                return aSeqLoopGreedy(new ACallable<Boolean>() {
+                return aSeqLoop(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         ensureValidAndOpen();

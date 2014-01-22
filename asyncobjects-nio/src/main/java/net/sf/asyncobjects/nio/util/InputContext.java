@@ -14,7 +14,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopGreedy;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * The context for the protocol implementation. It contains the data is needed for different protocol parts.
@@ -120,7 +120,7 @@ public class InputContext {
         if (buffer.remaining() >= amount) {
             return aVoid();
         }
-        return aSeqLoopGreedy(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 if (buffer.remaining() >= amount) {

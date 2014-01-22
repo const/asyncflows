@@ -153,7 +153,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
         @Override
         public Promise<Integer> read(final B buffer) {
             final Promise<Integer> result = new Promise<Integer>();
-            return requests.runSeqLoop(new ACallable<Boolean>() {
+            return requests.runSeqLoopFair(new ACallable<Boolean>() {
                 @Override
                 public Promise<Boolean> call() throws Throwable {
                     if (closed) {
@@ -184,7 +184,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
     private class Output extends StreamBase implements AOutput<B> {
         @Override
         public Promise<Void> write(final B buffer) {
-            return requests.runSeqLoop(new ACallable<Boolean>() {
+            return requests.runSeqLoopFair(new ACallable<Boolean>() {
                 @Override
                 public Promise<Boolean> call() throws Throwable {
                     if (closed) {
@@ -208,7 +208,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
 
         @Override
         public Promise<Void> flush() {
-            return requests.runSeqLoop(new ACallable<Boolean>() {
+            return requests.runSeqLoopFair(new ACallable<Boolean>() {
                 @Override
                 public Promise<Boolean> call() throws Throwable {
                     if (!pipeBuffer.hasRemaining()) {

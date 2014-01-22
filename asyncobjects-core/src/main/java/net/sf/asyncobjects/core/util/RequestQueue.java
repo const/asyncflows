@@ -13,7 +13,9 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoopFair;
 
 /**
  * The asynchronous request queue. It is is similar to non-reentrant mutex.
@@ -144,6 +146,39 @@ public final class RequestQueue {
      * @param body the loop body
      * @return the promise that resolve when loop finishes.
      */
+    public Promise<Void> runSeqLoopFair(final ACallable<Boolean> body) {
+        return run(new ACallable<Void>() {
+            @Override
+            public Promise<Void> call() throws Throwable {
+                return aSeqLoopFair(body);
+            }
+        });
+    }
+
+    /**
+     * Run a sequential option loop inside the body. It is usually a loop with suspend.
+     * Using request queue with such loop is one of the common usage scenarios.
+     *
+     * @param body the loop body
+     * @param <T>  the body return type
+     * @return the promise that resolve when loop finishes.
+     */
+    public <T> Promise<T> runSeqMaybeLoopFair(final ACallable<Maybe<T>> body) {
+        return run(new ACallable<T>() {
+            @Override
+            public Promise<T> call() throws Throwable {
+                return aSeqMaybeLoopFair(body);
+            }
+        });
+    }
+
+    /**
+     * Run a sequential loop inside the body. It is usually a loop with suspend.
+     * Using request queue with such loop is one of the most common usage scenarios.
+     *
+     * @param body the loop body
+     * @return the promise that resolve when loop finishes.
+     */
     public Promise<Void> runSeqLoop(final ACallable<Boolean> body) {
         return run(new ACallable<Void>() {
             @Override
@@ -169,4 +204,5 @@ public final class RequestQueue {
             }
         });
     }
+
 }

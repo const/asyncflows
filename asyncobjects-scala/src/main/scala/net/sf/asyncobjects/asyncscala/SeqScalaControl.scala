@@ -17,6 +17,18 @@ object SeqScalaControl {
     def call(): Promise[T] = b
   }))
 
+  def aSeqLoopFair(b: => Promise[java.lang.Boolean]) = SeqControl.aSeqLoopFair(new ACallable[java.lang.Boolean] {
+    def call(): Promise[java.lang.Boolean] = b
+  })
+
+  def aSeqMaybeLoopFair[T](b: => Promise[Maybe[T]]) = SeqControl.aSeqMaybeLoopFair(new ACallable[Maybe[T]] {
+    def call(): Promise[Maybe[T]] = b
+  })
+
+  def aSeqOptionLoopFair[T](b: => Promise[Option[T]]) = SeqControl.aSeqMaybeLoopFair(new ACallable[Maybe[T]] {
+    def call(): Promise[Maybe[T]] = b.flatMap { v => DataConversions.fromOption(v)}
+  })
+
   def aSeqLoop(b: => Promise[java.lang.Boolean]) = SeqControl.aSeqLoop(new ACallable[java.lang.Boolean] {
     def call(): Promise[java.lang.Boolean] = b
   })
@@ -28,6 +40,7 @@ object SeqScalaControl {
   def aSeqOptionLoop[T](b: => Promise[Option[T]]) = SeqControl.aSeqMaybeLoop(new ACallable[Maybe[T]] {
     def call(): Promise[Maybe[T]] = b.flatMap { v => DataConversions.fromOption(v)}
   })
+
 
   class SeqScalaBuilder[T](val builder: SeqBuilder[T]) {
 

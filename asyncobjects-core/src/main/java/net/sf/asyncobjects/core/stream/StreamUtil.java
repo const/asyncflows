@@ -15,7 +15,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.closeResourceAction;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 
 /**
  * The stream utilities.
@@ -64,7 +64,7 @@ public final class StreamUtil {
         return aSeq(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
+                return aSeqLoopFair(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         if (!stopped.isEmpty()) {

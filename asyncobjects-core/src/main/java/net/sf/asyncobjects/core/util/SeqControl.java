@@ -12,7 +12,11 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.Vat;
 
+import static net.sf.asyncobjects.core.AsyncControl.aFailure;
+import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
+import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyResolver;
 
@@ -43,7 +47,7 @@ public final class SeqControl {
      * @param body the body to execute
      * @return the promises that resolves when body fails or returns true
      */
-    public static Promise<Void> aSeqLoop(final ACallable<Boolean> body) {
+    public static Promise<Void> aSeqLoopFair(final ACallable<Boolean> body) {
         final Promise<Void> result = new Promise<Void>();
         final AResolver<Void> resolver = result.resolver();
         final Vat vat = Vat.current();
@@ -86,7 +90,7 @@ public final class SeqControl {
      * @param body the body to execute
      * @return the promises that resolves when body fails or returns true
      */
-    public static Promise<Void> aSeqLoopGreedy(final ACallable<Boolean> body) { // NOPMD
+    public static Promise<Void> aSeqLoop(final ACallable<Boolean> body) { // NOPMD
         final Promise<Void> result = new Promise<Void>();
         final AResolver<Void> resolver = result.resolver();
         final Cell<Promise<Void>> adjustedResult = new Cell<Promise<Void>>();
@@ -160,13 +164,14 @@ public final class SeqControl {
     }
 
     /**
-     * Generic loop that executes body until it returns non-empty value.
+     * Generic loop that executes body until it returns non-empty value. The fair version
+     * executes each step on own vat turn.
      *
      * @param body the body to execute
      * @param <A>  the result type
      * @return the promises that resolves when body fails or returns non-empty value
      */
-    public static <A> Promise<A> aSeqMaybeLoop(final ACallable<Maybe<A>> body) {
+    public static <A> Promise<A> aSeqMaybeLoopFair(final ACallable<Maybe<A>> body) {
         final Promise<A> result = new Promise<A>();
         final AResolver<A> resolver = result.resolver();
         final Vat vat = Vat.current();
@@ -196,6 +201,38 @@ public final class SeqControl {
             }
         }, Maybe.<A>empty());
         return result;
+    }
+
+    /**
+     * Generic loop that executes body until it returns non-empty value. This is a greedy version of the loop.
+     *
+     * @param body the body to execute
+     * @param <A>  the result type
+     * @return the promises that resolves when body fails or returns non-empty value
+     */
+    public static <A> Promise<A> aSeqMaybeLoop(final ACallable<Maybe<A>> body) {
+        final Cell<A> result = new Cell<A>();
+        return aSeqLoop(new ACallable<Boolean>() {
+            @Override
+            public Promise<Boolean> call() throws Throwable {
+                return body.call().map(new AFunction<Boolean, Maybe<A>>() {
+                    @Override
+                    public Promise<Boolean> apply(final Maybe<A> value) throws Throwable {
+                        if (value.hasValue()) {
+                            result.setValue(value.value());
+                            return aFalse();
+                        } else {
+                            return aTrue();
+                        }
+                    }
+                });
+            }
+        }).thenDo(new ACallable<A>() {
+            @Override
+            public Promise<A> call() throws Throwable {
+                return aValue(result.getValue());
+            }
+        });
     }
 
     /**
@@ -323,26 +360,50 @@ public final class SeqControl {
          * @param finallyAction an action to execute
          * @return a promise for the sequence result
          */
+        @SuppressWarnings("unchecked")
         public Promise<T> finallyDo(final ACallable<?> finallyAction) {
-            final Promise<T> rc = new Promise<T>();
-            final AResolver<T> resolver = rc.resolver();
-            aNow(action).listen(new AResolver<T>() {
-                @Override
-                public void resolve(final Outcome<T> resolution) throws Throwable {
-                    aNow(finallyAction).listen(new AResolver<Object>() {
+            final Promise<T> current = aNow(action);
+            if (current.isResolved()) {
+                final Promise<Object> promise = (Promise<Object>) aNow(finallyAction);
+                if (promise.isResolved()) {
+                    if (promise.getOutcome().isSuccess() || !current.getOutcome().isSuccess()) {
+                        return current;
+                    } else {
+                        return aFailure(promise.getOutcome().failure());
+                    }
+                } else {
+                    return promise.mapOutcome(new AFunction<T, Outcome<Object>>() {
                         @Override
-                        public void resolve(final Outcome<Object> finallyResolution)
-                                throws Throwable {
-                            if (!finallyResolution.isSuccess() && resolution.isSuccess()) {
-                                notifyResolver(resolver, ((Failure<Object>) finallyResolution).<T>toOtherType());
+                        public Promise<T> apply(final Outcome<Object> value) throws Throwable {
+                            if (value.isSuccess() || !current.getOutcome().isSuccess()) {
+                                return current;
                             } else {
-                                notifyResolver(resolver, resolution);
+                                return aFailure(value.failure());
                             }
                         }
                     });
                 }
-            });
-            return rc;
+            } else {
+                final Promise<T> rc = new Promise<T>();
+                final AResolver<T> resolver = rc.resolver();
+                current.listen(new AResolver<T>() {
+                    @Override
+                    public void resolve(final Outcome<T> resolution) throws Throwable {
+                        aNow(finallyAction).listen(new AResolver<Object>() {
+                            @Override
+                            public void resolve(final Outcome<Object> finallyResolution)
+                                    throws Throwable {
+                                if (!finallyResolution.isSuccess() && resolution.isSuccess()) {
+                                    notifyResolver(resolver, ((Failure<Object>) finallyResolution).<T>toOtherType());
+                                } else {
+                                    notifyResolver(resolver, resolution);
+                                }
+                            }
+                        });
+                    }
+                });
+                return rc;
+            }
         }
     }
 }
