@@ -12,6 +12,8 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.Vat;
 
+import java.util.Iterator;
+
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
@@ -77,6 +79,50 @@ public final class SeqControl {
             }
         }, true);
         return result;
+    }
+
+    /**
+     * Iterate a collection.
+     *
+     * @param iterable the iterable collection
+     * @param body     the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param <T>      the element type
+     * @return the result
+     */
+    public static <T> Promise<Void> aSeqForUnit(final Iterable<T> iterable, final AFunction<Boolean, T> body) {
+        final Iterator<T> iterator = iterable.iterator();
+        return aSeqLoop(new ACallable<Boolean>() {
+            @Override
+            public Promise<Boolean> call() throws Throwable {
+                if (!iterator.hasNext()) {
+                    return aFalse();
+                }
+                final T next = iterator.next();
+                return body.apply(next);
+            }
+        });
+    }
+
+    /**
+     * Iterate a collection.
+     *
+     * @param iterable the iterable collection
+     * @param body     the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param <T>      the element type
+     * @return the result
+     */
+    public static <T> Promise<Void> aSeqForUnitFair(final Iterable<T> iterable, final AFunction<Boolean, T> body) {
+        final Iterator<T> iterator = iterable.iterator();
+        return aSeqLoopFair(new ACallable<Boolean>() {
+            @Override
+            public Promise<Boolean> call() throws Throwable {
+                if (!iterator.hasNext()) {
+                    return aFalse();
+                }
+                final T next = iterator.next();
+                return body.apply(next);
+            }
+        });
     }
 
     /**

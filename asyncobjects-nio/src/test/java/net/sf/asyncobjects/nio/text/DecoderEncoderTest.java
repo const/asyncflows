@@ -8,8 +8,8 @@ import net.sf.asyncobjects.core.data.Tuple3;
 import net.sf.asyncobjects.nio.AChannel;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
-import net.sf.asyncobjects.nio.CharIOUtil;
 import net.sf.asyncobjects.nio.util.BufferedPipe;
+import net.sf.asyncobjects.nio.util.CharIOUtil;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;

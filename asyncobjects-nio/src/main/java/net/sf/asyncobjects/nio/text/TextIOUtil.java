@@ -19,31 +19,31 @@ public final class TextIOUtil {
     /**
      * Unicode code point for NEXT LINE (NEL).
      */
-    public static final int NEL = 0x0085;
+    public static final char NEL = 0x0085;
     /**
      * Unicode code point for PARAGRAPH SEPARATOR.
      */
-    public static final int PS = 0x2029;
+    public static final char PS = 0x2029;
     /**
      * Unicode code point for LINE SEPARATOR.
      */
-    public static final int LS = 0x2028;
+    public static final char LS = 0x2028;
     /**
      * Unicode code point for carriage return.
      */
-    public static final int CR = 0x000D;
+    public static final char CR = 0x000D;
     /**
      * Unicode code point for carriage return.
      */
-    public static final int LF = 0x000A;
+    public static final char LF = 0x000A;
     /**
      * Unicode code point for LINE TABULATION.
      */
-    public static final int LT = 0x000B;
+    public static final char LT = 0x000B;
     /**
      * Unicode code point for FORM FEED (FF).
      */
-    public static final int FF = 0x000C;
+    public static final char FF = 0x000C;
 
     /**
      * Private constructor for utility class.

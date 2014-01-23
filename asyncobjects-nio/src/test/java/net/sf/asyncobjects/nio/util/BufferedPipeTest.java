@@ -6,7 +6,6 @@ import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.AChannel;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
-import net.sf.asyncobjects.nio.CharIOUtil;
 import org.junit.Test;
 
 import java.nio.CharBuffer;

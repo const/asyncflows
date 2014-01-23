@@ -253,6 +253,17 @@ public final class ResourceUtil {
                 }
             });
         }
+
+        /**
+         * Run body with two open resources.
+         *
+         * @param body the body to run
+         * @param <R>  the resource
+         * @return the result of body execution
+         */
+        public <R> Promise<R> runWithSecond(final AFunction<R, B> body) {
+            return run(FunctionUtil.<R, A, B>useUseSecondArg(body));
+        }
     }
 
     /**

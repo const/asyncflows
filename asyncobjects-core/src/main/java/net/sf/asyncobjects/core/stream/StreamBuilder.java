@@ -19,7 +19,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoopFair;
 
 /**
@@ -197,7 +197,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
         return aSeq(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {
-                return aSeqLoopFair(new ACallable<Boolean>() {
+                return aSeqLoop(new ACallable<Boolean>() {
                     @Override
                     public Promise<Boolean> call() throws Throwable {
                         return stream.next().map(new AFunction<Boolean, Maybe<T>>() {

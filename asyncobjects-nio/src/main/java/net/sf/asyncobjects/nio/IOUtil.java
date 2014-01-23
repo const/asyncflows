@@ -5,6 +5,7 @@ import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.ResourceUtil;
 
 import java.nio.Buffer;
@@ -12,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
@@ -24,6 +26,18 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
  * @param <A> the array type
  */
 public class IOUtil<B extends Buffer, A> {
+    /**
+     * The EOF value.
+     */
+    public static final Integer EOF = -1;
+    /**
+     * The EOF promise.
+     */
+    public static final Promise<Integer> EOF_PROMISE = aValue(EOF);
+    /**
+     * The EOF Maybe promise (used in loops).
+     */
+    public static final Promise<Maybe<Integer>> EOF_MAYBE_PROMISE = aMaybeValue(EOF);
     /**
      * The default buffer size used by utilities if the buffer size is omitted.
      */

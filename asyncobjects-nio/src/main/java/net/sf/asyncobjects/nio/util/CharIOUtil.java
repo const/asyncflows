@@ -1,15 +1,16 @@
-package net.sf.asyncobjects.nio;
+package net.sf.asyncobjects.nio.util;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.nio.AInput;
 
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 import static net.sf.asyncobjects.core.AsyncControl.aBoolean;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 
 /**
  * Character IO utilities.
@@ -19,6 +20,10 @@ public final class CharIOUtil {
      * UTF-8 charset.
      */
     public static final Charset UTF8 = Charset.forName("UTF-8");
+    /**
+     * UTF-8 charset.
+     */
+    public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
     /**
      * The private constructor for utility class.
@@ -38,7 +43,7 @@ public final class CharIOUtil {
             throw new IllegalArgumentException("The buffer capacity must be positive: " + buffer.capacity());
         }
         final StringBuilder builder = new StringBuilder();
-        return aSeqLoopFair(new ACallable<Boolean>() {
+        return aSeqLoop(new ACallable<Boolean>() {
             @Override
             public Promise<Boolean> call() throws Throwable {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {

@@ -7,6 +7,7 @@ import net.sf.asyncobjects.core.util.SeqControl
 import net.sf.asyncobjects.core.Promise
 import RichPromise._
 import net.sf.asyncobjects.core.data.Maybe
+import scala.collection.convert.WrapAsJava._
 
 /**
  * Utilities for sequential control for Scala (mirrors SeqControl)
@@ -40,6 +41,16 @@ object SeqScalaControl {
   def aSeqOptionLoop[T](b: => Promise[Option[T]]) = SeqControl.aSeqMaybeLoop(new ACallable[Maybe[T]] {
     def call(): Promise[Maybe[T]] = b.flatMap { v => DataConversions.fromOption(v)}
   })
+
+  def aSeqForUnitJava[T](c: java.lang.Iterable[T])(body: T => BooleanPromise) = SeqControl.aSeqForUnit(c,
+    CoreFunctionConversions.toAFunction(body))
+
+  def aSeqForUnitFairJava[T](c: java.lang.Iterable[T])(body: T => BooleanPromise) = SeqControl.aSeqForUnitFair(c,
+    CoreFunctionConversions.toAFunction(body))
+
+  def aSeqForUnit[T](c: Iterable[T])(body: T => BooleanPromise) = aSeqForUnitJava(asJavaIterable(c))(body)
+
+  def aSeqForUnitFair[T](c: Iterable[T])(body: T => BooleanPromise) = aSeqForUnitFairJava(asJavaIterable(c))(body)
 
 
   class SeqScalaBuilder[T](val builder: SeqBuilder[T]) {

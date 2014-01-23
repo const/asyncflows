@@ -1,5 +1,6 @@
 package net.sf.asyncobjects.nio.util;
 
+import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
@@ -9,6 +10,7 @@ import java.nio.ByteBuffer;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
+import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
  * The output context.
@@ -40,6 +42,31 @@ public class OutputContext {
     public OutputContext(final AOutput<ByteBuffer> output, final ByteBuffer buffer) {
         this.output = output;
         this.buffer = buffer;
+    }
+
+    /**
+     * Ensure that the specified size is available in the buffer.
+     *
+     * @param size the size to make available.
+     * @return the size
+     */
+    public Promise<Void> ensureAvailable(final int size) {
+        ensureValid();
+        if (buffer.remaining() >= size) {
+            return aVoid();
+        }
+        if (buffer.capacity() < size) {
+            throw new IllegalArgumentException("Buffer capacity is too small: " + buffer.capacity());
+        }
+        return send().thenDo(new ACallable<Void>() {
+            @Override
+            public Promise<Void> call() throws Throwable {
+                if (buffer.remaining() < size) {
+                    throw new IllegalArgumentException("Unable to save data: " + buffer.remaining());
+                }
+                return aVoid();
+            }
+        });
     }
 
     /**
