@@ -79,12 +79,7 @@ public class SSLSocketTest {
                         return aSeq(new ACallable<SocketAddress>() {
                             @Override
                             public Promise<SocketAddress> call() throws Throwable {
-                                return serverSocket.bind(new InetSocketAddress(0)).thenDo(new ACallable<SocketAddress>() {
-                                    @Override
-                                    public Promise<SocketAddress> call() throws Throwable {
-                                        return serverSocket.getLocalSocketAddress();
-                                    }
-                                });
+                                return serverSocket.bind(new InetSocketAddress(0));
                             }
                         }).mapLast(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, SocketAddress>() {
                             @Override

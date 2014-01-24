@@ -58,20 +58,20 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address, final int backlog) {
+    public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
         try {
             serverSocketChannel.socket().bind(address, backlog);
-            return aVoid();
+            return getLocalSocketAddress();
         } catch (IOException ex) {
             return aFailure(ex);
         }
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address) {
+    public Promise<SocketAddress> bind(final SocketAddress address) {
         try {
             serverSocketChannel.socket().bind(address);
-            return aVoid();
+            return getLocalSocketAddress();
         } catch (IOException ex) {
             return aFailure(ex);
         }

@@ -44,20 +44,20 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address, final int backlog) {
+    public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
         try {
             serverSocket.bind(address, backlog);
-            return aVoid();
+            return getLocalSocketAddress();
         } catch (Throwable e) {
             return aFailure(e);
         }
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address) {
+    public Promise<SocketAddress> bind(final SocketAddress address) {
         try {
             serverSocket.bind(address);
-            return aVoid();
+            return getLocalSocketAddress();
         } catch (Throwable e) {
             return aFailure(e);
         }

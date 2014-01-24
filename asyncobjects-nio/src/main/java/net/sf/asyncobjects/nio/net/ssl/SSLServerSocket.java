@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.net.ssl;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
@@ -14,7 +13,7 @@ import net.sf.asyncobjects.nio.net.SocketOptions;
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
 
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The server socket for SSL.
@@ -42,8 +41,8 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address, final int backlog) {
-        return wrapped.bind(address, backlog).thenDo(collectAddress());
+    public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
+        return wrapped.bind(address, backlog).map(collectAddress());
     }
 
     /**
@@ -51,24 +50,19 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
      *
      * @return the void value
      */
-    private ACallable<Void> collectAddress() {
-        return new ACallable<Void>() {
+    private AFunction<SocketAddress, SocketAddress> collectAddress() {
+        return new AFunction<SocketAddress, SocketAddress>() {
             @Override
-            public Promise<Void> call() throws Throwable {
-                return wrapped.getLocalSocketAddress().map(new AFunction<Void, SocketAddress>() {
-                    @Override
-                    public Promise<Void> apply(final SocketAddress value) throws Throwable {
-                        localAddress = value;
-                        return aVoid();
-                    }
-                });
+            public Promise<SocketAddress> apply(final SocketAddress value) throws Throwable {
+                localAddress = value;
+                return aValue(value);
             }
         };
     }
 
     @Override
-    public Promise<Void> bind(final SocketAddress address) {
-        return wrapped.bind(address).thenDo(collectAddress());
+    public Promise<SocketAddress> bind(final SocketAddress address) {
+        return wrapped.bind(address).map(collectAddress());
     }
 
     @Override

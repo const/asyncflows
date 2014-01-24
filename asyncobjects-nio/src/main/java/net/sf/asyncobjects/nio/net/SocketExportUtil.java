@@ -32,20 +32,20 @@ public final class SocketExportUtil {
     public static AServerSocket export(final Vat vat, final AServerSocket serverSocket) {
         return new AServerSocket() {
             @Override
-            public Promise<Void> bind(final SocketAddress address, final int backlog) {
-                return aLater(vat, new ACallable<Void>() {
+            public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
+                return aLater(vat, new ACallable<SocketAddress>() {
                     @Override
-                    public Promise<Void> call() throws Throwable {
+                    public Promise<SocketAddress> call() throws Throwable {
                         return serverSocket.bind(address, backlog);
                     }
                 });
             }
 
             @Override
-            public Promise<Void> bind(final SocketAddress address) {
-                return aLater(vat, new ACallable<Void>() {
+            public Promise<SocketAddress> bind(final SocketAddress address) {
+                return aLater(vat, new ACallable<SocketAddress>() {
                     @Override
-                    public Promise<Void> call() throws Throwable {
+                    public Promise<SocketAddress> call() throws Throwable {
                         return serverSocket.bind(address);
                     }
                 });

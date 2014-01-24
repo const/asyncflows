@@ -14,19 +14,19 @@ public interface AServerSocket extends ACloseable {
      *
      * @param address the socket address
      * @param backlog a backlog of socket
-     * @return when operation finishes
+     * @return when operation finishes return local socket address
      * @see java.net.ServerSocket#bind(java.net.SocketAddress, int)
      */
-    Promise<Void> bind(SocketAddress address, int backlog);
+    Promise<SocketAddress> bind(SocketAddress address, int backlog);
 
     /**
      * Bind to specified port an host.
      *
      * @param address the socket address
-     * @return when operation finishes
+     * @return when operation finishes return local socket address
      * @see java.net.ServerSocket#bind(java.net.SocketAddress, int)
      */
-    Promise<Void> bind(SocketAddress address);
+    Promise<SocketAddress> bind(SocketAddress address);
 
     /**
      * Set options that are automatically applied for each incoming connection.
