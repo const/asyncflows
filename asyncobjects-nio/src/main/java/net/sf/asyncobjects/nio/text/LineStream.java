@@ -8,6 +8,7 @@ import net.sf.asyncobjects.core.stream.AStream;
 import net.sf.asyncobjects.core.stream.ChainedStreamBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.util.CharIOUtil;
 
 import java.nio.CharBuffer;
 
@@ -114,7 +115,7 @@ public class LineStream extends ChainedStreamBase<String, AInput<CharBuffer>> {
         return requestQueue.run(new ACallable<Maybe<String>>() {
             @Override
             public Promise<Maybe<String>> call() throws Throwable {
-                return TextIOUtil.readLine(wrapped, buffer, line, includeNewLine).map(
+                return CharIOUtil.readLine(wrapped, buffer, line, includeNewLine).map(
                         new AFunction<Maybe<String>, String>() {
                             @Override
                             public Promise<Maybe<String>> apply(final String value) throws Throwable {

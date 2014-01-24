@@ -6,6 +6,7 @@ import net.sf.asyncobjects.core.util.CloseableBase;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.BufferOperations;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.CharBuffer;
@@ -46,7 +47,7 @@ public class StringInput extends CloseableBase implements AInput<CharBuffer>, Ex
         if (data.hasRemaining()) {
             return aValue(BufferOperations.CHAR.put(buffer, data));
         } else {
-            return aValue(-1);
+            return IOUtil.EOF_PROMISE;
         }
     }
 
