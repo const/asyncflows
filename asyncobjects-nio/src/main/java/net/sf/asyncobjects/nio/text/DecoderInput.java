@@ -23,6 +23,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The character decoder input.
@@ -130,7 +131,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                     return invalidationPromise();
                 }
                 if (eofDecoded) {
-                    return aValue(-1);
+                    return IOUtil.EOF_PROMISE;
                 }
                 final int[] read = new int[1];
                 return aSeqLoop(new ACallable<Boolean>() {
@@ -141,7 +142,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                         final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
                         eofDecoded = eofSeen && !bytes.hasRemaining();
                         if (eofDecoded && position == buffer.position()) {
-                            read[0] = -1;
+                            read[0] = IOUtil.EOF;
                             return aFalse();
                         }
                         if (result.isOverflow() || buffer.position() > position) {
@@ -167,7 +168,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
                                 @Override
                                 public Promise<Boolean> apply(final Integer value) throws Throwable {
                                     bytes.flip();
-                                    if (value < 0) {
+                                    if (isEof(value)) {
                                         eofSeen = true;
                                     }
                                     return aTrue();

@@ -5,13 +5,12 @@ import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.CloseableBase;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-
-import static net.sf.asyncobjects.core.AsyncControl.aValue;
 
 /**
  * The null input.
@@ -37,7 +36,7 @@ public class NulInput<B extends Buffer> extends CloseableBase implements AInput<
     @Override
     public Promise<Integer> read(final B buffer) {
         ensureOpen();
-        return aValue(-1);
+        return IOUtil.EOF_PROMISE;
     }
 
     @Override

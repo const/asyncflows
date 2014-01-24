@@ -15,6 +15,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The context for the protocol implementation. It contains the data is needed for different protocol parts.
@@ -88,7 +89,7 @@ public class InputContext {
                 buffer.flip();
                 readMode = false;
                 if (value.isSuccess()) {
-                    if (value.value() < 0) {
+                    if (isEof(value.value())) {
                         eofRead = true;
                     }
                     return aTrue();

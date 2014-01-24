@@ -10,6 +10,7 @@ import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.BufferOperations;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.SocketExportUtil;
@@ -180,7 +181,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                 @Override
                 public Promise<Maybe<Integer>> call() throws Throwable {
                     if (eofSeen) {
-                        return aMaybeValue(-1);
+                        return IOUtil.EOF_MAYBE_PROMISE;
                     }
                     if (buffer.remaining() == 0) {
                         return aMaybeValue(0);
@@ -198,7 +199,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                             final int read = socketChannel.read(readBuffer);
                             if (read < 0) {
                                 eofSeen = true;
-                                return aMaybeValue(-1);
+                                return IOUtil.EOF_MAYBE_PROMISE;
                             } else if (read > 0) {
                                 if (!buffer.isDirect()) {
                                     readBuffer.flip();

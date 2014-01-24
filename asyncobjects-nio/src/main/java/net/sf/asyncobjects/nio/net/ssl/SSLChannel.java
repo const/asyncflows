@@ -14,6 +14,7 @@ import net.sf.asyncobjects.nio.AChannel;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.BufferOperations;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import javax.net.ssl.SSLEngine;
@@ -34,6 +35,7 @@ import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyResolver;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * Implementation of channel semantics over {@link SSLEngine}.
@@ -435,7 +437,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                                 @Override
                                 public Promise<Boolean> apply(final Integer value) throws Throwable {
                                     packet.flip();
-                                    if (value == -1) {
+                                    if (isEof(value)) {
                                         engine.closeInbound();
                                         if (packet.hasRemaining()) {
                                             invalidateChannel(new IOException("SSLEngine wants more data, "
@@ -511,7 +513,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                     }
                     if (eofUnwrapped) {
                         user = null;
-                        return aMaybeValue(-1);
+                        return IOUtil.EOF_MAYBE_PROMISE;
                     }
                     user = buffer;
                     unwraps.resume();

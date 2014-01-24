@@ -29,7 +29,7 @@ public class IOUtil<B extends Buffer, A> {
     /**
      * The EOF value.
      */
-    public static final Integer EOF = -1;
+    public static final int EOF = -1;
     /**
      * The EOF promise.
      */
@@ -62,6 +62,16 @@ public class IOUtil<B extends Buffer, A> {
      */
     public IOUtil(final BufferOperations<B, A> operations) {
         this.operations = operations;
+    }
+
+    /**
+     * Check if the value returned from stream is EOF.
+     *
+     * @param value the value to check
+     * @return true if EOF
+     */
+    public static boolean isEof(final int value) {
+        return value < 0;
     }
 
     /**
@@ -109,7 +119,7 @@ public class IOUtil<B extends Buffer, A> {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
                     @Override
                     public Promise<Boolean> apply(final Integer value) throws Throwable {
-                        if (value < 0 && buffer.position() == 0) {
+                        if (isEof(value) && buffer.position() == 0) {
                             return aFalse();
                         } else {
                             if (value > 0) {
@@ -158,7 +168,7 @@ public class IOUtil<B extends Buffer, A> {
                 return input.read(buffer).map(new AFunction<Boolean, Integer>() {
                     @Override
                     public Promise<Boolean> apply(final Integer value) throws Throwable {
-                        if (value < 0) {
+                        if (isEof(value)) {
                             return aFalse();
                         } else {
                             result[0] += value;

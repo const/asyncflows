@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import static net.sf.asyncobjects.core.AsyncControl.aBoolean;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * Character IO utilities.
@@ -52,7 +53,7 @@ public final class CharIOUtil {
                         buffer.flip();
                         builder.append(buffer);
                         buffer.clear();
-                        return aBoolean(value >= 0);
+                        return aBoolean(!isEof(value));
                     }
                 });
             }

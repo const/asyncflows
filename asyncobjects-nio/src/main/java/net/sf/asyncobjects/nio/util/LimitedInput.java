@@ -9,11 +9,12 @@ import net.sf.asyncobjects.core.util.CloseableInvalidatingBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.Buffer;
 
-import static net.sf.asyncobjects.core.AsyncControl.aValue;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The stream that is limited by the specified size, the {@link #close()} does not close underlying stream.
@@ -72,7 +73,7 @@ public class LimitedInput<B extends Buffer>
                     throw new IllegalStateException("Stream has read too much!");
                 }
                 if (readAmount == limit) {
-                    return aValue(-1);
+                    return IOUtil.EOF_PROMISE;
                 }
                 final int savedLimit = buffer.limit();
                 if (limit - readAmount < buffer.remaining()) {
@@ -81,7 +82,7 @@ public class LimitedInput<B extends Buffer>
                 return input.read(buffer).observe(new AResolver<Integer>() {
                     @Override
                     public void resolve(final Outcome<Integer> resolution) throws Throwable {
-                        if (resolution.isSuccess() && resolution.value() > 0) {
+                        if (resolution.isSuccess() && !isEof(resolution.value())) {
                             readAmount += resolution.value();
                         }
                         buffer.limit(savedLimit);

@@ -16,6 +16,7 @@ import java.security.MessageDigest;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The input that forwards requests further and digests the input.
@@ -89,7 +90,7 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
                 return read.observe(outcomeChecker()).map(new AFunction<Integer, Integer>() {
                     @Override
                     public Promise<Integer> apply(final Integer value) throws Throwable {
-                        if (value < 0) {
+                        if (isEof(value)) {
                             finishDigesting();
                         } else {
                             updateDigest(buffer, positionBeforeRead);

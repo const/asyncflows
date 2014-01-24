@@ -19,6 +19,7 @@ import java.util.zip.Inflater;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * Inflate input. The input is able to use data from the underlying stream. If inflater fails, the buffer data should
@@ -154,7 +155,7 @@ public class InflateInput extends CloseableInvalidatingBase implements
                                         @Override
                                         public Promise<Maybe<Integer>> apply(final Integer value) throws Throwable {
                                             compressed.flip();
-                                            if (value < 0) {
+                                            if (isEof(value)) {
                                                 eofRead = true;
                                             }
                                             return aMaybeEmpty();

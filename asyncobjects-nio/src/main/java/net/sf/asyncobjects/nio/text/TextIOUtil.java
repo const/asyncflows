@@ -11,6 +11,7 @@ import java.nio.CharBuffer;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoop;
+import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The text util.
@@ -127,7 +128,7 @@ public final class TextIOUtil {
                     @Override
                     public Promise<Maybe<String>> apply(final Integer value) throws Throwable {
                         buffer.flip();
-                        if (value < 0) {
+                        if (isEof(value)) {
                             if (line.length() > 0 || skippedSomething) {
                                 return result();
                             } else {

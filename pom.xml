@@ -43,6 +43,7 @@
         <!--
         <module>asyncobjects-awt</module>
         <module>asyncobjects-http</module>
+        <module>asyncobjects-socks</module>
         <module>asyncobjects-ssh</module>
         <module>asyncobjects-jee</module>
         <module>asyncobjects-net-sample</module>
