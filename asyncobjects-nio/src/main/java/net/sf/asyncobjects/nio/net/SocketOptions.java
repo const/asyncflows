@@ -4,8 +4,8 @@ import net.sf.asyncobjects.core.data.Tuple2;
 
 /**
  * Socket options. This class allows preparing options in the batch and to set them using
- * {@link ASocket#setOptions(SocketOptions)}. The null value for the the property means
- * that corresponding option is not set.
+ * {@link ASocket#setOptions(SocketOptions)} and {@link ADatagramSocket#setOptions(SocketOptions)}.
+ * The null value for the the property means that corresponding option is not set.
  */
 public final class SocketOptions implements Cloneable {
     /**
@@ -40,6 +40,14 @@ public final class SocketOptions implements Cloneable {
      * The option for {@link java.net.Socket#setTrafficClass(int)}.
      */
     private Integer trafficClass;
+    /**
+     * The option for {@link java.net.DatagramSocket#setBroadcast(boolean)}.
+     */
+    private Boolean broadcast;
+    /**
+     * The option for {@link java.net.DatagramSocket#setReuseAddress(boolean)}.
+     */
+    private Boolean reuseAddress;
 
     /**
      * @return the option for {@link java.net.Socket#setTcpNoDelay(boolean)}.
@@ -167,6 +175,38 @@ public final class SocketOptions implements Cloneable {
      */
     public void setTrafficClass(final Integer trafficClass) {
         this.trafficClass = trafficClass;
+    }
+
+    /**
+     * @return value socket option {@link java.net.DatagramSocket#setBroadcast(boolean)}.
+     */
+    public Boolean getBroadcast() {
+        return broadcast;
+    }
+
+    /**
+     * Prepare the option for {@link java.net.DatagramSocket#setBroadcast(boolean)}.
+     *
+     * @param broadcast the option value
+     */
+    public void setBroadcast(final Boolean broadcast) {
+        this.broadcast = broadcast;
+    }
+
+    /**
+     * @return value of {@link java.net.DatagramSocket#setReuseAddress(boolean)}.
+     */
+    public Boolean getReuseAddress() {
+        return reuseAddress;
+    }
+
+    /**
+     * Prepare the option for {@link java.net.DatagramSocket#setReuseAddress(boolean)}.
+     *
+     * @param reuseAddress the option value
+     */
+    public void setReuseAddress(final Boolean reuseAddress) {
+        this.reuseAddress = reuseAddress;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.nio.net;
+package net.sf.asyncobjects.nio.net; // NOPMD
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
@@ -15,7 +15,8 @@ import static net.sf.asyncobjects.core.util.ResourceUtil.closeResource;
 /**
  * Export utilities for the socket.
  */
-public final class SocketExportUtil {
+public final class SocketExportUtil { // NOPMD
+
     /**
      * Private constructor for utility class.
      */
@@ -179,6 +180,145 @@ public final class SocketExportUtil {
                     @Override
                     public Promise<AServerSocket> call() throws Throwable {
                         return factory.makeServerSocket();
+                    }
+                });
+            }
+
+            /**
+             * @return the promise for server socket
+             */
+            @Override
+            public Promise<ADatagramSocket> makeDatagramSocket() {
+                return aLater(vat, new ACallable<ADatagramSocket>() {
+                    @Override
+                    public Promise<ADatagramSocket> call() throws Throwable {
+                        return factory.makeDatagramSocket();
+                    }
+                });
+            }
+        };
+    }
+
+    /**
+     * A single vat version.
+     *
+     * @param vat    the vat
+     * @param socket the socket to wrap
+     * @return a socket wrapped into the proxy.
+     */
+    public static ADatagramSocket export(final Vat vat, final ADatagramSocket socket) {
+        return export(vat, vat, vat, socket);
+    }
+
+    /**
+     * A three vat version of the datagram socket that uses different vats for the operations.
+     * It is needed to wrap blocking version of the datagram socket.
+     *
+     * @param controlVat the control vat
+     * @param receiveVat the receive operation vat
+     * @param sendVat    the send operation vat
+     * @param socket     the socket to wrap
+     * @return a socket wrapped into the proxy.
+     */
+    public static ADatagramSocket export(final Vat controlVat, final Vat receiveVat, final Vat sendVat, // NOPMD
+                                         final ADatagramSocket socket) {
+        return new ADatagramSocket() {
+            @Override
+            public Promise<Void> setOptions(final SocketOptions options) {
+                return aLater(controlVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.setOptions(options);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> connect(final SocketAddress address) {
+                return aLater(controlVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.connect(address);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> disconnect() {
+                return aLater(controlVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.disconnect();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<SocketAddress> getRemoteAddress() {
+                return aLater(controlVat, new ACallable<SocketAddress>() {
+                    @Override
+                    public Promise<SocketAddress> call() throws Throwable {
+                        return socket.getRemoteAddress();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<SocketAddress> getLocalAddress() {
+                return aLater(controlVat, new ACallable<SocketAddress>() {
+                    @Override
+                    public Promise<SocketAddress> call() throws Throwable {
+                        return socket.getLocalAddress();
+                    }
+                });
+            }
+
+            @Override
+            public Promise<SocketAddress> bind(final SocketAddress address) {
+                return aLater(controlVat, new ACallable<SocketAddress>() {
+                    @Override
+                    public Promise<SocketAddress> call() throws Throwable {
+                        return socket.bind(address);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> send(final ByteBuffer buffer) {
+                return aLater(sendVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.send(buffer);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> send(final SocketAddress address, final ByteBuffer buffer) {
+                return aLater(sendVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.send(address, buffer);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<SocketAddress> receive(final ByteBuffer buffer) {
+                return aLater(receiveVat, new ACallable<SocketAddress>() {
+                    @Override
+                    public Promise<SocketAddress> call() throws Throwable {
+                        return socket.receive(buffer);
+                    }
+                });
+            }
+
+            @Override
+            public Promise<Void> close() {
+                return aLater(controlVat, new ACallable<Void>() {
+                    @Override
+                    public Promise<Void> call() throws Throwable {
+                        return socket.close();
                     }
                 });
             }

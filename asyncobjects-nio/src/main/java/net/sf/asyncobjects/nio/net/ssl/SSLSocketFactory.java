@@ -4,6 +4,7 @@ import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
+import net.sf.asyncobjects.nio.net.ADatagramSocket;
 import net.sf.asyncobjects.nio.net.AServerSocket;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
@@ -31,9 +32,6 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
      */
     private ASocketFactory socketFactory;
 
-    /**
-     * @return the promise for a plain socket
-     */
     @Override
     public Promise<ASocket> makeSocket() {
         return getSocketFactory().makeSocket().map(new AFunction<ASocket, ASocket>() {
@@ -44,9 +42,6 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
         });
     }
 
-    /**
-     * @return the promise for server socket
-     */
     @Override
     public Promise<AServerSocket> makeServerSocket() {
         return getSocketFactory().makeServerSocket().map(new AFunction<AServerSocket, AServerSocket>() {
@@ -55,6 +50,11 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
                 return aValue(new SSLServerSocket(value, getServerEngineFactory()).export());
             }
         });
+    }
+
+    @Override
+    public Promise<ADatagramSocket> makeDatagramSocket() {
+        throw new UnsupportedOperationException("DTLS sockets are not supported yet!");
     }
 
     /**

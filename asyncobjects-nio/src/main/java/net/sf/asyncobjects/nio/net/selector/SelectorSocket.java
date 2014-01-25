@@ -27,7 +27,6 @@ import java.nio.channels.SocketChannel;
 import static net.sf.asyncobjects.core.AsyncControl.aBoolean;
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
@@ -225,12 +224,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                                 return aFailure(ex);
                             }
                         }
-                        return channelContext.waitForRead().thenDo(new ACallable<Maybe<Integer>>() {
-                            @Override
-                            public Promise<Maybe<Integer>> call() throws Throwable {
-                                return aMaybeEmpty();
-                            }
-                        });
+                        return channelContext.waitForRead().thenValue(Maybe.<Integer>empty());
                     } finally {
                         if (!buffer.isDirect()) {
                             channelContext.releaseDirect(readBuffer);

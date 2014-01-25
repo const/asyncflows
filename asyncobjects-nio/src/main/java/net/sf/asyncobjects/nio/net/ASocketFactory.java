@@ -15,4 +15,9 @@ public interface ASocketFactory {
      * @return the promise for server socket
      */
     Promise<AServerSocket> makeServerSocket();
+
+    /**
+     * @return the promise for datagram socket
+     */
+    Promise<ADatagramSocket> makeDatagramSocket();
 }

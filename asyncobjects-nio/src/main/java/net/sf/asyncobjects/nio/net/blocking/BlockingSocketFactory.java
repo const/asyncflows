@@ -4,10 +4,13 @@ import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.core.vats.Vats;
+import net.sf.asyncobjects.nio.net.ADatagramSocket;
 import net.sf.asyncobjects.nio.net.AServerSocket;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
 import net.sf.asyncobjects.nio.net.SocketExportUtil;
+
+import java.net.SocketException;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
@@ -26,6 +29,15 @@ public class BlockingSocketFactory implements ASocketFactory, ExportsSelf<ASocke
         try {
             return aValue(new BlockingServerSocket().export());
         } catch (Throwable e) {
+            return aFailure(e);
+        }
+    }
+
+    @Override
+    public Promise<ADatagramSocket> makeDatagramSocket() {
+        try {
+            return aValue(new BlockingDatagramSocket().export());
+        } catch (SocketException e) {
             return aFailure(e);
         }
     }

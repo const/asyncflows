@@ -8,6 +8,7 @@ import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.IOUtil;
 
+import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -25,7 +26,7 @@ public final class SocketUtil {
     }
 
     /**
-     * Apply socket options to the socket.
+     * Apply socket options to the {@link java.net.Socket}.
      *
      * @param socket  the socket
      * @param options the options.
@@ -69,6 +70,41 @@ public final class SocketUtil {
         final Integer trafficClass = options.getTrafficClass();
         if (trafficClass != null) {
             socket.setTrafficClass(trafficClass);
+        }
+    }
+
+    /**
+     * Apply socket options to the {@link java.net.DatagramSocket}.
+     *
+     * @param socket  the socket
+     * @param options the options.
+     * @throws SocketException if the option could not be set
+     */
+    public static void applyOptions(final DatagramSocket socket,
+                                    final SocketOptions options) throws SocketException { // NOPMD
+        final Integer receiveBufferSize = options.getReceiveBufferSize();
+        if (receiveBufferSize != null) {
+            socket.setReceiveBufferSize(receiveBufferSize);
+        }
+        final Integer sendBufferSize = options.getSendBufferSize();
+        if (sendBufferSize != null) {
+            socket.setSendBufferSize(sendBufferSize);
+        }
+        final Integer timeout = options.getTimeout();
+        if (timeout != null) {
+            socket.setSoTimeout(timeout);
+        }
+        final Integer trafficClass = options.getTrafficClass();
+        if (trafficClass != null) {
+            socket.setTrafficClass(trafficClass);
+        }
+        final Boolean broadcast = options.getBroadcast();
+        if (broadcast != null) {
+            socket.setBroadcast(broadcast);
+        }
+        final Boolean reuseAddress = options.getReuseAddress();
+        if (reuseAddress != null) {
+            socket.setReuseAddress(reuseAddress);
         }
     }
 

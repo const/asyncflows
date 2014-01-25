@@ -146,6 +146,18 @@ public final class ResourceUtil {
         }
 
         /**
+         * Add independent resource.
+         *
+         * @param otherOpen the open operation
+         * @param <B>       the resource type
+         * @return the next builder
+         */
+        public <B extends ACloseable> Try2<A, B> andOther(final Promise<B> otherOpen) {
+            return andOther(promiseCallable(otherOpen));
+        }
+
+
+        /**
          * Open and run body with resource, and close it after body finishes.
          *
          * @param body a body to run

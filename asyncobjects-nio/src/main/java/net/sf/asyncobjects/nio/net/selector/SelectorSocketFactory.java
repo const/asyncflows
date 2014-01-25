@@ -3,6 +3,7 @@ package net.sf.asyncobjects.nio.net.selector;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
+import net.sf.asyncobjects.nio.net.ADatagramSocket;
 import net.sf.asyncobjects.nio.net.AServerSocket;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
@@ -60,9 +61,6 @@ public class SelectorSocketFactory implements ASocketFactory, ExportsSelf<ASocke
         return SocketExportUtil.export(vat, this);
     }
 
-    /**
-     * @return the promise for a plain socket
-     */
     @Override
     public Promise<ASocket> makeSocket() {
         final SelectorVat vat = getSelectorVat();
@@ -80,14 +78,21 @@ public class SelectorSocketFactory implements ASocketFactory, ExportsSelf<ASocke
         return selectorVat;
     }
 
-    /**
-     * @return the promise for server socket
-     */
     @Override
     public Promise<AServerSocket> makeServerSocket() {
         final SelectorVat vat = getSelectorVat();
         try {
             return aValue(new SelectorServerSocket(vat.getSelector()).export(vat));
+        } catch (IOException e) {
+            return aFailure(e);
+        }
+    }
+
+    @Override
+    public Promise<ADatagramSocket> makeDatagramSocket() {
+        final SelectorVat vat = getSelectorVat();
+        try {
+            return aValue(new SelectorDatagramSocket(vat.getSelector()).export(vat));
         } catch (IOException e) {
             return aFailure(e);
         }

@@ -1,5 +1,7 @@
 package net.sf.asyncobjects.nio.util;
 
+import java.nio.ByteBuffer;
+
 /**
  * Utilities specific for binary IO.
  */
@@ -40,6 +42,31 @@ public final class ByteIOUtil {
      */
     public static char toLatin1(final int b) {
         return (char) (b & BYTE_MASK);
+    }
+
+    /**
+     * Put ISO-8859-1 bytes to the buffer.
+     *
+     * @param buffer the destination buffer.
+     * @param text   the text to put
+     * @return the bytes
+     */
+    public static ByteBuffer putLatin1(final ByteBuffer buffer, final String text) {
+        return buffer.put(text.getBytes(CharIOUtil.ISO_8859_1));
+    }
+
+    /**
+     * Get ISO-8859-1 bytes from the buffer.
+     *
+     * @param buffer the source buffer.
+     * @return the text
+     */
+    public static String getLatin1(final ByteBuffer buffer) {
+        final StringBuilder b = new StringBuilder(buffer.remaining());
+        while (buffer.hasRemaining()) {
+            b.append(toLatin1(buffer.get()));
+        }
+        return b.toString();
     }
 
     /**
