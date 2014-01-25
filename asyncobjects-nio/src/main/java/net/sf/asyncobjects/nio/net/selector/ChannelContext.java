@@ -11,8 +11,6 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
-import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
-import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
@@ -47,7 +45,7 @@ final class ChannelContext {
     /**
      * The accept operation in progress.
      */
-    private AResolver<Boolean> accept;
+    private AResolver<Maybe<Object>> accept;
 
     /**
      * The constructor.
@@ -93,9 +91,6 @@ final class ChannelContext {
         if (read != null) {
             throw new IllegalStateException("Double waiting for read");
         }
-        if (key.isReadable()) {
-            return aMaybeEmpty();
-        }
         final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
         read = (AResolver<Maybe<Object>>) (Object) promise.resolver();
         updateOps();
@@ -108,9 +103,6 @@ final class ChannelContext {
     public Promise<Boolean> waitForWrite() {
         if (write != null) {
             throw new IllegalStateException("Double waiting for write");
-        }
-        if (key.isWritable()) {
-            return aTrue();
         }
         final Promise<Boolean> promise = new Promise<Boolean>();
         write = promise.resolver();
@@ -125,9 +117,6 @@ final class ChannelContext {
         if (connect != null) {
             throw new IllegalStateException("Double waiting for connect");
         }
-        if (key.isConnectable()) {
-            return aTrue();
-        }
         final Promise<Boolean> promise = new Promise<Boolean>();
         connect = promise.resolver();
         updateOps();
@@ -135,17 +124,19 @@ final class ChannelContext {
     }
 
     /**
+     * Wait until accept is ready. Because read is used mostly in aSeqMaybeLoop(), it returns Maybe.empty() that
+     * continues the loop.
+     *
+     * @param <T> return type
      * @return true wait for accept operation finishes
      */
-    public Promise<Boolean> waitForAccept() {
+    @SuppressWarnings("unchecked")
+    public <T> Promise<Maybe<T>> waitForAccept() {
         if (accept != null) {
             throw new IllegalStateException("Double waiting for accept");
         }
-        if (key.isAcceptable()) {
-            return aTrue();
-        }
-        final Promise<Boolean> promise = new Promise<Boolean>();
-        accept = promise.resolver();
+        final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
+        accept = (AResolver<Maybe<Object>>) (Object) promise.resolver();
         updateOps();
         return promise;
     }
@@ -167,7 +158,7 @@ final class ChannelContext {
             connect = null;
         }
         if (accept != null && key.isAcceptable()) {
-            notifySuccess(accept, true);
+            notifySuccess(accept, Maybe.empty());
             accept = null;
         }
         key.interestOps(ops());
@@ -177,7 +168,7 @@ final class ChannelContext {
      * Resolve ready subscribe for other operations.
      */
     private void updateOps() {
-        updateReady();
+        key.interestOps(ops());
     }
 
     /**

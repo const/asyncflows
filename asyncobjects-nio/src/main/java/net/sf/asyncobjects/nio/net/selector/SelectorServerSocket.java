@@ -19,7 +19,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
@@ -98,12 +97,7 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
             public Promise<Maybe<ASocket>> call() throws Throwable {
                 final SocketChannel accepted = serverSocketChannel.accept();
                 if (accepted == null) {
-                    return channelContext.waitForAccept().thenDo(new ACallable<Maybe<ASocket>>() {
-                        @Override
-                        public Promise<Maybe<ASocket>> call() throws Throwable {
-                            return aMaybeEmpty();
-                        }
-                    });
+                    return channelContext.waitForAccept();
                 }
                 final SelectorSocket socket = new SelectorSocket(channelContext.getSelector(), accepted);
                 if (defaultSocketOptions != null) {
