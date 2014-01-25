@@ -2,6 +2,7 @@ package net.sf.asyncobjects.nio.net.selector;
 
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Promise;
+import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import java.nio.ByteBuffer;
@@ -10,7 +11,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
+import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyFailure;
 import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
 
@@ -33,19 +35,19 @@ final class ChannelContext {
     /**
      * The read operation in progress.
      */
-    private AResolver<Void> read;
+    private AResolver<Maybe<Object>> read;
     /**
      * The write operation in progress.
      */
-    private AResolver<Void> write;
+    private AResolver<Boolean> write;
     /**
      * The connect operation in progress.
      */
-    private AResolver<Void> connect;
+    private AResolver<Boolean> connect;
     /**
      * The accept operation in progress.
      */
-    private AResolver<Void> accept;
+    private AResolver<Boolean> accept;
 
     /**
      * The constructor.
@@ -80,64 +82,69 @@ final class ChannelContext {
     }
 
     /**
-     * @return wait for read operation
+     * Wait until read is ready. Because read is used mostly in aSeqMaybeLoop(), it returns Maybe.empty() that
+     * continues the loop.
+     *
+     * @param <T> return type
+     * @return Maybe.empty() when wait for read finishes
      */
-    public Promise<Void> waitForRead() {
+    @SuppressWarnings("unchecked")
+    public <T> Promise<Maybe<T>> waitForRead() {
         if (read != null) {
             throw new IllegalStateException("Double waiting for read");
         }
         if (key.isReadable()) {
-            return aVoid();
+            return aMaybeEmpty();
         }
-        final Promise<Void> promise = new Promise<Void>();
-        read = promise.resolver();
+        final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
+        read = (AResolver<Maybe<Object>>) (Object) promise.resolver();
         updateOps();
         return promise;
     }
 
     /**
-     * @return wait for read operation
+     * @return true when wait for write operation finishes
      */
-    public Promise<Void> waitForWrite() {
+    public Promise<Boolean> waitForWrite() {
         if (write != null) {
             throw new IllegalStateException("Double waiting for write");
         }
         if (key.isWritable()) {
-            return aVoid();
+            return aTrue();
         }
-        final Promise<Void> promise = new Promise<Void>();
+        final Promise<Boolean> promise = new Promise<Boolean>();
         write = promise.resolver();
         updateOps();
         return promise;
     }
 
     /**
-     * @return wait for read operation
+     * @return true when wait for connect operation finishes
      */
-    public Promise<Void> waitForConnect() {
+    public Promise<Boolean> waitForConnect() {
         if (connect != null) {
             throw new IllegalStateException("Double waiting for connect");
         }
         if (key.isConnectable()) {
-            return aVoid();
+            return aTrue();
         }
-        final Promise<Void> promise = new Promise<Void>();
+        final Promise<Boolean> promise = new Promise<Boolean>();
         connect = promise.resolver();
         updateOps();
         return promise;
     }
 
     /**
-     * @return wait for read operation
+     * @return true wait for accept operation finishes
      */
-    public Promise<Void> waitForAccept() {
+    public Promise<Boolean> waitForAccept() {
         if (accept != null) {
             throw new IllegalStateException("Double waiting for accept");
         }
         if (key.isAcceptable()) {
-            return aVoid();
+            return aTrue();
         }
-        final Promise<Void> promise = new Promise<Void>();
+        final Promise<Boolean> promise = new Promise<Boolean>();
         accept = promise.resolver();
         updateOps();
         return promise;
@@ -148,19 +155,19 @@ final class ChannelContext {
      */
     public void updateReady() {
         if (read != null && key.isReadable()) {
-            notifySuccess(read, null);
+            notifySuccess(read, Maybe.empty());
             read = null;
         }
         if (write != null && key.isWritable()) {
-            notifySuccess(write, null);
+            notifySuccess(write, true);
             write = null;
         }
         if (connect != null && key.isConnectable()) {
-            notifySuccess(connect, null);
+            notifySuccess(connect, true);
             connect = null;
         }
         if (accept != null && key.isAcceptable()) {
-            notifySuccess(accept, null);
+            notifySuccess(accept, true);
             accept = null;
         }
         key.interestOps(ops());

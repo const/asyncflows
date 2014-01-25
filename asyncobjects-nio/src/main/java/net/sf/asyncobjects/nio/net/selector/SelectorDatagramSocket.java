@@ -137,7 +137,7 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
                 if (write != 0) {
                     return aFalse();
                 }
-                return channelContext.waitForWrite().thenValue(true);
+                return channelContext.waitForWrite();
             }
         });
     }
@@ -155,7 +155,7 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
                 if (write != 0) {
                     return aFalse();
                 }
-                return channelContext.waitForWrite().thenValue(true);
+                return channelContext.waitForWrite();
             }
         });
     }
@@ -175,7 +175,7 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
                         count[0] = 0;
                         channelContext.changeSelector();
                     }
-                    return channelContext.waitForRead().thenValue(Maybe.<SocketAddress>empty());
+                    return channelContext.waitForRead();
                 }
             }
         });
