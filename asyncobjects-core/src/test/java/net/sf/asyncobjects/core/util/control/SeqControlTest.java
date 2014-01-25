@@ -20,6 +20,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
 import static net.sf.asyncobjects.core.stream.Streams.aForArray;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
+import static net.sf.asyncobjects.core.util.SeqControl.aSeqForUnit;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoopFair;
 import static org.junit.Assert.assertEquals;
 
@@ -231,6 +232,30 @@ public class SeqControlTest {
         });
         assertEquals(10, rc);
     }
+
+    @Test
+    public void testSeqForLoopSimple() {
+        final int rc = doAsync(new ACallable<Integer>() {
+            @Override
+            public Promise<Integer> call() throws Throwable {
+                final int[] sum = new int[1];
+                return aSeqForUnit(Arrays.asList(0, 1, 2, 3, 4), new AFunction<Boolean, Integer>() {
+                    @Override
+                    public Promise<Boolean> apply(final Integer value) throws Throwable {
+                        sum[0] += value;
+                        return aTrue();
+                    }
+                }).thenDo(new ACallable<Integer>() {
+                    @Override
+                    public Promise<Integer> call() throws Throwable {
+                        return aValue(sum[0]);
+                    }
+                });
+            }
+        });
+        assertEquals(10, rc);
+    }
+
 
     @Test
     public void testSeqLoopFail() {

@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core;
 
-import net.sf.asyncobjects.core.vats.Vat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,11 +105,21 @@ public final class Promise<T> {
      * @return the resolver for the promise, it could be got only once
      */
     public AResolver<T> resolver() {
+        return CoreExportUtil.export(shortcutResolver());
+    }
+
+    /**
+     * This a dangerous method that might cause stack overflow. It avoids sending an resolution event in the case
+     * of chained map and thenDo calls. The optimization will be possible removed in the future.
+     *
+     * @return the resolver for the promise, it could be got only once
+     */
+    private AResolver<T> shortcutResolver() {
         if (state != State.INITIAL) {
             throw new IllegalStateException("Resolver is already got: " + state);
         }
         state = State.RESOLVING;
-        return CoreExportUtil.export(Vat.current(), new AResolver<T>() {
+        return new AResolver<T>() {
             @Override
             public void resolve(final Outcome<T> resolution) throws Throwable {
                 if (state == State.RESOLVING) {
@@ -127,7 +136,7 @@ public final class Promise<T> {
                     }
                 }
             }
-        });
+        };
     }
 
     /**
@@ -148,7 +157,7 @@ public final class Promise<T> {
             }
         } else {
             final Promise<X> promise = new Promise<X>();
-            final AResolver<X> resolver = promise.resolver();
+            final AResolver<X> resolver = promise.shortcutResolver();
             listen(new AResolver<T>() {
                 @Override
                 public void resolve(final Outcome<T> resolution) throws Throwable {
@@ -185,7 +194,6 @@ public final class Promise<T> {
     public Promise<Boolean> thenValue(final boolean value) {
         return thenDo(booleanCallable(value));
     }
-
 
     /**
      * Return promise that resolves to the specified value after current promise resolves.
@@ -225,7 +233,7 @@ public final class Promise<T> {
             }
         } else {
             final Promise<X> promise = new Promise<X>();
-            final AResolver<X> resolver = promise.resolver();
+            final AResolver<X> resolver = promise.shortcutResolver();
             listen(new AResolver<T>() {
                 @Override
                 public void resolve(final Outcome<T> resolution) throws Throwable {
@@ -252,7 +260,7 @@ public final class Promise<T> {
             return evaluate(outcome, mapper);
         } else {
             final Promise<X> promise = new Promise<X>();
-            final AResolver<X> resolver = promise.resolver();
+            final AResolver<X> resolver = promise.shortcutResolver();
             listen(new AResolver<T>() {
                 @Override
                 public void resolve(final Outcome<T> resolution) throws Throwable {
