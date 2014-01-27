@@ -48,7 +48,7 @@ public abstract class StreamBase<A> extends CloseableInvalidatingBase implements
      * @return the next produced element
      * @throws Throwable in case if the next element could not be produced.
      */
-    public abstract Promise<Maybe<A>> produce() throws Throwable;
+    protected abstract Promise<Maybe<A>> produce() throws Throwable;
 
     @Override
     public AStream<A> export() {

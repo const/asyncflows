@@ -172,7 +172,7 @@ public final class RandevuQueue<T> {
         private final RequestQueue requests = new RequestQueue();
 
         @Override
-        public Promise<Maybe<T>> produce() throws Throwable {
+        protected Promise<Maybe<T>> produce() throws Throwable {
             return requests.run(new ACallable<Maybe<T>>() {
                 @Override
                 public Promise<Maybe<T>> call() throws Throwable {

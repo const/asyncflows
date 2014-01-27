@@ -25,7 +25,7 @@ public class ProducerStream<A> extends StreamBase<A> {
     }
 
     @Override
-    public Promise<Maybe<A>> produce() throws Throwable {
+    protected Promise<Maybe<A>> produce() throws Throwable {
         return producer.call();
     }
 }

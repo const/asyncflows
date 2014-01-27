@@ -4,6 +4,7 @@ import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.AsyncControl;
+import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Failure;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
@@ -20,6 +21,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
+import static net.sf.asyncobjects.core.CoreFunctionUtil.mapCallable;
 import static net.sf.asyncobjects.core.ResolverUtil.notifyResolver;
 
 /**
@@ -317,12 +319,7 @@ public final class SeqControl {
          * @return the sequence builder with next step
          */
         public <N> SeqBuilder<N> map(final AFunction<N, T> mapper) {
-            return new SeqBuilder<N>(new ACallable<N>() {
-                @Override
-                public Promise<N> call() throws Throwable {
-                    return aNow(action).map(mapper);
-                }
-            });
+            return new SeqBuilder<N>(mapCallable(action, mapper));
         }
 
         /**
@@ -344,12 +341,7 @@ public final class SeqControl {
          * @return the sequence builder with next step
          */
         public <N> SeqBuilder<N> thenDo(final ACallable<N> nextAction) {
-            return map(new AFunction<N, T>() {
-                @Override
-                public Promise<N> apply(final T value) throws Throwable {
-                    return aNow(nextAction);
-                }
-            });
+            return map(CoreFunctionUtil.<N, T>discardArgument(nextAction));
         }
 
         /**

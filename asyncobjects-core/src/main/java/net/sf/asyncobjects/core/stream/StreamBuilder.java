@@ -162,7 +162,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
         });
         return new StreamBuilder<T>(new StreamBase<T>() {
             @Override
-            public Promise<Maybe<T>> produce() throws Throwable {
+            protected Promise<Maybe<T>> produce() throws Throwable {
                 return reads.runSeqMaybeLoop(new ACallable<Maybe<Maybe<T>>>() {
                     @Override
                     public Promise<Maybe<Maybe<T>>> call() throws Throwable {

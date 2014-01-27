@@ -1,7 +1,10 @@
 package net.sf.asyncobjects.core;
 
+import net.sf.asyncobjects.core.data.Maybe;
+
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
@@ -45,6 +48,15 @@ public final class CoreFunctionUtil {
         @Override
         public Promise<Void> apply(final Object value) throws Throwable {
             return aVoid();
+        }
+    };
+    /**
+     * The function that transfers everything to maybe.
+     */
+    private static final AFunction<Maybe<Object>, Object> MAYBE_MAPPER = new AFunction<Maybe<Object>, Object>() {
+        @Override
+        public Promise<Maybe<Object>> apply(final Object value) throws Throwable {
+            return aMaybeValue(value);
         }
     };
 
@@ -139,6 +151,17 @@ public final class CoreFunctionUtil {
     @SuppressWarnings("unchecked")
     public static <I> AFunction<I, I> identity() {
         return (AFunction<I, I>) IDENTITY;
+    }
+
+    /**
+     * Create identity function.
+     *
+     * @param <I> the function type
+     * @return the identity function
+     */
+    @SuppressWarnings("unchecked")
+    public static <I> AFunction<Maybe<I>, I> maybeMapper() {
+        return (AFunction<Maybe<I>, I>) (Object) MAYBE_MAPPER;
     }
 
     /**

@@ -9,6 +9,7 @@ import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.core.data.Maybe;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFalse;
+import static net.sf.asyncobjects.core.AsyncControl.aMaybeEmpty;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
@@ -39,6 +40,30 @@ public final class StreamUtil {
             @Override
             public Promise<Maybe<O>> call() throws Throwable {
                 return stream.next();
+            }
+        };
+    }
+
+    /**
+     * Take first elements.
+     *
+     * @param stream the stream to examine
+     * @param n      the maximum amount of elements
+     * @param <T>    the element type
+     * @return a new stream
+     */
+    public static <T> AStream<T> head(final AStream<T> stream, final int n) {
+        return new ChainedStreamBase<T, AStream<T>>(stream) {
+            private int count;
+
+            @Override
+            protected Promise<Maybe<T>> produce() {
+                if (count >= n) {
+                    return aMaybeEmpty();
+                } else {
+                    count++;
+                    return stream.next();
+                }
             }
         };
     }
