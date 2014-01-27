@@ -13,9 +13,10 @@ import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
- * The output context.
+ * The context for binary generators. This helper class is used to generate structured binary output.
+ * It helps to share buffer and other structures between different components.
  */
-public class OutputContext {
+public class ByteGeneratorContext {
     /**
      * The output stream.
      */
@@ -39,7 +40,7 @@ public class OutputContext {
      * @param output the output stream
      * @param buffer the buffer to use
      */
-    public OutputContext(final AOutput<ByteBuffer> output, final ByteBuffer buffer) {
+    public ByteGeneratorContext(final AOutput<ByteBuffer> output, final ByteBuffer buffer) {
         this.output = output;
         this.buffer = buffer;
     }

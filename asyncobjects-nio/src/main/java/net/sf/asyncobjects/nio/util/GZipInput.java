@@ -83,7 +83,7 @@ public class GZipInput extends InflateInput {
 
     @Override
     protected Promise<Void> handleHeader(final AInput<ByteBuffer> input, final ByteBuffer compressed) {
-        final InputContext context = new InputContext(input, compressed);
+        final ByteParserContext context = new ByteParserContext(input, compressed);
         return GZipHeader.read(context).map(new AFunction<Void, GZipHeader>() {
             @Override
             public Promise<Void> apply(final GZipHeader value) throws Throwable {
@@ -104,7 +104,7 @@ public class GZipInput extends InflateInput {
 
     @Override
     protected Promise<Maybe<Integer>> handleFinish(final AInput<ByteBuffer> input, final ByteBuffer compressed) {
-        final InputContext context = new InputContext(input, compressed);
+        final ByteParserContext context = new ByteParserContext(input, compressed);
         return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(new ACallable<Maybe<Integer>>() {
             @Override
             public Promise<Maybe<Integer>> call() throws Throwable {

@@ -2,8 +2,8 @@ package net.sf.asyncobjects.protocol.mime;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.nio.util.InputContext;
-import net.sf.asyncobjects.nio.util.OutputContext;
+import net.sf.asyncobjects.nio.util.ByteGeneratorContext;
+import net.sf.asyncobjects.nio.util.ByteParserContext;
 import net.sf.asyncobjects.protocol.LineUtil;
 import net.sf.asyncobjects.protocol.ProtocolCharsetException;
 import net.sf.asyncobjects.protocol.ProtocolException;
@@ -49,7 +49,7 @@ public final class HeaderUtil {
      * @param limit the limit for the total header size
      * @return the headers
      */
-    public static Promise<HeaderSet> readHeaders(final InputContext input, final int limit) { // NOPMD
+    public static Promise<HeaderSet> readHeaders(final ByteParserContext input, final int limit) { // NOPMD
         final HeaderSet headers = new HeaderSet();
         return aSeqLoop(new ACallable<Boolean>() {
             private static final int LINE_START = 0;
@@ -174,7 +174,7 @@ public final class HeaderUtil {
      * @param headers the headers to write
      * @return the the promise that resolves when headers are added to output (they are sent yet)
      */
-    public static Promise<Void> writeHeaders(final OutputContext output, final HeaderSet headers) {
+    public static Promise<Void> writeHeaders(final ByteGeneratorContext output, final HeaderSet headers) {
         return writeASCII(output, headers.toText());
     }
 }

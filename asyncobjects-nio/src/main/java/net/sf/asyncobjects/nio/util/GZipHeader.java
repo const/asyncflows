@@ -141,7 +141,7 @@ public final class GZipHeader {
      * @param context the context
      * @return the GZip header value.
      */
-    public static Promise<GZipHeader> read(final InputContext context) {
+    public static Promise<GZipHeader> read(final ByteParserContext context) {
         final GZipHeader header = new GZipHeader();
         final CRC32 headerCRC = new CRC32();
         return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(new ACallable<Void>() {
@@ -221,7 +221,7 @@ public final class GZipHeader {
      * @return the promise that resolves when core header is read
      * @throws IOException in case of format problem.
      */
-    private static Promise<Void> readCoreHeader(final InputContext context, final CRC32 headerCRC,
+    private static Promise<Void> readCoreHeader(final ByteParserContext context, final CRC32 headerCRC,
                                                 final GZipHeader header) throws IOException {
         final int magic = getUInt16(context, headerCRC);
         if (magic != ID) {
@@ -254,7 +254,7 @@ public final class GZipHeader {
      * @param header  the header
      * @return the promise that resolves when header is added to the context
      */
-    public static Promise<Void> writeHeader(final OutputContext context, final GZipHeader header) {
+    public static Promise<Void> writeHeader(final ByteGeneratorContext context, final GZipHeader header) {
         final CRC32 crc = new CRC32();
         return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(new ACallable<Void>() {
             @Override
@@ -330,7 +330,7 @@ public final class GZipHeader {
      * @return the promise that resolves when core header is written
      * @throws IOException in case of format problem.
      */
-    private static Promise<Void> writeCoreHeader(final GZipHeader header, final OutputContext context,
+    private static Promise<Void> writeCoreHeader(final GZipHeader header, final ByteGeneratorContext context,
                                                  final CRC32 crc) throws IOException {
         header.setRealFlags();
         if (header.getCompressionMethod() != DEFLATE_COMPRESSION) {
@@ -360,7 +360,7 @@ public final class GZipHeader {
      * @param headerCRC  the header CRC value
      * @return the promise that resolves when field is written
      */
-    private static Promise<Void> writeExtraField(final ExtraField extraField, final OutputContext context,
+    private static Promise<Void> writeExtraField(final ExtraField extraField, final ByteGeneratorContext context,
                                                  final CRC32 headerCRC) {
         return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH).thenDo(
                 new ACallable<Void>() {
@@ -385,7 +385,7 @@ public final class GZipHeader {
      * @param text      the text to write
      * @return the promise that resolves when field is written
      */
-    private static Promise<Void> writeStringZero(final OutputContext context,
+    private static Promise<Void> writeStringZero(final ByteGeneratorContext context,
                                                  final CRC32 headerCRC, final String text) {
         return writeLatin1(context, headerCRC, text, false).thenDo(new ACallable<Void>() {
             @Override
@@ -411,7 +411,7 @@ public final class GZipHeader {
      * @param allowZero if true, zeros are allowed in the string
      * @return the promise that resolves when field is written
      */
-    private static Promise<Void> writeLatin1(final OutputContext context,
+    private static Promise<Void> writeLatin1(final ByteGeneratorContext context,
                                              final CRC32 headerCRC, final String text, final boolean allowZero) {
         return aSeqLoop(new ACallable<Boolean>() {
             private int pos;
@@ -445,7 +445,7 @@ public final class GZipHeader {
      * @param headerCRC the CRC to update
      * @return a void when reading finishes.
      */
-    private static Promise<Void> readExtraFields(final GZipHeader header, final InputContext context,
+    private static Promise<Void> readExtraFields(final GZipHeader header, final ByteParserContext context,
                                                  final CRC32 headerCRC) {
         final int totalSize = getUInt16(context, headerCRC);
         final int[] currentSize = new int[1];
@@ -475,7 +475,7 @@ public final class GZipHeader {
      * @param headerCRC the CRC to update
      * @return the 16-bit value
      */
-    private static char getUInt16(final InputContext context, final CRC32 headerCRC) {
+    private static char getUInt16(final ByteParserContext context, final CRC32 headerCRC) {
         final byte b1 = get(context, headerCRC);
         final byte b2 = get(context, headerCRC);
         return ByteIOUtil.toChar(b2, b1);
@@ -488,7 +488,7 @@ public final class GZipHeader {
      * @param headerCRC the CRC to update
      * @return the 32-bit value as long
      */
-    private static long getUInt32(final InputContext context, final CRC32 headerCRC) {
+    private static long getUInt32(final ByteParserContext context, final CRC32 headerCRC) {
         final byte b1 = get(context, headerCRC);
         final byte b2 = get(context, headerCRC);
         final byte b3 = get(context, headerCRC);
@@ -503,7 +503,7 @@ public final class GZipHeader {
      * @param crc     the CRC
      * @return the byte
      */
-    private static byte get(final InputContext context, final CRC32 crc) {
+    private static byte get(final ByteParserContext context, final CRC32 crc) {
         final byte b = context.buffer().get();
         crc.update(b);
         return b;
@@ -516,7 +516,7 @@ public final class GZipHeader {
      * @param crc     the crc
      * @param b       the single byte
      */
-    private static void put(final OutputContext context, final CRC32 crc, final byte b) {
+    private static void put(final ByteGeneratorContext context, final CRC32 crc, final byte b) {
         crc.update(b);
         context.buffer().put(b);
     }
@@ -528,7 +528,7 @@ public final class GZipHeader {
      * @param crc     the crc
      * @param b       the single byte
      */
-    private static void putUInt16(final OutputContext context, final CRC32 crc, final char b) {
+    private static void putUInt16(final ByteGeneratorContext context, final CRC32 crc, final char b) {
         // CHECKSTYLE:OFF
         final byte b1 = (byte) b;
         final byte b2 = (byte) (b >> 8);
@@ -547,7 +547,7 @@ public final class GZipHeader {
      * @param crc     the crc
      * @param b       the single byte
      */
-    private static void putInt32(final OutputContext context, final CRC32 crc, final int b) {
+    private static void putInt32(final ByteGeneratorContext context, final CRC32 crc, final int b) {
         // CHECKSTYLE:OFF
         final byte b1 = (byte) b;
         final byte b2 = (byte) (b >> 8);
@@ -572,7 +572,7 @@ public final class GZipHeader {
      * @param crc     the CRC to update
      * @return the promise for the string
      */
-    private static Promise<String> readStringZero(final InputContext context, final CRC32 crc) {
+    private static Promise<String> readStringZero(final ByteParserContext context, final CRC32 crc) {
         final StringBuilder rc = new StringBuilder();
         return aSeq(new ACallable<Void>() {
             @Override
@@ -614,7 +614,8 @@ public final class GZipHeader {
      * @param limit   the limit for the string
      * @return the string.
      */
-    private static Promise<ExtraField> readExtraField(final InputContext context, final CRC32 crc, final int limit) {
+    private static Promise<ExtraField> readExtraField(final ByteParserContext context, final CRC32 crc,
+                                                      final int limit) {
         final StringBuilder rc = new StringBuilder();
         final char[] id = new char[1];
 

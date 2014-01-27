@@ -74,7 +74,7 @@ public class GZipOutput extends DeflateOutput {
 
     @Override
     protected Promise<Void> handleHeader(final AOutput<ByteBuffer> output, final ByteBuffer compressed) {
-        final OutputContext context = new OutputContext(output, compressed);
+        final ByteGeneratorContext context = new ByteGeneratorContext(output, compressed);
         return GZipHeader.writeHeader(context, header);
     }
 
@@ -86,7 +86,7 @@ public class GZipOutput extends DeflateOutput {
 
     @Override
     protected Promise<Void> handleFinish(final AOutput<ByteBuffer> output, final ByteBuffer compressed) {
-        final OutputContext context = new OutputContext(output, compressed);
+        final ByteGeneratorContext context = new ByteGeneratorContext(output, compressed);
         return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(new ACallable<Void>() {
             @Override
             public Promise<Void> call() throws Throwable {

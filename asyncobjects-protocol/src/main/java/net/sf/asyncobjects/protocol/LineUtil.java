@@ -3,8 +3,8 @@ package net.sf.asyncobjects.protocol;
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
-import net.sf.asyncobjects.nio.util.InputContext;
-import net.sf.asyncobjects.nio.util.OutputContext;
+import net.sf.asyncobjects.nio.util.ByteGeneratorContext;
+import net.sf.asyncobjects.nio.util.ByteParserContext;
 
 import java.nio.ByteBuffer;
 
@@ -79,7 +79,7 @@ public final class LineUtil {
      * @param allowCR        if true, CR without LF is considered as part of the string
      * @return a promise with amount of bytes in the line, null if eof is encountered,
      */
-    public static Promise<Integer> readLineCRLF(final InputContext input, final StringBuilder builder,
+    public static Promise<Integer> readLineCRLF(final ByteParserContext input, final StringBuilder builder,
                                                 final int limit, final boolean failOnNonASCII, final boolean allowCR) {
         return aSeqMaybeLoop(new ACallable<Maybe<Integer>>() {
             private boolean afterCR;
@@ -133,7 +133,7 @@ public final class LineUtil {
      * @param text    the text
      * @return the text to write
      */
-    public static Promise<Void> writeASCII(final OutputContext context, final String text) {
+    public static Promise<Void> writeASCII(final ByteGeneratorContext context, final String text) {
         return aSeqLoop(new ACallable<Boolean>() {
             private int pos;
 

@@ -5,7 +5,7 @@ import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.adapters.Adapters;
-import net.sf.asyncobjects.nio.util.InputContext;
+import net.sf.asyncobjects.nio.util.ByteParserContext;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -29,7 +29,7 @@ public class HeaderUtilTest {
                         new AFunction<HeaderSet, AInput<ByteBuffer>>() {
                             @Override
                             public Promise<HeaderSet> apply(final AInput<ByteBuffer> value) throws Throwable {
-                                return HeaderUtil.readHeaders(new InputContext(value, 23), 2048);
+                                return HeaderUtil.readHeaders(new ByteParserContext(value, 23), 2048);
                             }
                         });
             }
@@ -56,7 +56,7 @@ public class HeaderUtilTest {
                         new AFunction<HeaderSet, AInput<ByteBuffer>>() {
                             @Override
                             public Promise<HeaderSet> apply(final AInput<ByteBuffer> value) throws Throwable {
-                                final InputContext context = new InputContext(value, 2048);
+                                final ByteParserContext context = new ByteParserContext(value, 2048);
                                 return context.ensureAvailable(1047).thenDo(new ACallable<HeaderSet>() {
                                     @Override
                                     public Promise<HeaderSet> call() throws Throwable {

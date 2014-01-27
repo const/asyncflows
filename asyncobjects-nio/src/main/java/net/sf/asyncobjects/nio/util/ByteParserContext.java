@@ -18,9 +18,9 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
 import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
- * The context for the protocol implementation. It contains the data is needed for different protocol parts.
+ * The parser context for the protocol implementation. It contains the data is needed for parsing binary streams.
  */
-public class InputContext {
+public class ByteParserContext {
     /**
      * The input stream.
      */
@@ -48,7 +48,7 @@ public class InputContext {
      * @param input  the input stream
      * @param buffer the buffer
      */
-    public InputContext(final AInput<ByteBuffer> input, final ByteBuffer buffer) {
+    public ByteParserContext(final AInput<ByteBuffer> input, final ByteBuffer buffer) {
         this.input = input;
         this.buffer = buffer;
     }
@@ -59,7 +59,7 @@ public class InputContext {
      * @param input      the input stream
      * @param bufferSize the buffer size
      */
-    public InputContext(final AInput<ByteBuffer> input, final int bufferSize) {
+    public ByteParserContext(final AInput<ByteBuffer> input, final int bufferSize) {
         this(input, ByteBuffer.allocate(bufferSize));
         buffer.limit(0);
     }
