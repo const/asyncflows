@@ -1,11 +1,8 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Tuple2;
-import net.sf.asyncobjects.core.util.AFunction2;
-import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.core.util.ResourceUtil;
 import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.adapters.Adapters;
 import org.junit.Test;
@@ -15,7 +12,6 @@ import java.nio.ByteBuffer;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.doAsyncThrowable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
-import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -54,35 +50,17 @@ public class GZipInputTest {
      * @throws Throwable the problem
      */
     private GZipHeader checkFile(final String file) throws Throwable {
-        final Tuple2<Long, GZipHeader> rc = doAsyncThrowable(new ACallable<Tuple2<Long, GZipHeader>>() {
-            @Override
-            public Promise<Tuple2<Long, GZipHeader>> call() throws Throwable {
-                final Promise<GZipHeader> header = new Promise<GZipHeader>();
-                return aAll(new ACallable<Long>() {
-                    @Override
-                    public Promise<Long> call() throws Throwable {
-                        return aTry(Adapters.getResource(GZipInputTest.class, file)).andChain(
-                                new AFunction<AInput<ByteBuffer>, AInput<ByteBuffer>>() {
-                                    @Override
-                                    public Promise<AInput<ByteBuffer>> apply(final AInput<ByteBuffer> value)
-                                            throws Throwable {
-                                        return aValue(GZipInput.gunzip(value, header.resolver()));
-                                    }
-                                }).run(new AFunction2<Long, AInput<ByteBuffer>, AInput<ByteBuffer>>() {
-                            @Override
-                            public Promise<Long> apply(final AInput<ByteBuffer> value1,
-                                                       final AInput<ByteBuffer> value2) throws Throwable {
-                                return IOUtil.BYTE.discard(value2, ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE));
-                            }
-                        });
-                    }
-                }).andLast(new ACallable<GZipHeader>() {
-                    @Override
-                    public Promise<GZipHeader> call() throws Throwable {
-                        return header;
-                    }
-                });
-            }
+        final Tuple2<Long, GZipHeader> rc = doAsyncThrowable(() -> {
+            final Promise<GZipHeader> header = new Promise<>();
+            return aAll(
+                    () -> ResourceUtil.aTryResource(
+                            Adapters.getResource(GZipInputTest.class, file)
+                    ).andChain(
+                            value -> aValue(GZipInput.gunzip(value, header.resolver()))
+                    ).run(
+                            (value1, value2) -> IOUtil.BYTE.discard(value2, ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE))
+                    )
+            ).andLast(() -> header);
         });
         assertEquals(rc.getValue1().longValue(), 227);
         return rc.getValue2();

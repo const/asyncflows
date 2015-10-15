@@ -1,13 +1,12 @@
 package net.sf.asyncobjects.nio.text;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.stream.AStream;
 import net.sf.asyncobjects.core.stream.ChainedStreamBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.util.CharIOUtil;
 
 import java.nio.CharBuffer;
@@ -24,10 +23,6 @@ public class LineStream extends ChainedStreamBase<String, AInput<CharBuffer>> {
      */
     private static final int CAPACITY_THRESHOLD = 1024;
     /**
-     * Default capacity for {@link #buffer}.
-     */
-    private static final int DEFAULT_BUFFER_CAPACITY = 1024;
-    /**
      * If true, new lines are included into the results.
      */
     private final boolean includeNewLine;
@@ -36,13 +31,13 @@ public class LineStream extends ChainedStreamBase<String, AInput<CharBuffer>> {
      */
     private final CharBuffer buffer;
     /**
-     * The current line.
-     */
-    private StringBuilder line = new StringBuilder(); // NOPMD
-    /**
      * The requests.
      */
     private final RequestQueue requestQueue = new RequestQueue();
+    /**
+     * The current line.
+     */
+    private StringBuilder line = new StringBuilder(); // NOPMD
 
 
     /**
@@ -102,34 +97,21 @@ public class LineStream extends ChainedStreamBase<String, AInput<CharBuffer>> {
      * @return the line stream
      */
     public static AStream<String> readLines(final AInput<CharBuffer> input, final boolean includeNewLines) {
-        final CharBuffer buffer = CharBuffer.allocate(DEFAULT_BUFFER_CAPACITY);
-        buffer.limit(0);
-        return readLines(input, includeNewLines, buffer);
+        return readLines(input, includeNewLines, IOUtil.CHAR.writeBuffer());
     }
 
-    /**
-     * @return the next produced element
-     */
     @Override
     protected Promise<Maybe<String>> produce() {
-        return requestQueue.run(new ACallable<Maybe<String>>() {
-            @Override
-            public Promise<Maybe<String>> call() throws Throwable {
-                return CharIOUtil.readLine(wrapped, buffer, line, includeNewLine).map(
-                        new AFunction<Maybe<String>, String>() {
-                            @Override
-                            public Promise<Maybe<String>> apply(final String value) throws Throwable {
-                                if (value == null) {
-                                    return aMaybeEmpty();
-                                } else {
-                                    if (line.capacity() > CAPACITY_THRESHOLD) {
-                                        line = new StringBuilder();
-                                    }
-                                    return aMaybeValue(value);
-                                }
-                            }
-                        });
-            }
-        });
+        return requestQueue.run(() -> CharIOUtil.readLine(wrapped, buffer, line, includeNewLine).map(
+                value -> {
+                    if (value == null) {
+                        return aMaybeEmpty();
+                    } else {
+                        if (line.capacity() > CAPACITY_THRESHOLD) {
+                            line = new StringBuilder();
+                        }
+                        return aMaybeValue(value);
+                    }
+                }));
     }
 }

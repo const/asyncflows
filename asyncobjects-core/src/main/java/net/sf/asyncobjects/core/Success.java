@@ -41,6 +41,11 @@ public final class Success<T> extends Outcome<T> {
     }
 
     @Override
+    public boolean isFailure() {
+        return false;
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -52,7 +57,7 @@ public final class Success<T> extends Outcome<T> {
         final Success success = (Success) o;
 
         //noinspection RedundantIfStatement
-        if (value != null ? !value.equals(success.value) : success.value != null) {
+        if (value != null ? !value.equals(success.value) : success.value != null) { // NOPMD
             return false;
         }
 
@@ -66,9 +71,6 @@ public final class Success<T> extends Outcome<T> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Success{");
-        sb.append(value);
-        sb.append('}');
-        return sb.toString();
+        return "Success{" + value + '}';
     }
 }

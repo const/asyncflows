@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.net.ssl;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
@@ -48,36 +47,22 @@ public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, Export
         return wrapped.setOptions(options);
     }
 
-    /**
-     * Connect to the remote address.
-     *
-     * @param address the address to connect to
-     * @return when connected
-     */
     @Override
     public Promise<Void> connect(final SocketAddress address) {
         if (getEngine() != null) {
             throw new IllegalStateException("SSLEngine is already initialized!");
         }
-        return wrapped.connect(address).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return engineFactory.apply(address).map(new AFunction<Void, SSLEngine>() {
-                    @Override
-                    public Promise<Void> apply(final SSLEngine value) throws Throwable {
-                        return init(value);
-                    }
-                });
-            }
-        });
+        return wrapped.connect(address).thenDo(() -> engineFactory.apply(address).map(this::init));
     }
 
-    /**
-     * @return the remote address for the socket
-     */
     @Override
     public Promise<SocketAddress> getRemoteAddress() {
         return wrapped.getRemoteAddress();
+    }
+
+    @Override
+    public Promise<SocketAddress> getLocalAddress() {
+        return wrapped.getLocalAddress();
     }
 
     @Override
@@ -91,72 +76,42 @@ public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, Export
         return new ASSLSocket() {
             @Override
             public Promise<Void> handshake() {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.handshake();
-                    }
-                });
+                return aLater(vat, socket::handshake);
             }
 
             @Override
             public Promise<SSLSession> getSession() {
-                return aLater(vat, new ACallable<SSLSession>() {
-                    @Override
-                    public Promise<SSLSession> call() throws Throwable {
-                        return socket.getSession();
-                    }
-                });
+                return aLater(vat, socket::getSession);
             }
 
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.setOptions(options);
-                    }
-                });
+                return aLater(vat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.connect(address);
-                    }
-                });
+                return aLater(vat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(vat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.getRemoteAddress();
-                    }
-                });
+                return aLater(vat, socket::getRemoteAddress);
+            }
+
+            @Override
+            public Promise<SocketAddress> getLocalAddress() {
+                return aLater(vat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<AInput<ByteBuffer>> getInput() {
-                return aLater(vat, new ACallable<AInput<ByteBuffer>>() {
-                    @Override
-                    public Promise<AInput<ByteBuffer>> call() throws Throwable {
-                        return socket.getInput();
-                    }
-                });
+                return aLater(vat, socket::getInput);
             }
 
             @Override
             public Promise<AOutput<ByteBuffer>> getOutput() {
-                return aLater(vat, new ACallable<AOutput<ByteBuffer>>() {
-                    @Override
-                    public Promise<AOutput<ByteBuffer>> call() throws Throwable {
-                        return socket.getOutput();
-                    }
-                });
+                return aLater(vat, socket::getOutput);
             }
 
             @Override

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
+import static net.sf.asyncobjects.core.AsyncControl.aSend;
 
 /**
  * Utilities for exporting the objects from core.
@@ -60,21 +61,15 @@ public final class CoreExportUtil {
      * @return the exported resolver
      */
     public static <T> AResolver<T> export(final Vat vat, final AResolver<T> resolver) {
-        return new AResolver<T>() {
-            @Override
-            public void resolve(final Outcome<T> resolution) throws Throwable {
-                vat.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            resolver.resolve(resolution);
-                        } catch (Throwable throwable) {
-                            LOG.error("Oneway action " + resolver + " thrown an error", throwable);
-                        }
-                    }
-                });
+        return resolution -> vat.execute(() -> {
+            try {
+                resolver.resolve(resolution);
+            } catch (Throwable throwable) {
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("Oneway action " + resolver + " thrown an error", throwable);
+                }
             }
-        };
+        });
     }
 
     /**
@@ -86,13 +81,20 @@ public final class CoreExportUtil {
      * @return the exported callable
      */
     public static <T> ACallable<T> export(final Vat vat, final ACallable<T> callable) {
-        return new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                return aLater(vat, callable);
-            }
-        };
+        return () -> aLater(vat, callable);
     }
+
+    /**
+     * Export callable on the current vat.
+     *
+     * @param callable the callable
+     * @param <T>      the return type
+     * @return the exported callable
+     */
+    public static <T> ACallable<T> export(final ACallable<T> callable) {
+        return export(Vat.current(), callable);
+    }
+
 
     /**
      * Export mapper on the specified vat.
@@ -104,16 +106,28 @@ public final class CoreExportUtil {
      * @return the mapper
      */
     public static <I, O> AFunction<O, I> export(final Vat vat, final AFunction<O, I> mapper) {
-        return new AFunction<O, I>() {
-            @Override
-            public Promise<O> apply(final I value) throws Throwable {
-                return aLater(vat, new ACallable<O>() {
-                    @Override
-                    public Promise<O> call() throws Throwable {
-                        return mapper.apply(value);
-                    }
-                });
-            }
-        };
+        return value -> aLater(vat, () -> mapper.apply(value));
+    }
+
+    /**
+     * Export runnable on other vat. Runnable is an interface provided by JDK that happens to follow rules
+     * of asynchronous interfaces.
+     *
+     * @param vat    the vat
+     * @param action the action
+     * @return exported runnable
+     */
+    public static Runnable export(final Vat vat, final Runnable action) {
+        return () -> aSend(vat, action);
+    }
+
+    /**
+     * Export runnable on the current vat.
+     *
+     * @param action the action to export
+     * @return the exported action
+     */
+    public static Runnable export(final Runnable action) {
+        return export(Vat.current(), action);
     }
 }

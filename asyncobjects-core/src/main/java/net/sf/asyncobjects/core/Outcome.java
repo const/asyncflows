@@ -27,7 +27,7 @@ public abstract class Outcome<T> {
      * @return the success outcome
      */
     public static <A> Outcome<A> success(final A value) {
-        return new Success<A>(value);
+        return new Success<>(value);
     }
 
     /**
@@ -38,7 +38,7 @@ public abstract class Outcome<T> {
      * @return the failure outcome
      */
     public static <A> Outcome<A> failure(final Throwable failure) {
-        return new Failure<A>(failure);
+        return new Failure<>(failure);
     }
 
     /**
@@ -70,4 +70,8 @@ public abstract class Outcome<T> {
      */
     public abstract boolean isSuccess();
 
+    /**
+     * @return true if this is a failure outcome
+     */
+    public abstract boolean isFailure();
 }

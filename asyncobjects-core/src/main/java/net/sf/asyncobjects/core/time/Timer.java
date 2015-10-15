@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.core.time;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.CoreExportUtil;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
@@ -33,7 +32,7 @@ import static net.sf.asyncobjects.core.ResolverUtil.notifySuccess;
  * The timer class. The implementation uses {@link java.util.Timer} and it is mostly hosted in it.
  * The streams that are created are local to the caller vat. Wrap timer into the proxy, if different
  * behaviour is desired.
- * <p/>
+ * <p>
  * The timer keeps track of its streams and auto-close them if they become unreferenced.
  */
 public class Timer implements ATimer {
@@ -53,7 +52,7 @@ public class Timer implements ATimer {
     /**
      * The reference queue that is periodically checked.
      */
-    private final ReferenceQueue<AStream<Long>> referenceQueue = new ReferenceQueue<AStream<Long>>();
+    private final ReferenceQueue<AStream<Long>> referenceQueue = new ReferenceQueue<>();
 
     /**
      * The constructor. Note that the timer is owned by the thread.
@@ -86,7 +85,7 @@ public class Timer implements ATimer {
 
     @Override
     public Promise<Long> sleep(final long delay) {
-        final Promise<Long> rc = new Promise<Long>();
+        final Promise<Long> rc = new Promise<>();
         final AResolver<Long> resolver = rc.resolver();
         timer.schedule(getOneshotTask(resolver), delay);
         return rc;
@@ -94,7 +93,7 @@ public class Timer implements ATimer {
 
     @Override
     public Promise<Long> waitFor(final Date time) {
-        final Promise<Long> rc = new Promise<Long>();
+        final Promise<Long> rc = new Promise<>();
         final AResolver<Long> resolver = rc.resolver();
         timer.schedule(getOneshotTask(resolver), time);
         return rc;
@@ -129,13 +128,8 @@ public class Timer implements ATimer {
 
     @Override
     public Promise<AStream<Long>> fixedRate(final Date firstTime, final long period) {
-        final SimpleQueue<Outcome<Long>> queue = new SimpleQueue<Outcome<Long>>();
-        final AResolver<Long> putResolver = CoreExportUtil.export(new AResolver<Long>() {
-            @Override
-            public void resolve(final Outcome<Long> resolution) throws Throwable {
-                queue.put(resolution);
-            }
-        });
+        final SimpleQueue<Outcome<Long>> queue = new SimpleQueue<>();
+        final AResolver<Long> putResolver = CoreExportUtil.export(queue::put);
         final FixedRateTask task = new FixedRateTask(putResolver);
         final AStream<Long> stream = new TimerStream(task, queue).export();
         task.reference = new WeakStreamReference(stream, task, referenceQueue);
@@ -149,7 +143,7 @@ public class Timer implements ATimer {
             private boolean first = true;
 
             @Override
-            public Promise<Maybe<Long>> call() throws Throwable {
+            public Promise<Maybe<Long>> call() throws Exception {
                 if (first) {
                     first = false;
                     return waitFor(firstTime).map(CoreFunctionUtil.<Long>maybeMapper());
@@ -233,7 +227,7 @@ public class Timer implements ATimer {
         public void run() {
             if (reference.get() != null) {
                 try {
-                    queue.resolve(new Success<Long>(scheduledExecutionTime()));
+                    queue.resolve(new Success<>(scheduledExecutionTime()));
                 } catch (Throwable t) {
                     cancel();
                 }
@@ -279,15 +273,12 @@ public class Timer implements ATimer {
         @Override
         protected Promise<Maybe<Long>> produce() throws Throwable {
             ensureValidAndOpen();
-            return queue.take().map(new AFunction<Maybe<Long>, Outcome<Long>>() {
-                @Override
-                public Promise<Maybe<Long>> apply(final Outcome<Long> value) throws Throwable {
-                    ensureValidAndOpen();
-                    if (value.isSuccess()) {
-                        return aMaybeValue(value.value());
-                    } else {
-                        return aFailure(value.failure());
-                    }
+            return queue.take().map(value -> {
+                ensureValidAndOpen();
+                if (value.isSuccess()) {
+                    return aMaybeValue(value.value());
+                } else {
+                    return aFailure(value.failure());
                 }
             });
         }

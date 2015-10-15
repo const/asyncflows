@@ -14,23 +14,17 @@ public class PromiseTest {
     public void test() {
         final Cell<Outcome<String>> cell = new Cell<Outcome<String>>();
         final SingleThreadVat vat = new SingleThreadVat(null);
-        vat.execute(vat, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final Promise<String> rc = new Promise<String>();
-                    rc.resolver().resolve(Outcome.success("test"));
-                    rc.listen(new AResolver<String>() {
-                        @Override
-                        public void resolve(final Outcome<String> resolution) throws Throwable {
-                            cell.setValue(resolution);
-                            vat.stop(null);
-                        }
-                    });
-                } catch (Throwable t) {
-                    cell.setValue(Outcome.<String>failure(t));
+        vat.execute(vat, () -> {
+            try {
+                final Promise<String> rc = new Promise<>();
+                rc.resolver().resolve(Outcome.success("test"));
+                rc.listen(resolution -> {
+                    cell.setValue(resolution);
                     vat.stop(null);
-                }
+                });
+            } catch (Throwable t) {
+                cell.setValue(Outcome.<String>failure(t));
+                vat.stop(null);
             }
         });
         vat.runInCurrentThread();

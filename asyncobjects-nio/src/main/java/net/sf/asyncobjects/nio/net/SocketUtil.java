@@ -9,10 +9,13 @@ import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.IOUtil;
 
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 
+import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.promiseCallable;
 
 /**
@@ -128,5 +131,17 @@ public final class SocketUtil {
     public static ResourceUtil.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
             final Promise<ASocket> socket) {
         return aTrySocket(promiseCallable(socket));
+    }
+
+    /**
+     * Create a server socket on free port.
+     *
+     * @param factory the socket factory to use
+     * @return pair of the created socket and port it allocates
+     */
+    public static Promise<Tuple2<AServerSocket, SocketAddress>> anonymousServerSocket(final ASocketFactory factory) {
+        return factory.makeServerSocket().map(
+                serverSocket -> serverSocket.bind(new InetSocketAddress(0)).map(
+                        socketAddress -> aValue(Tuple2.of(serverSocket, socketAddress))));
     }
 }

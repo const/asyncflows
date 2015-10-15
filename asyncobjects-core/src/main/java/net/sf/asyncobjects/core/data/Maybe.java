@@ -9,7 +9,7 @@ public final class Maybe<T> {
     /**
      * The empty value.
      */
-    private static final Maybe<?> EMPTY_VALUE = new Maybe<Object>(false, null);
+    private static final Maybe<?> EMPTY_VALUE = new Maybe<>(false, null);
     /**
      * If true there is a value.
      */
@@ -28,6 +28,28 @@ public final class Maybe<T> {
     private Maybe(final boolean valuePresent, final T value) {
         this.valuePresent = valuePresent;
         this.value = value;
+    }
+
+    /**
+     * Create empty value.
+     *
+     * @param <A> the value type
+     * @return the empty value
+     */
+    @SuppressWarnings("unchecked")
+    public static <A> Maybe<A> empty() {
+        return (Maybe<A>) EMPTY_VALUE;
+    }
+
+    /**
+     * The constructor for value.
+     *
+     * @param value the value
+     * @param <A>   the value type
+     * @return the option value
+     */
+    public static <A> Maybe<A> value(final A value) {
+        return new Maybe<>(true, value);
     }
 
     /**
@@ -54,28 +76,6 @@ public final class Maybe<T> {
         return value;
     }
 
-    /**
-     * Create empty value.
-     *
-     * @param <A> the value type
-     * @return the empty value
-     */
-    @SuppressWarnings("unchecked")
-    public static <A> Maybe<A> empty() {
-        return (Maybe<A>) EMPTY_VALUE;
-    }
-
-    /**
-     * The constructor for value.
-     *
-     * @param value the value
-     * @param <A>   the value type
-     * @return the option value
-     */
-    public static <A> Maybe<A> value(final A value) {
-        return new Maybe<A>(true, value);
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -87,11 +87,11 @@ public final class Maybe<T> {
 
         final Maybe that = (Maybe) o;
 
-        if (valuePresent != that.valuePresent) {
+        if (valuePresent != that.valuePresent) { // NOPMD
             return false;
         }
         //noinspection RedundantIfStatement
-        if (value != null ? !value.equals(that.value) : that.value != null) {
+        if (value != null ? !value.equals(that.value) : that.value != null) { // NOPMD
             return false;
         }
 

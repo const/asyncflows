@@ -1,7 +1,5 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
@@ -67,8 +65,8 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
      * @return the digest
      */
     public static Promise<byte[]> digestAndDiscardInput(final AInput<ByteBuffer> input, final String digest) {
-        final Promise<byte[]> rc = new Promise<byte[]>();
-        final ByteBuffer buffer = ByteBuffer.allocate(1024);
+        final Promise<byte[]> rc = new Promise<>();
+        final ByteBuffer buffer = ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
         return IOUtil.BYTE.discard(digestInput(input, rc.resolver()).using(digest), buffer).thenPromise(rc);
     }
 
@@ -78,28 +76,15 @@ public class DigestingInput extends AbstractDigestingStream<AInput<ByteBuffer>>
             return invalidationPromise();
         }
         final int positionBeforeRead = buffer.position();
-        final Promise<Integer> read = aNow(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable {
-                return wrapped.read(buffer);
+        final Promise<Integer> read = aNow(() -> wrapped.read(buffer));
+        return requests.run(() -> read.observe(outcomeChecker()).map(value -> {
+            if (isEof(value)) {
+                finishDigesting();
+            } else {
+                updateDigest(buffer, positionBeforeRead);
             }
-        });
-        return requests.run(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable {
-                return read.observe(outcomeChecker()).map(new AFunction<Integer, Integer>() {
-                    @Override
-                    public Promise<Integer> apply(final Integer value) throws Throwable {
-                        if (isEof(value)) {
-                            finishDigesting();
-                        } else {
-                            updateDigest(buffer, positionBeforeRead);
-                        }
-                        return aValue(value);
-                    }
-                });
-            }
-        });
+            return aValue(value);
+        }));
     }
 
     @Override

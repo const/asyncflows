@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.util;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -16,6 +15,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
 
+import static net.sf.asyncobjects.core.AsyncControl.aFailure;
 import static net.sf.asyncobjects.core.AsyncControl.aLater;
 import static net.sf.asyncobjects.core.AsyncControl.aSend;
 
@@ -30,8 +30,7 @@ public final class ReflectionExporter {
     /**
      * The factories.
      */
-    private static final WeakHashMap<Class, WeakReference<Factory>> FACTORIES
-            = new WeakHashMap<Class, WeakReference<Factory>>();
+    private static final WeakHashMap<Class, WeakReference<Factory>> FACTORIES = new WeakHashMap<>();
 
     /**
      * The constructor for utility class.
@@ -57,7 +56,7 @@ public final class ReflectionExporter {
             factory = reference != null ? reference.get() : null;
             if (factory == null) {
                 factory = new Factory(object.getClass());
-                FACTORIES.put(object.getClass(), new WeakReference<Factory>(factory));
+                FACTORIES.put(object.getClass(), new WeakReference<>(factory));
             }
         }
         return factory.create(vat, object);
@@ -96,7 +95,7 @@ public final class ReflectionExporter {
          */
         private Factory(final Class<?> implementation) {
             final Class<?>[] interfaces = implementation.getInterfaces();
-            final ArrayList<Class<?>> filtered = new ArrayList<Class<?>>();
+            final ArrayList<Class<?>> filtered = new ArrayList<>();
             final StringBuilder nameList = new StringBuilder();
             nameList.append('[');
             for (final Class<?> type : interfaces) {
@@ -115,7 +114,7 @@ public final class ReflectionExporter {
             try {
                 constructor = proxyClass.getConstructor(InvocationHandler.class);
             } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("No constructor in proxy class for: " + implementation.getName());
+                throw new IllegalStateException("No constructor in proxy class for: " + implementation.getName(), e);
             }
 
         }
@@ -132,11 +131,7 @@ public final class ReflectionExporter {
         public <T> T create(final Vat vat, final ExportsSelf<T> object) {
             try {
                 return (T) constructor.newInstance(new Handler(this, vat, object));
-            } catch (InstantiationException e) {
-                throw new IllegalStateException("Instance cannot be created for " + constructor, e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Instance cannot be created for " + constructor, e);
-            } catch (InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new IllegalStateException("Instance cannot be created for " + constructor, e);
             }
         }
@@ -178,32 +173,30 @@ public final class ReflectionExporter {
         }
 
         @Override
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        @SuppressWarnings("unchecked")
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable { // NOPMD
             final Class<?> returnType = method.getReturnType();
             if (void.class == returnType) {
-                aSend(vat, new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            method.invoke(object, args);
-                        } catch (IllegalAccessException e) {
+                aSend(vat, () -> {
+                    try {
+                        method.invoke(object, args);
+                    } catch (IllegalAccessException e) {
+                        if (LOG.isErrorEnabled()) {
                             LOG.error("Failed one-way method: " + method, e);
-                        } catch (InvocationTargetException e) {
+                        }
+                    } catch (InvocationTargetException e) {
+                        if (LOG.isErrorEnabled()) {
                             LOG.error("Failed one-way method: " + method, e.getTargetException());
                         }
                     }
                 });
                 return null;
             } else if (Promise.class == returnType) {
-                return aLater(vat, new ACallable<Object>() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public Promise<Object> call() throws Throwable {
-                        try {
-                            return (Promise<Object>) method.invoke(object, args);
-                        } catch (InvocationTargetException e) {
-                            throw e.getTargetException();
-                        }
+                return aLater(vat, () -> {
+                    try {
+                        return (Promise<Object>) method.invoke(object, args);
+                    } catch (InvocationTargetException e) {
+                        return aFailure(e.getTargetException());
                     }
                 });
             }

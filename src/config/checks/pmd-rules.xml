@@ -1,6 +1,6 @@
-<ruleset name="AsyncObjects Rules"
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="AsyncObjects Rules"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
     <description>
         The rules for asyncobjects.
@@ -13,9 +13,14 @@
     <rule ref="rulesets/java/codesize.xml">
         <exclude name="TooManyMethods"/>
         <exclude name="CyclomaticComplexity"/>
+        <exclude name="ModifiedCyclomaticComplexity"/>
+        <exclude name="StdCyclomaticComplexity"/>
     </rule>
     <rule ref="rulesets/java/comments.xml">
         <exclude name="CommentSize"/>
+        <exclude name="CommentRequired"/>
+        <!-- it does not understands override -->
+
     </rule>
     <rule ref="rulesets/java/controversial.xml">
         <exclude name="DataflowAnomalyAnalysis"/>
@@ -25,6 +30,7 @@
         <exclude name="NullAssignment"/>
         <exclude name="BooleanInversion"/>
         <exclude name="AvoidLiteralsInIfCondition"/>
+        <exclude name="AtLeastOneConstructor"/>
     </rule>
     <rule ref="rulesets/java/coupling.xml">
         <exclude name="LawOfDemeter"/>
@@ -33,7 +39,6 @@
     </rule>
     <rule ref="rulesets/java/design.xml">
         <exclude name="ConfusingTernary"/>
-        <exclude name="AvoidInstanceofChecksInCatchClause"/>
         <exclude name="AccessorClassGeneration"/>
     </rule>
     <rule ref="rulesets/java/empty.xml"/>
@@ -66,7 +71,6 @@
     <rule ref="rulesets/java/optimizations.xml"/>
     <rule ref="rulesets/java/strictexception.xml">
         <exclude name="AvoidCatchingThrowable"/>
-        <exclude name="AvoidInstanceofChecksInCatchClause"/>
         <exclude name="SignatureDeclareThrowsException"/>
     </rule>
     <rule ref="rulesets/java/strings.xml">

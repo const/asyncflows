@@ -9,6 +9,7 @@ import net.sf.asyncobjects.core.Promise;
  * @param <A> the first argument type
  * @param <B> the second argument type
  */
+@FunctionalInterface
 public interface AFunction2<R, A, B> {
     /**
      * The apply operation.
@@ -16,7 +17,7 @@ public interface AFunction2<R, A, B> {
      * @param value1 the first argument
      * @param value2 the second argument
      * @return the result
-     * @throws Throwable in case of any problem
+     * @throws Exception in case of any problem
      */
-    Promise<R> apply(A value1, B value2) throws Throwable;
+    Promise<R> apply(A value1, B value2) throws Exception;
 }

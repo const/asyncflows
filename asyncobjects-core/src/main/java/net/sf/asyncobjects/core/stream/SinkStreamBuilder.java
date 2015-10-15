@@ -1,9 +1,7 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.data.Tuple2;
@@ -56,126 +54,78 @@ public class SinkStreamBuilder<T> extends ForwardStreamBuilder<T> {
     public StreamBuilder<T> pull() {
         final Tuple2<ASink<T>, AStream<T>> queue = RandevuQueue.local();
         connector.connect(queue.getValue1());
-        return new StreamBuilder<T>(queue.getValue2());
+        return new StreamBuilder<>(queue.getValue2());
     }
 
     @Override
     public <N> SinkStreamBuilder<N> map(final AFunction<N, T> mapper) {
-        return new SinkStreamBuilder<N>(new SinkConnector<N>() {
+        return new SinkStreamBuilder<>(nextSink -> connector.connect(new TransformSinkBase<N, T>(nextSink) {
             @Override
-            public void connect(final ASink<N> nextSink) {
-                connector.connect(new TransformSinkBase<N, T>(nextSink) {
-                    @Override
-                    public Promise<Void> put(final T value) {
-                        final Promise<N> next = evaluate(value, mapper);
-                        return requestQueue().run(new ACallable<Void>() {
-                            @Override
-                            public Promise<Void> call() throws Throwable {
-                                return next.mapOutcome(new AFunction<Void, Outcome<N>>() {
-                                    @Override
-                                    public Promise<Void> apply(final Outcome<N> value) throws Throwable {
-                                        if (value.isSuccess()) {
-                                            return wrapped.put(value.value());
-                                        } else {
-                                            return failNext(value.failure());
-                                        }
-                                    }
-                                });
-                            }
-                        }).observe(outcomeChecker());
+            public Promise<Void> put(final T value) {
+                final Promise<N> next = evaluate(value, mapper);
+                return requestQueue().run(() -> next.mapOutcome(outcome -> {
+                    if (outcome.isSuccess()) {
+                        return wrapped.put(outcome.value());
+                    } else {
+                        return failNext(outcome.failure());
                     }
-                });
-
+                })).observe(outcomeChecker());
             }
-        });
+        }));
     }
 
     @Override
     public <N> SinkStreamBuilder<N> flatMapMaybe(final AFunction<Maybe<N>, T> mapper) {
-        return new SinkStreamBuilder<N>(new SinkConnector<N>() {
+        return new SinkStreamBuilder<>(nextSink -> connector.connect(new TransformSinkBase<N, T>(nextSink) {
             @Override
-            public void connect(final ASink<N> nextSink) {
-                connector.connect(new TransformSinkBase<N, T>(nextSink) {
-                    @Override
-                    public Promise<Void> put(final T value) {
-                        final Promise<Maybe<N>> next = evaluate(value, mapper);
-                        return requestQueue().run(new ACallable<Void>() {
-                            @Override
-                            public Promise<Void> call() throws Throwable {
-                                return next.mapOutcome(new AFunction<Void, Outcome<Maybe<N>>>() {
-                                    @Override
-                                    public Promise<Void> apply(final Outcome<Maybe<N>> value) throws Throwable {
-                                        if (!isValidAndOpen()) {
-                                            return invalidationPromise();
-                                        }
-                                        if (value.isSuccess()) {
-                                            return value.value().isEmpty() ? aVoid()
-                                                    : wrapped.put(value.value().value());
-                                        } else {
-                                            return failNext(value.failure());
-                                        }
-                                    }
-                                }).observe(outcomeChecker());
-                            }
-                        });
+            public Promise<Void> put(final T value) {
+                final Promise<Maybe<N>> next = evaluate(value, mapper);
+                return requestQueue().run(() -> next.mapOutcome(value1 -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
                     }
-                });
+                    if (value1.isSuccess()) {
+                        return value1.value().isEmpty() ? aVoid()
+                                : wrapped.put(value1.value().value());
+                    } else {
+                        return failNext(value1.failure());
+                    }
+                }).observe(outcomeChecker()));
             }
-        });
+        }));
     }
 
     @Override
     public <N> SinkStreamBuilder<N> flatMapStream(final AFunction<AStream<N>, T> mapper) {
-        return new SinkStreamBuilder<N>(new SinkConnector<N>() {
+        return new SinkStreamBuilder<>(nextSink -> connector.connect(new TransformSinkBase<N, T>(nextSink) {
             @Override
-            public void connect(final ASink<N> nextSink) {
-                connector.connect(new TransformSinkBase<N, T>(nextSink) {
-                    @Override
-                    public Promise<Void> put(final T value) {
-                        final Promise<AStream<N>> next = evaluate(value, mapper);
-                        return requestQueue().run(new ACallable<Void>() {
-                            @Override
-                            public Promise<Void> call() throws Throwable {
-                                return next.mapOutcome(new AFunction<Void, Outcome<AStream<N>>>() {
-                                    @Override
-                                    public Promise<Void> apply(final Outcome<AStream<N>> value) throws Throwable {
-                                        if (!isValidAndOpen()) {
-                                            return invalidationPromise();
-                                        }
-                                        if (value.isSuccess()) {
-                                            return Streams.aForStream(value.value()).consume(
-                                                    new AFunction<Boolean, N>() {
-                                                        @Override
-                                                        public Promise<Boolean> apply(final N value) {
-                                                            return nextSink.put(value).thenDo(booleanCallable(true));
-                                                        }
-                                                    });
-                                        } else {
-                                            return failNext(value.failure());
-                                        }
-                                    }
-                                }).observe(outcomeChecker());
-                            }
-                        });
+            public Promise<Void> put(final T value) {
+                final Promise<AStream<N>> next = evaluate(value, mapper);
+                return requestQueue().run(() -> next.mapOutcome(value1 -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
                     }
-                });
+                    if (value1.isSuccess()) {
+                        return Streams.aForStream(value1.value()).consume(
+                                value2 -> nextSink.put(value2).thenDo(booleanCallable(true)));
+                    } else {
+                        return failNext(value1.failure());
+                    }
+                }).observe(outcomeChecker()));
             }
-        });
+        }));
     }
 
     @Override
     public SinkStreamBuilder<T> window(final int size) {
-        return new SinkStreamBuilder<T>(new SinkConnector<T>() {
+        return new SinkStreamBuilder<>(new SinkConnector<T>() {
             @Override
             public void connect(final ASink<T> nextSink) {
                 connector.connect(new TransformSinkBase<T, T>(nextSink) {
                     private int active;
-                    private AResolver<Void> countdownObserver = new AResolver<Void>() {
-                        @Override
-                        public void resolve(final Outcome<Void> resolution) throws Throwable {
-                            active--;
-                            requestQueue().resume();
-                        }
+                    private AResolver<Void> countdownObserver = (outcome) -> {
+                        active--;
+                        requestQueue().resume();
                     };
 
                     @Override
@@ -187,23 +137,15 @@ public class SinkStreamBuilder<T> extends ForwardStreamBuilder<T> {
 
                     @Override
                     public Promise<Void> put(final T value) {
-                        return requestQueue().runSeqLoop(new ACallable<Boolean>() {
-                            @Override
-                            public Promise<Boolean> call() throws Throwable {
-                                if (!isValidAndOpen()) {
-                                    return invalidationPromise();
-                                }
-                                if (active < size) {
-                                    aNow(new ACallable<Void>() {
-                                        @Override
-                                        public Promise<Void> call() throws Throwable {
-                                            return nextSink.put(value);
-                                        }
-                                    }).observe(outcomeChecker()).listen(countdownObserver);
-                                    return aFalse();
-                                }
-                                return requestQueue().suspendThenTrue();
+                        return requestQueue().runSeqLoop(() -> {
+                            if (!isValidAndOpen()) {
+                                return invalidationPromise();
                             }
+                            if (active < size) {
+                                aNow(() -> nextSink.put(value)).observe(outcomeChecker()).listen(countdownObserver);
+                                return aFalse();
+                            }
+                            return requestQueue().suspendThenTrue();
                         });
                     }
                 });
@@ -218,22 +160,16 @@ public class SinkStreamBuilder<T> extends ForwardStreamBuilder<T> {
 
             @Override
             public Promise<Void> put(final T value) {
-                return requests.run(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        if (!isValidAndOpen()) {
-                            return invalidationPromise();
-                        }
-                        return evaluate(value, loopBody).map(new AFunction<Void, Boolean>() {
-                            @Override
-                            public Promise<Void> apply(final Boolean value) throws Throwable {
-                                if (!value) {
-                                    startClosing();
-                                }
-                                return aVoid();
-                            }
-                        }).observe(outcomeChecker());
+                return requests.run(() -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
                     }
+                    return evaluate(value, loopBody).map(value1 -> {
+                        if (!value1) {
+                            startClosing();
+                        }
+                        return aVoid();
+                    }).observe(outcomeChecker());
                 });
             }
         };

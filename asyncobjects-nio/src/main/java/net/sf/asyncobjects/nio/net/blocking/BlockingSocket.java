@@ -84,6 +84,11 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
     }
 
     @Override
+    public Promise<SocketAddress> getLocalAddress() {
+        return aValue(socket.getLocalSocketAddress());
+    }
+
+    @Override
     public Promise<AInput<ByteBuffer>> getInput() {
         try {
             if (input == null) {
@@ -119,12 +124,12 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
 
     @Override
     public ASocket export() {
-        return export(Vats.daemonVat());
+        return SocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
     }
 
     @Override
     public ASocket export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return export();
     }
 
     /**

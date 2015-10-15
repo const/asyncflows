@@ -1,9 +1,7 @@
 package net.sf.asyncobjects.nio.net.selector;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.CloseableBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -11,6 +9,8 @@ import net.sf.asyncobjects.nio.net.AServerSocket;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.SocketExportUtil;
 import net.sf.asyncobjects.nio.net.SocketOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -27,6 +27,10 @@ import static net.sf.asyncobjects.core.AsyncControl.aVoid;
  * Server socket based on selectors.
  */
 class SelectorServerSocket extends CloseableBase implements AServerSocket, ExportsSelf<AServerSocket> {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorServerSocket.class);
     /**
      * The context for the channel.
      */
@@ -82,9 +86,6 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
         return aVoid();
     }
 
-    /**
-     * @return the promise for local socket address.
-     */
     @Override
     public Promise<SocketAddress> getLocalSocketAddress() {
         return aValue(serverSocketChannel.socket().getLocalSocketAddress());
@@ -92,20 +93,33 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Expor
 
     @Override
     public Promise<ASocket> accept() {
-        return queue.runSeqMaybeLoop(new ACallable<Maybe<ASocket>>() {
-            @Override
-            public Promise<Maybe<ASocket>> call() throws Throwable {
-                final SocketChannel accepted = serverSocketChannel.accept();
-                if (accepted == null) {
-                    return channelContext.waitForAccept();
-                }
-                final SelectorSocket socket = new SelectorSocket(channelContext.getSelector(), accepted);
-                if (defaultSocketOptions != null) {
-                    socket.setOptions(defaultSocketOptions);
-                }
-                return aMaybeValue(socket.export());
+        return queue.runSeqMaybeLoop(() -> {
+            ensureOpen();
+            final SocketChannel accepted = serverSocketChannel.accept();
+            if (accepted == null) {
+                return channelContext.waitForAccept();
             }
+            final SelectorSocket socket = new SelectorSocket(channelContext.getSelector(), accepted);
+            if (defaultSocketOptions != null) {
+                socket.setOptions(defaultSocketOptions);
+            }
+            return aMaybeValue(socket.export());
         });
+    }
+
+    @Override
+    protected Promise<Void> closeAction() {
+        try {
+            serverSocketChannel.close();
+            return aVoid();
+        } catch (IOException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Failure while closing server socket", e);
+            }
+            return aFailure(e);
+        } finally {
+            channelContext.close();
+        }
     }
 
     @Override

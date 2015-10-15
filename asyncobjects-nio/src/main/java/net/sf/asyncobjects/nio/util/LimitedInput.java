@@ -1,9 +1,6 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.CloseableInvalidatingBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
@@ -60,35 +57,29 @@ public class LimitedInput<B extends Buffer>
      * @return the limited stream
      */
     public static <B extends Buffer> AInput<B> limit(final AInput<B> input, final long limit) {
-        return new LimitedInput<B>(input, limit).export();
+        return new LimitedInput<>(input, limit).export();
     }
 
     @Override
     public Promise<Integer> read(final B buffer) {
-        return reads.run(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable {
-                ensureValidAndOpen();
-                if (readAmount > limit) {
-                    throw new IllegalStateException("Stream has read too much!");
-                }
-                if (readAmount == limit) {
-                    return IOUtil.EOF_PROMISE;
-                }
-                final int savedLimit = buffer.limit();
-                if (limit - readAmount < buffer.remaining()) {
-                    buffer.limit(savedLimit - buffer.remaining() + (int) (limit - readAmount));
-                }
-                return input.read(buffer).observe(new AResolver<Integer>() {
-                    @Override
-                    public void resolve(final Outcome<Integer> resolution) throws Throwable {
-                        if (resolution.isSuccess() && !isEof(resolution.value())) {
-                            readAmount += resolution.value();
-                        }
-                        buffer.limit(savedLimit);
-                    }
-                });
+        return reads.run(() -> {
+            ensureValidAndOpen();
+            if (readAmount > limit) {
+                throw new IllegalStateException("Stream has read too much!");
             }
+            if (readAmount == limit) {
+                return IOUtil.EOF_PROMISE;
+            }
+            final int savedLimit = buffer.limit();
+            if (limit - readAmount < buffer.remaining()) {
+                buffer.limit(savedLimit - buffer.remaining() + (int) (limit - readAmount));
+            }
+            return input.read(buffer).observe(resolution -> {
+                if (resolution.isSuccess() && !isEof(resolution.value())) {
+                    readAmount += resolution.value();
+                }
+                buffer.limit(savedLimit);
+            });
         }).observe(outcomeChecker());
     }
 

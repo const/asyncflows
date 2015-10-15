@@ -1,8 +1,5 @@
 package net.sf.asyncobjects.core.streams;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.stream.Streams;
 import org.junit.Test;
@@ -24,60 +21,28 @@ public class StreamTest {
 
     @Test
     public void test() {
-        final Tuple2<List<Integer>, List<Integer>> result = doAsync(new ACallable<Tuple2<List<Integer>, List<Integer>>>() {
-            @Override
-            public Promise<Tuple2<List<Integer>, List<Integer>>> call() throws Throwable {
-                return aAll(new ACallable<List<Integer>>() {
-                    @Override
-                    public Promise<List<Integer>> call() throws Throwable {
-                        return Streams.aForRange(0, 5).map(new AFunction<Integer, Integer>() {
-                            @Override
-                            public Promise<Integer> apply(final Integer value) throws Throwable {
-                                return aLater(constantCallable(value + 5));
+        final Tuple2<List<Integer>, List<Integer>> result = doAsync(() -> aAll(() ->
+                Streams.aForRange(0, 5)
+                        .map(value -> aLater(constantCallable(value + 5)))
+                        .pull().window(3)
+                        .filter(value -> aValue((value & 1) == 0))
+                        .flatMapIterable(value -> {
+                            final List<Integer> rc = new ArrayList<Integer>();
+                            for (int i = 0; i < value; i++) {
+                                rc.add(value);
                             }
-                        }).pull().window(3).filter(new AFunction<Boolean, Integer>() {
-                            @Override
-                            public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                return aValue((value & 1) == 0);
+                            return aValue(rc);
+                        }).window(10).toList())
+                .andLast(() -> Streams.aForRange(0, 5).push().window(10)
+                        .map(value -> aLater(constantCallable(value + 5)))
+                        .filter(value -> aValue((value & 1) == 0))
+                        .flatMapIterable(value -> {
+                            final List<Integer> rc = new ArrayList<Integer>();
+                            for (int i = 0; i < value; i++) {
+                                rc.add(value);
                             }
-                        }).flatMapIterable(new AFunction<List<Integer>, Integer>() {
-                            @Override
-                            public Promise<List<Integer>> apply(final Integer value) throws Throwable {
-                                final List<Integer> rc = new ArrayList<Integer>();
-                                for (int i = 0; i < value; i++) {
-                                    rc.add(value);
-                                }
-                                return aValue(rc);
-                            }
-                        }).window(10).toList();
-                    }
-                }).andLast(new ACallable<List<Integer>>() {
-                    @Override
-                    public Promise<List<Integer>> call() throws Throwable {
-                        return Streams.aForRange(0, 5).push().window(10).map(new AFunction<Integer, Integer>() {
-                            @Override
-                            public Promise<Integer> apply(final Integer value) throws Throwable {
-                                return aLater(constantCallable(value + 5));
-                            }
-                        }).filter(new AFunction<Boolean, Integer>() {
-                            @Override
-                            public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                return aValue((value & 1) == 0);
-                            }
-                        }).flatMapIterable(new AFunction<List<Integer>, Integer>() {
-                            @Override
-                            public Promise<List<Integer>> apply(final Integer value) throws Throwable {
-                                final List<Integer> rc = new ArrayList<Integer>();
-                                for (int i = 0; i < value; i++) {
-                                    rc.add(value);
-                                }
-                                return aValue(rc);
-                            }
-                        }).window(3).pull().push().toList();
-                    }
-                });
-            }
-        });
+                            return aValue(rc);
+                        }).window(3).pull().push().toList()));
         assertEquals(result.getValue1(), result.getValue2());
     }
 

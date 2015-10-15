@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.test.junit;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
@@ -27,12 +26,9 @@ public final class AsyncAsserts {
      * @return the promise for the value.
      */
     public static <R> Promise<R> assertEqualsAsync(final R expected, final ACallable<R> body) {
-        return aNow(body).map(new AFunction<R, R>() {
-            @Override
-            public Promise<R> apply(final R value) throws Throwable {
-                assertEquals(expected, value);
-                return aValue(value);
-            }
+        return aNow(body).map(value -> {
+            assertEquals(expected, value);
+            return aValue(value);
         });
     }
 }

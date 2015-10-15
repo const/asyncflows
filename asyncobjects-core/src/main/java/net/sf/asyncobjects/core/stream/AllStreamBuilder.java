@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
@@ -13,6 +12,7 @@ import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.evaluate;
+import static net.sf.asyncobjects.core.stream.Streams.aForArray;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqMaybeLoopFair;
 
 /**
@@ -44,35 +44,29 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
      */
     public static <T> AStream<Outcome<T>> outcomeStream(final AStream<T> stream) {
         return new ChainedStreamBase<Outcome<T>, AStream<T>>(stream) {
-            private boolean eof;
             private final RequestQueue requests = new RequestQueue();
+            private boolean eof;
 
             @Override
             protected Promise<Maybe<Outcome<T>>> produce() {
-                return requests.run(new ACallable<Maybe<Outcome<T>>>() {
-                    @Override
-                    public Promise<Maybe<Outcome<T>>> call() throws Throwable {
-                        if (eof) {
-                            return aMaybeEmpty();
-                        }
-                        return aNow(StreamUtil.producerFromStream(wrapped)).mapOutcome(
-                                new AFunction<Maybe<Outcome<T>>, Outcome<Maybe<T>>>() {
-                                    @Override
-                                    public Promise<Maybe<Outcome<T>>> apply(final Outcome<Maybe<T>> value) {
-                                        if (value.isSuccess()) {
-                                            if (value.value().isEmpty()) {
-                                                return aMaybeEmpty();
-                                            } else {
-                                                return aMaybeValue(Outcome.<T>success(value.value().value()));
-                                            }
-
-                                        } else {
-                                            eof = true;
-                                            return aMaybeValue(Outcome.<T>failure(value.failure()));
-                                        }
-                                    }
-                                });
+                return requests.run(() -> {
+                    if (eof) {
+                        return aMaybeEmpty();
                     }
+                    return aNow(StreamUtil.producerFromStream(wrapped)).mapOutcome(
+                            outcome -> {
+                                if (outcome.isSuccess()) {
+                                    if (outcome.value().isEmpty()) {
+                                        return aMaybeEmpty();
+                                    } else {
+                                        return aMaybeValue(Outcome.<T>success(outcome.value().value()));
+                                    }
+
+                                } else {
+                                    eof = true;
+                                    return aMaybeValue(Outcome.<T>failure(outcome.failure()));
+                                }
+                            });
                 });
             }
         };
@@ -90,40 +84,26 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
 
             @Override
             protected Promise<Maybe<T>> produce() {
-                return requests.run(new ACallable<Maybe<T>>() {
-                    @Override
-                    public Promise<Maybe<T>> call() throws Throwable {
-                        if (!isValidAndOpen()) {
-                            return invalidationPromise();
-                        }
-                        return wrapped.next().map(new AFunction<Maybe<T>, Maybe<Outcome<T>>>() {
-                            @Override
-                            public Promise<Maybe<T>> apply(final Maybe<Outcome<T>> value) throws Throwable {
-                                if (value.isEmpty()) {
-                                    return aMaybeEmpty();
-                                }
-                                if (value.value().isSuccess()) {
-                                    return aMaybeValue(value.value().value());
-                                }
-                                return aSeqMaybeLoopFair(new ACallable<Maybe<Maybe<T>>>() {
-                                    @Override
-                                    public Promise<Maybe<Maybe<T>>> call() throws Throwable {
-                                        return wrapped.next().map(new AFunction<Maybe<Maybe<T>>, Maybe<Outcome<T>>>() {
-                                            @Override
-                                            public Promise<Maybe<Maybe<T>>> apply(final Maybe<Outcome<T>> discarded) {
-                                                if (discarded.isEmpty()) {
-                                                    return aFailure(value.value().failure());
-                                                } else {
-                                                    // continue loop
-                                                    return aMaybeEmpty();
-                                                }
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
+                return requests.run(() -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
                     }
+                    return wrapped.next().map(value -> {
+                        if (value.isEmpty()) {
+                            return aMaybeEmpty();
+                        }
+                        if (value.value().isSuccess()) {
+                            return aMaybeValue(value.value().value());
+                        }
+                        return aSeqMaybeLoopFair(() -> wrapped.next().map(discarded -> {
+                            if (discarded.isEmpty()) {
+                                return aFailure(value.value().failure());
+                            } else {
+                                // continue loop
+                                return aMaybeEmpty();
+                            }
+                        }));
+                    });
                 });
             }
         };
@@ -141,72 +121,56 @@ public class AllStreamBuilder<T> extends ForwardStreamBuilder<T> {
 
     @Override
     public StreamBuilder<T> pull() {
-        return new StreamBuilder<T>(localStream());
+        return new StreamBuilder<>(localStream());
     }
 
     @Override
     public <N> AllStreamBuilder<N> map(final AFunction<N, T> mapper) {
-        return new AllStreamBuilder<N>(outcomeSink.map(new AFunction<Outcome<N>, Outcome<T>>() {
-            @Override
-            public Promise<Outcome<N>> apply(final Outcome<T> value) throws Throwable {
-                if (value.isSuccess()) {
-                    return evaluate(value.value(), mapper).toOutcomePromise();
-                } else {
-                    return aValue(Outcome.<N>failure(value.failure()));
-                }
+        return new AllStreamBuilder<>(outcomeSink.map(value -> {
+            if (value.isSuccess()) {
+                return evaluate(value.value(), mapper).toOutcomePromise();
+            } else {
+                return aValue(Outcome.<N>failure(value.failure()));
             }
         }));
     }
 
     @Override
     public <N> AllStreamBuilder<N> flatMapMaybe(final AFunction<Maybe<N>, T> mapper) {
-        return new AllStreamBuilder<N>(outcomeSink.flatMapMaybe(new AFunction<Maybe<Outcome<N>>, Outcome<T>>() {
-            @Override
-            public Promise<Maybe<Outcome<N>>> apply(final Outcome<T> value) throws Throwable {
-                if (value.isSuccess()) {
-                    return evaluate(value.value(), mapper).mapOutcome(
-                            new AFunction<Maybe<Outcome<N>>, Outcome<Maybe<N>>>() {
-                                @Override
-                                public Promise<Maybe<Outcome<N>>> apply(final Outcome<Maybe<N>> value) {
-                                    if (value.isSuccess()) {
-                                        if (value.value().isEmpty()) {
-                                            return aMaybeEmpty();
-                                        } else {
-                                            return aMaybeValue(Outcome.<N>success(value.value().value()));
-                                        }
-                                    } else {
-                                        return aMaybeValue(Outcome.<N>failure(value.failure()));
-                                    }
+        return new AllStreamBuilder<>(outcomeSink.flatMapMaybe(value -> {
+            if (value.isSuccess()) {
+                return evaluate(value.value(), mapper).mapOutcome(
+                        outcome -> {
+                            if (outcome.isSuccess()) {
+                                if (outcome.value().isEmpty()) {
+                                    return aMaybeEmpty();
+                                } else {
+                                    return aMaybeValue(Outcome.<N>success(outcome.value().value()));
                                 }
-                            });
-                } else {
-                    return aMaybeValue(Outcome.<N>failure(value.failure()));
-                }
+                            } else {
+                                return aMaybeValue(Outcome.<N>failure(outcome.failure()));
+                            }
+                        });
+            } else {
+                return aMaybeValue(Outcome.<N>failure(value.failure()));
             }
         }));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <N> AllStreamBuilder<N> flatMapStream(final AFunction<AStream<N>, T> mapper) {
-        return new AllStreamBuilder<N>(outcomeSink.flatMapStream(new AFunction<AStream<Outcome<N>>, Outcome<T>>() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public Promise<AStream<Outcome<N>>> apply(final Outcome<T> value) throws Throwable {
-                if (value.isSuccess()) {
-                    return evaluate(value.value(), mapper).mapOutcome(new AFunction<AStream<Outcome<N>>,
-                            Outcome<AStream<N>>>() {
-                        @Override
-                        public Promise<AStream<Outcome<N>>> apply(final Outcome<AStream<N>> value) {
-                            if (value.isSuccess()) {
-                                return aValue(outcomeStream(value.value()));
-                            } else {
-                                return aValue(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
-                            }
-                        }
-                    });
-                } else {
-                    return aValue(Streams.aForArray(Outcome.<N>failure(value.failure())).localStream());
-                }
+        return new AllStreamBuilder<>(outcomeSink.flatMapStream(value -> {
+            if (value.isSuccess()) {
+                return evaluate(value.value(), mapper).mapOutcome(value1 -> {
+                    if (value1.isSuccess()) {
+                        return aValue(outcomeStream(value1.value()));
+                    } else {
+                        return aValue(aForArray(Outcome.<N>failure(value1.failure())).localStream());
+                    }
+                });
+            } else {
+                return aValue(aForArray(Outcome.<N>failure(value.failure())).localStream());
             }
         }));
     }

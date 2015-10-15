@@ -1,7 +1,5 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
@@ -57,8 +55,7 @@ public class GZipInput extends InflateInput {
      */
     public static AInput<ByteBuffer> gunzip(final AInput<ByteBuffer> input,
                                             final AResolver<GZipHeader> headerResolver) {
-        final ByteBuffer buffer = ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
-        buffer.limit(0);
+        final ByteBuffer buffer = IOUtil.BYTE.writeBuffer(IOUtil.DEFAULT_BUFFER_SIZE);
         return new GZipInput(input, buffer, headerResolver).export();
     }
 
@@ -84,15 +81,12 @@ public class GZipInput extends InflateInput {
     @Override
     protected Promise<Void> handleHeader(final AInput<ByteBuffer> input, final ByteBuffer compressed) {
         final ByteParserContext context = new ByteParserContext(input, compressed);
-        return GZipHeader.read(context).map(new AFunction<Void, GZipHeader>() {
-            @Override
-            public Promise<Void> apply(final GZipHeader value) throws Throwable {
-                if (headerResolver != null) {
-                    notifySuccess(headerResolver, value);
-                    headerResolver = null;
-                }
-                return aVoid();
+        return GZipHeader.read(context).map(value -> {
+            if (headerResolver != null) {
+                notifySuccess(headerResolver, value);
+                headerResolver = null;
             }
+            return aVoid();
         });
     }
 
@@ -105,27 +99,24 @@ public class GZipInput extends InflateInput {
     @Override
     protected Promise<Maybe<Integer>> handleFinish(final AInput<ByteBuffer> input, final ByteBuffer compressed) {
         final ByteParserContext context = new ByteParserContext(input, compressed);
-        return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(new ACallable<Maybe<Integer>>() {
-            @Override
-            public Promise<Maybe<Integer>> call() throws Throwable {
-                final ByteOrder order = compressed.order();
-                compressed.order(ByteOrder.LITTLE_ENDIAN);
-                final int footerCRC = compressed.getInt(); // NOPMD
-                final int footerLength = compressed.getInt();
-                compressed.order(order);
-                final int accumulatedLength = (int) totalLength;
-                if (footerLength != accumulatedLength) {
-                    throw new IOException("Footer length does not match actual: file=" + footerLength
-                            + " <> actual=" + accumulatedLength
-                            + (accumulatedLength == totalLength ? "" : " (64-bit value = " + totalLength + ")"));
-                }
-                final int accumulatedCRC = (int) crc.getValue();
-                if (footerCRC != accumulatedCRC) {
-                    throw new IOException("CRC does not match actual: file=" + footerCRC
-                            + " <> actual=" + accumulatedCRC);
-                }
-                return IOUtil.EOF_MAYBE_PROMISE;
+        return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(() -> {
+            final ByteOrder order = compressed.order();
+            compressed.order(ByteOrder.LITTLE_ENDIAN);
+            final int footerCRC = compressed.getInt(); // NOPMD
+            final int footerLength = compressed.getInt();
+            compressed.order(order);
+            final int accumulatedLength = (int) totalLength;
+            if (footerLength != accumulatedLength) {
+                throw new IOException("Footer length does not match actual: file=" + footerLength
+                        + " <> actual=" + accumulatedLength
+                        + (accumulatedLength == totalLength ? "" : " (64-bit value = " + totalLength + ")"));
             }
+            final int accumulatedCRC = (int) crc.getValue();
+            if (footerCRC != accumulatedCRC) {
+                throw new IOException("CRC does not match actual: file=" + footerCRC
+                        + " <> actual=" + accumulatedCRC);
+            }
+            return IOUtil.EOF_MAYBE_PROMISE;
         });
     }
 

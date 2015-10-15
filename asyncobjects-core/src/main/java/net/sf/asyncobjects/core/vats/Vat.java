@@ -7,7 +7,7 @@ public abstract class Vat {
     /**
      * The current vat.
      */
-    private static final ThreadLocal<Vat> CURRENT = new ThreadLocal<Vat>();
+    private static final ThreadLocal<Vat> CURRENT = new ThreadLocal<>();
     /**
      * If true, the vat is active.
      */

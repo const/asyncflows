@@ -31,7 +31,7 @@ public final class ResourceUtil {
      * @return the opened resource
      */
     public static <A extends ACloseable> Try1<A> aTry(final ACallable<A> openBody) {
-        return new Try1<A>(openBody);
+        return new Try1<>(openBody);
     }
 
     /**
@@ -41,8 +41,8 @@ public final class ResourceUtil {
      * @param <A>      the resource type
      * @return the opened resource
      */
-    public static <A extends ACloseable> Try1<A> aTry(final A resource) {
-        return new Try1<A>(constantCallable(resource));
+    public static <A extends ACloseable> Try1<A> aTryResource(final A resource) {
+        return new Try1<>(constantCallable(resource));
     }
 
     /**
@@ -53,7 +53,7 @@ public final class ResourceUtil {
      * @return the opened resource
      */
     public static <A extends ACloseable> Try1<A> aTry(final Promise<A> openPromise) {
-        return new Try1<A>(promiseCallable(openPromise));
+        return new Try1<>(promiseCallable(openPromise));
     }
 
     /**
@@ -64,14 +64,11 @@ public final class ResourceUtil {
      * @return the close resource action
      */
     private static <A extends ACloseable> ACallable<Void> closeResourceCellAction(final Cell<A> resourceCell) {
-        return new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if (resourceCell.isEmpty()) {
-                    return aVoid();
-                } else {
-                    return resourceCell.getValue().close();
-                }
+        return () -> {
+            if (resourceCell.isEmpty()) {
+                return aVoid();
+            } else {
+                return resourceCell.getValue().close();
             }
         };
     }
@@ -95,12 +92,7 @@ public final class ResourceUtil {
      * @return the action that closes it
      */
     public static ACallable<Void> closeResourceAction(final ACloseable stream) {
-        return new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return stream.close();
-            }
-        };
+        return stream::close;
     }
 
     /**
@@ -131,7 +123,7 @@ public final class ResourceUtil {
          * @return the next builder
          */
         public <B extends ACloseable> Try2<A, B> andChain(final AFunction<B, A> otherOpen) {
-            return new Try2<A, B>(this, otherOpen);
+            return new Try2<>(this, otherOpen);
         }
 
         /**
@@ -165,13 +157,10 @@ public final class ResourceUtil {
          * @return the promise that finishes when body finishes and resource is closed
          */
         public <R> Promise<R> run(final AFunction<R, A> body) {
-            final Cell<A> resource1 = new Cell<A>();
-            return aSeq(openAction).map(new AFunction<R, A>() {
-                @Override
-                public Promise<R> apply(final A value) throws Throwable {
-                    resource1.setValue(value);
-                    return body.apply(value);
-                }
+            final Cell<A> resource1 = new Cell<>();
+            return aSeq(openAction).map(value -> {
+                resource1.setValue(value);
+                return body.apply(value);
             }).finallyDo(closeResourceCellAction(resource1));
         }
     }
@@ -211,7 +200,7 @@ public final class ResourceUtil {
          * @return the next builder
          */
         public <C extends ACloseable> Try3<A, B, C> andChainBoth(final AFunction2<C, A, B> otherOpen) {
-            return new Try3<A, B, C>(this, otherOpen);
+            return new Try3<>(this, otherOpen);
         }
 
         /**
@@ -246,24 +235,11 @@ public final class ResourceUtil {
          * @return the result of body execution
          */
         public <R> Promise<R> run(final AFunction2<R, A, B> body) {
-            final Cell<B> resource = new Cell<B>();
-            return outer.run(new AFunction<R, A>() {
-                @Override
-                public Promise<R> apply(final A value1) throws Throwable {
-                    return aSeq(new ACallable<B>() {
-                        @Override
-                        public Promise<B> call() throws Throwable {
-                            return openAction.apply(value1);
-                        }
-                    }).map(new AFunction<R, B>() {
-                        @Override
-                        public Promise<R> apply(final B value2) throws Throwable {
-                            resource.setValue(value2);
-                            return body.apply(value1, value2);
-                        }
-                    }).finallyDo(closeResourceCellAction(resource));
-                }
-            });
+            final Cell<B> resource = new Cell<>();
+            return outer.run(value1 -> aSeq(() -> openAction.apply(value1)).map(value2 -> {
+                resource.setValue(value2);
+                return body.apply(value1, value2);
+            }).finallyDo(closeResourceCellAction(resource)));
         }
 
         /**
@@ -314,24 +290,13 @@ public final class ResourceUtil {
          * @return the result of body execution
          */
         public <R> Promise<R> run(final AFunction3<R, A, B, C> body) {
-            final Cell<C> resource = new Cell<C>();
-            return outer.run(new AFunction2<R, A, B>() {
-                @Override
-                public Promise<R> apply(final A value1, final B value2) throws Throwable {
-                    return aSeq(new ACallable<C>() {
-                        @Override
-                        public Promise<C> call() throws Throwable {
-                            return openAction.apply(value1, value2);
-                        }
-                    }).map(new AFunction<R, C>() {
-                        @Override
-                        public Promise<R> apply(final C value3) throws Throwable {
-                            resource.setValue(value3);
-                            return body.apply(value1, value2, value3);
-                        }
-                    }).finallyDo(closeResourceCellAction(resource));
-                }
-            });
+            final Cell<C> resource = new Cell<>();
+            return outer.run((value1, value2) ->
+                    aSeq(() -> openAction.apply(value1, value2))
+                            .map(value3 -> {
+                                resource.setValue(value3);
+                                return body.apply(value1, value2, value3);
+                            }).finallyDo(closeResourceCellAction(resource)));
         }
     }
 }

@@ -31,12 +31,7 @@ public final class AWTVat extends Vat {
         synchronized (INIT_LOCK) {
             if (vat == null) {
                 vat = new AWTVat();
-                EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        vat.enter();
-                    }
-                });
+                EventQueue.invokeLater(vat::enter);
             }
             return vat;
         }
@@ -44,14 +39,11 @@ public final class AWTVat extends Vat {
 
     @Override
     public void execute(final Vat currentVat, final Runnable action) {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    action.run();
-                } catch (Throwable t) {
-                    LOG.error("Failed to execute action on the vat", t);
-                }
+        EventQueue.invokeLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable t) {
+                LOG.error("Failed to execute action on the vat", t);
             }
         });
     }

@@ -3,9 +3,11 @@ package net.sf.asyncobjects.nio.net.selector;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
+import net.sf.asyncobjects.core.util.ResourceClosedException;
 import net.sf.asyncobjects.core.vats.Vat;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -91,7 +93,7 @@ final class ChannelContext {
         if (read != null) {
             throw new IllegalStateException("Double waiting for read");
         }
-        final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
+        final Promise<Maybe<T>> promise = new Promise<>();
         read = (AResolver<Maybe<Object>>) (Object) promise.resolver();
         updateOps();
         return promise;
@@ -104,7 +106,7 @@ final class ChannelContext {
         if (write != null) {
             throw new IllegalStateException("Double waiting for write");
         }
-        final Promise<Boolean> promise = new Promise<Boolean>();
+        final Promise<Boolean> promise = new Promise<>();
         write = promise.resolver();
         updateOps();
         return promise;
@@ -117,7 +119,7 @@ final class ChannelContext {
         if (connect != null) {
             throw new IllegalStateException("Double waiting for connect");
         }
-        final Promise<Boolean> promise = new Promise<Boolean>();
+        final Promise<Boolean> promise = new Promise<>();
         connect = promise.resolver();
         updateOps();
         return promise;
@@ -135,7 +137,7 @@ final class ChannelContext {
         if (accept != null) {
             throw new IllegalStateException("Double waiting for accept");
         }
-        final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
+        final Promise<Maybe<T>> promise = new Promise<>();
         accept = (AResolver<Maybe<Object>>) (Object) promise.resolver();
         updateOps();
         return promise;
@@ -161,6 +163,7 @@ final class ChannelContext {
             notifySuccess(accept, Maybe.empty());
             accept = null;
         }
+        //noinspection MagicConstant
         key.interestOps(ops());
     }
 
@@ -168,7 +171,12 @@ final class ChannelContext {
      * Resolve ready subscribe for other operations.
      */
     private void updateOps() {
-        key.interestOps(ops());
+        try {
+            //noinspection MagicConstant
+            key.interestOps(ops());
+        } catch (CancelledKeyException e) {
+            throw new ResourceClosedException("Key is cancelled", e);
+        }
     }
 
     /**
@@ -192,6 +200,7 @@ final class ChannelContext {
         }
         this.selector = selector;
         if (selector != null) {
+            //noinspection MagicConstant
             this.key = channel.register(selector, ops(), this);
         }
     }
@@ -252,5 +261,13 @@ final class ChannelContext {
      */
     public void changeSelector() {
         vat().changeSelector();
+    }
+
+    /**
+     * Cancel the key.
+     */
+    public void close() {
+        key.cancel();
+        fail(new ResourceClosedException("Channel is closed"));
     }
 }

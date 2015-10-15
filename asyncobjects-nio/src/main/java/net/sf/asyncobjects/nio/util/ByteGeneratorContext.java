@@ -1,8 +1,5 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.AOutput;
 
@@ -46,6 +43,17 @@ public class ByteGeneratorContext {
     }
 
     /**
+     * The constructor.
+     *
+     * @param output     the output stream
+     * @param bufferSize the buffer to use
+     */
+    public ByteGeneratorContext(final AOutput<ByteBuffer> output, final int bufferSize) {
+        this(output, ByteBuffer.allocate(bufferSize));
+    }
+
+
+    /**
      * Ensure that the specified size is available in the buffer.
      *
      * @param size the size to make available.
@@ -59,14 +67,11 @@ public class ByteGeneratorContext {
         if (buffer.capacity() < size) {
             throw new IllegalArgumentException("Buffer capacity is too small: " + buffer.capacity());
         }
-        return send().thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if (buffer.remaining() < size) {
-                    throw new IllegalArgumentException("Unable to save data: " + buffer.remaining());
-                }
-                return aVoid();
+        return send().thenDo(() -> {
+            if (buffer.remaining() < size) {
+                throw new IllegalArgumentException("Unable to save data: " + buffer.remaining());
             }
+            return aVoid();
         });
     }
 
@@ -77,25 +82,29 @@ public class ByteGeneratorContext {
      */
     public Promise<Boolean> send() {
         ensureValid();
-        if (buffer.position() > 0) {
+        if (isSendNeeded()) {
             writeMode = true;
             buffer.flip();
-            return output.write(buffer).mapOutcome(new AFunction<Boolean, Outcome<Void>>() {
-                @Override
-                public Promise<Boolean> apply(final Outcome<Void> value) throws Throwable {
-                    buffer.compact();
-                    writeMode = false;
-                    if (value.isSuccess()) {
-                        return aTrue();
-                    } else {
-                        invalidation = value.failure();
-                        return aFailure(invalidation);
-                    }
+            return output.write(buffer).mapOutcome(value -> {
+                buffer.compact();
+                writeMode = false;
+                if (value.isSuccess()) {
+                    return aTrue();
+                } else {
+                    invalidation = value.failure();
+                    return aFailure(invalidation);
                 }
             });
         } else {
             return aTrue();
         }
+    }
+
+    /**
+     * @return true if send is needed
+     */
+    public boolean isSendNeeded() {
+        return buffer.position() > 0;
     }
 
     /**
@@ -116,5 +125,12 @@ public class ByteGeneratorContext {
     public ByteBuffer buffer() {
         ensureValid();
         return buffer;
+    }
+
+    /**
+     * @return the underlying output
+     */
+    public AOutput<ByteBuffer> getOutput() {
+        return output;
     }
 }

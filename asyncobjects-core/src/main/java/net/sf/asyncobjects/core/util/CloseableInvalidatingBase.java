@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,12 +63,9 @@ public class CloseableInvalidatingBase extends CloseableBase {
      * @return a checker for outcome
      */
     protected AResolver<Object> createOutcomeChecker() {
-        return new AResolver<Object>() {
-            @Override
-            public void resolve(final Outcome<Object> resolution) throws Throwable {
-                if (!resolution.isSuccess()) {
-                    invalidate(resolution.failure());
-                }
+        return resolution -> {
+            if (!resolution.isSuccess()) {
+                invalidate(resolution.failure());
             }
         };
     }
@@ -93,11 +89,14 @@ public class CloseableInvalidatingBase extends CloseableBase {
     /**
      * Ensure that the object is still valid.
      *
-     * @throws Throwable if there is in an invalidation
+     * @throws Exception if there is in an invalidation
      */
-    protected final void ensureValid() throws Throwable {
+    protected final void ensureValid() throws Exception {
         if (invalidation != null) {
-            throw invalidation;
+            if (invalidation instanceof Error) {
+                throw (Error) invalidation;
+            }
+            throw (Exception) invalidation;
         }
     }
 
@@ -111,9 +110,9 @@ public class CloseableInvalidatingBase extends CloseableBase {
     /**
      * Ensure that the object is still valid and open.
      *
-     * @throws Throwable if object is closed or invalid.
+     * @throws Exception if object is closed or invalid.
      */
-    protected final void ensureValidAndOpen() throws Throwable {
+    protected final void ensureValidAndOpen() throws Exception {
         ensureValid();
         ensureOpen();
     }

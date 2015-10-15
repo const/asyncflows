@@ -49,7 +49,7 @@ public final class Promise<T> {
      * @return the promise resolved to the specified outcome
      */
     public static <T> Promise<T> success(final T value) {
-        return forOutcome(new Success<T>(value));
+        return forOutcome(new Success<>(value));
     }
 
     /**
@@ -60,7 +60,7 @@ public final class Promise<T> {
      * @return the promise resolved to the failure
      */
     public static <T> Promise<T> failure(final Throwable problem) {
-        return forOutcome(new Failure<T>(problem));
+        return forOutcome(new Failure<>(problem));
     }
 
     /**
@@ -71,7 +71,7 @@ public final class Promise<T> {
      * @return the promise
      */
     public static <T> Promise<T> forOutcome(final Outcome<T> outcome) {
-        final Promise<T> promise = new Promise<T>();
+        final Promise<T> promise = new Promise<>();
         promise.state = State.RESOLVED;
         promise.outcome = outcome;
         return promise;
@@ -119,21 +119,18 @@ public final class Promise<T> {
             throw new IllegalStateException("Resolver is already got: " + state);
         }
         state = State.RESOLVING;
-        return new AResolver<T>() {
-            @Override
-            public void resolve(final Outcome<T> resolution) throws Throwable {
-                if (state == State.RESOLVING) {
-                    outcome = resolution;
-                    state = State.RESOLVED;
-                    for (ListenerCell<T> current = listenersHead; current != null; current = current.next) {
-                        ResolverUtil.notifyResolver(current.listener, resolution);
-                    }
-                    listenersHead = null;
-                    listenersTail = null;
-                } else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Resolving promise in invalid state: " + state);
-                    }
+        return resolution -> {
+            if (state == State.RESOLVING) {
+                outcome = resolution;
+                state = State.RESOLVED;
+                for (ListenerCell<T> current = listenersHead; current != null; current = current.next) {
+                    ResolverUtil.notifyResolver(current.listener, resolution);
+                }
+                listenersHead = null;
+                listenersTail = null;
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Resolving promise in invalid state: " + state);
                 }
             }
         };
@@ -156,16 +153,13 @@ public final class Promise<T> {
                 return failure(outcome.failure());
             }
         } else {
-            final Promise<X> promise = new Promise<X>();
+            final Promise<X> promise = new Promise<>();
             final AResolver<X> resolver = promise.shortcutResolver();
-            listen(new AResolver<T>() {
-                @Override
-                public void resolve(final Outcome<T> resolution) throws Throwable {
-                    if (resolution.isSuccess()) {
-                        aNow(action).listen(resolver);
-                    } else {
-                        notifyFailure(resolver, resolution.failure());
-                    }
+            listen(resolution -> {
+                if (resolution.isSuccess()) {
+                    aNow(action).listen(resolver);
+                } else {
+                    notifyFailure(resolver, resolution.failure());
                 }
             });
             return promise;
@@ -232,16 +226,13 @@ public final class Promise<T> {
                 return failure(outcome.failure());
             }
         } else {
-            final Promise<X> promise = new Promise<X>();
+            final Promise<X> promise = new Promise<>();
             final AResolver<X> resolver = promise.shortcutResolver();
-            listen(new AResolver<T>() {
-                @Override
-                public void resolve(final Outcome<T> resolution) throws Throwable {
-                    try {
-                        mapper.apply(resolution.force()).listen(resolver);
-                    } catch (Throwable t) {
-                        ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
-                    }
+            listen(resolution -> {
+                try {
+                    mapper.apply(resolution.force()).listen(resolver);
+                } catch (Throwable t) {
+                    ResolverUtil.notifyResolver(resolver, new Failure<>(t));
                 }
             });
             return promise;
@@ -259,20 +250,33 @@ public final class Promise<T> {
         if (isResolved()) {
             return evaluate(outcome, mapper);
         } else {
-            final Promise<X> promise = new Promise<X>();
+            final Promise<X> promise = new Promise<>();
             final AResolver<X> resolver = promise.shortcutResolver();
-            listen(new AResolver<T>() {
-                @Override
-                public void resolve(final Outcome<T> resolution) throws Throwable {
-                    try {
-                        mapper.apply(resolution).listen(resolver);
-                    } catch (Throwable t) {
-                        ResolverUtil.notifyResolver(resolver, new Failure<X>(t));
-                    }
+            listen(resolution -> {
+                try {
+                    mapper.apply(resolution).listen(resolver);
+                } catch (Throwable t) {
+                    ResolverUtil.notifyResolver(resolver, new Failure<>(t));
                 }
             });
             return promise;
         }
+    }
+
+    /**
+     * Handle failure.
+     *
+     * @param handler the handler
+     * @return the promise for the result
+     */
+    public Promise<T> onFailure(final AFunction<T, Throwable> handler) {
+        return mapOutcome(value -> {
+            if (outcome.isSuccess()) {
+                return forOutcome(value);
+            } else {
+                return evaluate(value.failure(), handler);
+            }
+        });
     }
 
     /**
@@ -292,12 +296,7 @@ public final class Promise<T> {
         if (state == State.RESOLVED) {
             return success(outcome);
         } else {
-            return mapOutcome(new AFunction<Outcome<T>, Outcome<T>>() {
-                @Override
-                public Promise<Outcome<T>> apply(final Outcome<T> value) throws Throwable {
-                    return success(value);
-                }
-            });
+            return mapOutcome(Promise::success);
         }
     }
 
@@ -310,7 +309,7 @@ public final class Promise<T> {
         if (state == State.RESOLVED) {
             ResolverUtil.notifyResolver(resolver, outcome);
         } else {
-            final ListenerCell<T> listener = new ListenerCell<T>(resolver);
+            final ListenerCell<T> listener = new ListenerCell<>(resolver);
             if (listenersTail != null) {
                 listenersTail.next = listener;
                 listenersTail = listener;

@@ -13,7 +13,7 @@ public abstract class CloseableBase implements ACloseable {
     /**
      * The close promise.
      */
-    private final Promise<Void> closePromise = new Promise<Void>();
+    private final Promise<Void> closePromise = new Promise<>();
 
     /**
      * @return true if stream is closed

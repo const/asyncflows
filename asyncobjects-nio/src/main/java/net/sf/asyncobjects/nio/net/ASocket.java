@@ -30,4 +30,9 @@ public interface ASocket extends AChannel<ByteBuffer> {
      * @return the remote address for the socket
      */
     Promise<SocketAddress> getRemoteAddress();
+
+    /**
+     * @return the remote address for the socket
+     */
+    Promise<SocketAddress> getLocalAddress();
 }

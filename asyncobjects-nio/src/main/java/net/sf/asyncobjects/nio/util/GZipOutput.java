@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.IOUtil;
@@ -87,16 +86,13 @@ public class GZipOutput extends DeflateOutput {
     @Override
     protected Promise<Void> handleFinish(final AOutput<ByteBuffer> output, final ByteBuffer compressed) {
         final ByteGeneratorContext context = new ByteGeneratorContext(output, compressed);
-        return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                final ByteOrder order = compressed.order();
-                compressed.order(ByteOrder.LITTLE_ENDIAN);
-                compressed.putInt((int) crc.getValue());
-                compressed.putInt((int) totalLength);
-                compressed.order(order);
-                return context.send().toVoid();
-            }
+        return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenDo(() -> {
+            final ByteOrder order = compressed.order();
+            compressed.order(ByteOrder.LITTLE_ENDIAN);
+            compressed.putInt((int) crc.getValue());
+            compressed.putInt((int) totalLength);
+            compressed.order(order);
+            return context.send().toVoid();
         });
     }
 }

@@ -34,22 +34,14 @@ public class SSLSocketFactory implements ASocketFactory, ExportsSelf<ASocketFact
 
     @Override
     public Promise<ASocket> makeSocket() {
-        return getSocketFactory().makeSocket().map(new AFunction<ASocket, ASocket>() {
-            @Override
-            public Promise<ASocket> apply(final ASocket value) throws Throwable {
-                return aValue((ASocket) new SSLSocket(value, getClientEngineFactory()).export());
-            }
-        });
+        return getSocketFactory().makeSocket().map(
+                value -> aValue((ASocket) new SSLSocket(value, getClientEngineFactory()).export()));
     }
 
     @Override
     public Promise<AServerSocket> makeServerSocket() {
-        return getSocketFactory().makeServerSocket().map(new AFunction<AServerSocket, AServerSocket>() {
-            @Override
-            public Promise<AServerSocket> apply(final AServerSocket value) throws Throwable {
-                return aValue(new SSLServerSocket(value, getServerEngineFactory()).export());
-            }
-        });
+        return getSocketFactory().makeServerSocket().map(
+                value -> aValue(new SSLServerSocket(value, getServerEngineFactory()).export()));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.net; // NOPMD
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AInput;
@@ -31,55 +30,42 @@ public final class SocketExportUtil { // NOPMD
      * @return the exported server socket
      */
     public static AServerSocket export(final Vat vat, final AServerSocket serverSocket) {
+        return export(vat, vat, serverSocket);
+    }
+
+    /**
+     * Export server socket.
+     *
+     * @param vat          the vat
+     * @param acceptVat    the vat for accept operation
+     * @param serverSocket the server socket
+     * @return the exported server socket
+     */
+    public static AServerSocket export(final Vat vat, final Vat acceptVat, final AServerSocket serverSocket) {
         return new AServerSocket() {
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
-                return aLater(vat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return serverSocket.bind(address, backlog);
-                    }
-                });
+                return aLater(vat, () -> serverSocket.bind(address, backlog));
             }
 
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address) {
-                return aLater(vat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return serverSocket.bind(address);
-                    }
-                });
+                return aLater(vat, () -> serverSocket.bind(address));
             }
 
             @Override
             public Promise<Void> setDefaultOptions(final SocketOptions options) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return serverSocket.setDefaultOptions(options);
-                    }
-                });
+                return aLater(vat, () -> serverSocket.setDefaultOptions(options));
             }
 
             @Override
             public Promise<SocketAddress> getLocalSocketAddress() {
-                return aLater(vat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return serverSocket.getLocalSocketAddress();
-                    }
-                });
+                return aLater(vat, serverSocket::getLocalSocketAddress);
             }
 
             @Override
             public Promise<ASocket> accept() {
-                return aLater(vat, new ACallable<ASocket>() {
-                    @Override
-                    public Promise<ASocket> call() throws Throwable {
-                        return serverSocket.accept();
-                    }
-                });
+                return aLater(acceptVat, serverSocket::accept);
             }
 
             @Override
@@ -97,60 +83,52 @@ public final class SocketExportUtil { // NOPMD
      * @return the exported socket
      */
     public static ASocket export(final Vat vat, final ASocket socket) {
+        return export(vat, vat, socket);
+    }
+
+    /**
+     * Export a socket.
+     *
+     * @param vat      the vat
+     * @param closeVat the vat on which socket is closed
+     * @param socket   the socket
+     * @return the exported socket
+     */
+    public static ASocket export(final Vat vat, final Vat closeVat, final ASocket socket) {
         return new ASocket() {
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.setOptions(options);
-                    }
-                });
+                return aLater(vat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.connect(address);
-                    }
-                });
+                return aLater(vat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(vat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.getRemoteAddress();
-                    }
-                });
+                return aLater(vat, socket::getRemoteAddress);
+            }
+
+            @Override
+            public Promise<SocketAddress> getLocalAddress() {
+                return aLater(vat, socket::getLocalAddress);
             }
 
             @Override
             public Promise<AInput<ByteBuffer>> getInput() {
-                return aLater(vat, new ACallable<AInput<ByteBuffer>>() {
-                    @Override
-                    public Promise<AInput<ByteBuffer>> call() throws Throwable {
-                        return socket.getInput();
-                    }
-                });
+                return aLater(vat, socket::getInput);
             }
 
             @Override
             public Promise<AOutput<ByteBuffer>> getOutput() {
-                return aLater(vat, new ACallable<AOutput<ByteBuffer>>() {
-                    @Override
-                    public Promise<AOutput<ByteBuffer>> call() throws Throwable {
-                        return socket.getOutput();
-                    }
-                });
+                return aLater(vat, socket::getOutput);
             }
 
             @Override
             public Promise<Void> close() {
-                return closeResource(vat, socket);
+                return closeResource(closeVat, socket);
             }
         };
     }
@@ -166,35 +144,17 @@ public final class SocketExportUtil { // NOPMD
         return new ASocketFactory() {
             @Override
             public Promise<ASocket> makeSocket() {
-                return aLater(vat, new ACallable<ASocket>() {
-                    @Override
-                    public Promise<ASocket> call() throws Throwable {
-                        return factory.makeSocket();
-                    }
-                });
+                return aLater(vat, factory::makeSocket);
             }
 
             @Override
             public Promise<AServerSocket> makeServerSocket() {
-                return aLater(vat, new ACallable<AServerSocket>() {
-                    @Override
-                    public Promise<AServerSocket> call() throws Throwable {
-                        return factory.makeServerSocket();
-                    }
-                });
+                return aLater(vat, factory::makeServerSocket);
             }
 
-            /**
-             * @return the promise for server socket
-             */
             @Override
             public Promise<ADatagramSocket> makeDatagramSocket() {
-                return aLater(vat, new ACallable<ADatagramSocket>() {
-                    @Override
-                    public Promise<ADatagramSocket> call() throws Throwable {
-                        return factory.makeDatagramSocket();
-                    }
-                });
+                return aLater(vat, factory::makeDatagramSocket);
             }
         };
     }
@@ -225,102 +185,52 @@ public final class SocketExportUtil { // NOPMD
         return new ADatagramSocket() {
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(controlVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.setOptions(options);
-                    }
-                });
+                return aLater(controlVat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(controlVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.connect(address);
-                    }
-                });
+                return aLater(controlVat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<Void> disconnect() {
-                return aLater(controlVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.disconnect();
-                    }
-                });
+                return aLater(controlVat, socket::disconnect);
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(controlVat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.getRemoteAddress();
-                    }
-                });
+                return aLater(controlVat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<SocketAddress> getLocalAddress() {
-                return aLater(controlVat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.getLocalAddress();
-                    }
-                });
+                return aLater(controlVat, socket::getLocalAddress);
             }
 
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address) {
-                return aLater(controlVat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.bind(address);
-                    }
-                });
+                return aLater(controlVat, () -> socket.bind(address));
             }
 
             @Override
             public Promise<Void> send(final ByteBuffer buffer) {
-                return aLater(sendVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.send(buffer);
-                    }
-                });
+                return aLater(sendVat, () -> socket.send(buffer));
             }
 
             @Override
             public Promise<Void> send(final SocketAddress address, final ByteBuffer buffer) {
-                return aLater(sendVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.send(address, buffer);
-                    }
-                });
+                return aLater(sendVat, () -> socket.send(address, buffer));
             }
 
             @Override
             public Promise<SocketAddress> receive(final ByteBuffer buffer) {
-                return aLater(receiveVat, new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return socket.receive(buffer);
-                    }
-                });
+                return aLater(receiveVat, () -> socket.receive(buffer));
             }
 
             @Override
             public Promise<Void> close() {
-                return aLater(controlVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return socket.close();
-                    }
-                });
+                return aLater(controlVat, socket::close);
             }
         };
     }

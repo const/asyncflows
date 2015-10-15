@@ -1,12 +1,12 @@
 package net.sf.asyncobjects.nio.net.selector;
 
+import net.sf.asyncobjects.core.util.ResourceClosedException;
 import net.sf.asyncobjects.core.vats.SingleThreadVatWithIdle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
@@ -119,8 +119,10 @@ public class SelectorVat extends SingleThreadVatWithIdle {
      * @param attachment the attachment
      */
     private void handleUnexpectedAttachment(final Object attachment) {
-        LOG.error("Unexpected kind of attachment: "
-                + (attachment == null ? "null" : attachment.getClass().getName()));
+        if (LOG.isErrorEnabled()) {
+            LOG.error("Unexpected kind of attachment: "
+                    + (attachment == null ? "null" : attachment.getClass().getName()));
+        }
     }
 
     @Override
@@ -147,7 +149,9 @@ public class SelectorVat extends SingleThreadVatWithIdle {
                     final ChannelContext context = (ChannelContext) attachment;
                     context.fail(e);
                 } catch (Throwable t) {
-                    LOG.error("Failed to fail key: " + key.channel(), t);
+                    if (LOG.isErrorEnabled()) {
+                        LOG.error("Failed to fail key: " + key.channel(), t);
+                    }
                 }
             } else {
                 handleUnexpectedAttachment(attachment);
@@ -159,12 +163,12 @@ public class SelectorVat extends SingleThreadVatWithIdle {
     protected void closeVat() {
         try {
             try {
-                failKeys(new ClosedSelectorException());
+                failKeys(new ResourceClosedException("The vat is closed"));
             } finally {
                 selector.close();
             }
         } catch (IOException e) {
-            throw new IllegalStateException("The vat cannot be closed: ", e);
+            throw new ResourceClosedException("The vat cannot be closed: ", e);
         }
     }
 
@@ -187,11 +191,13 @@ public class SelectorVat extends SingleThreadVatWithIdle {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Changing selector for the SelectorVat, because of broken selector");
         }
-        final ArrayList<SelectionKey> keys = new ArrayList<SelectionKey>(selector.keys()); // NOPMD
+        final ArrayList<SelectionKey> keys = new ArrayList<>(selector.keys()); // NOPMD
         try {
             selector.close();
         } catch (Throwable t) {
-            LOG.error("failed to close selector", t);
+            if (LOG.isErrorEnabled()) {
+                LOG.error("failed to close selector", t);
+            }
         }
         try {
             selector = Selector.open();
@@ -205,7 +211,9 @@ public class SelectorVat extends SingleThreadVatWithIdle {
                     final ChannelContext context = (ChannelContext) attachment;
                     context.setSelector(selector);
                 } catch (Throwable t) {
-                    LOG.error("Failed to change selector: " + key.channel(), t);
+                    if (LOG.isErrorEnabled()) {
+                        LOG.error("Failed to change selector: " + key.channel(), t);
+                    }
                 }
             } else {
                 handleUnexpectedAttachment(attachment);

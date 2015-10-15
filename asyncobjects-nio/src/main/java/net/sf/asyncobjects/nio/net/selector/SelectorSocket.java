@@ -1,6 +1,7 @@
-package net.sf.asyncobjects.nio.net.selector;
+package net.sf.asyncobjects.nio.net.selector; // NOPMD
 
 import net.sf.asyncobjects.core.ACallable;
+import net.sf.asyncobjects.core.AsyncControl;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
@@ -16,11 +17,14 @@ import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.SocketExportUtil;
 import net.sf.asyncobjects.nio.net.SocketOptions;
 import net.sf.asyncobjects.nio.net.SocketUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
@@ -37,6 +41,10 @@ import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
  * The selector socket.
  */
 class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASocket> {
+    /**
+     * The logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(SelectorSocket.class);
     /**
      * The write limit when copying to direct buffer.
      */
@@ -88,6 +96,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
     @Override
     public Promise<Void> setOptions(final SocketOptions options) {
         try {
+            ensureOpen();
             if (options != null) {
                 SocketUtil.applyOptions(socketChannel.socket(), options);
             }
@@ -99,29 +108,33 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
 
     @Override
     public Promise<Void> connect(final SocketAddress address) {
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                final boolean b = socketChannel.connect(address);
-                if (b) {
-                    return aVoid();
-                }
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        if (socketChannel.finishConnect()) {
-                            return aFalse();
-                        }
-                        return channelContext.waitForConnect();
-                    }
-                });
+        return requests.run(() -> {
+            final boolean b = socketChannel.connect(address);
+            if (b) {
+                return aVoid();
             }
+            return aSeqLoop(() -> {
+                ensureOpen();
+                if (socketChannel.finishConnect()) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Socket connected: " + socketChannel.socket().getLocalSocketAddress()
+                                + " -> " + socketChannel.socket().getRemoteSocketAddress());
+                    }
+                    return aFalse();
+                }
+                return channelContext.waitForConnect();
+            });
         });
     }
 
     @Override
     public Promise<SocketAddress> getRemoteAddress() {
         return aValue(socketChannel.socket().getRemoteSocketAddress());
+    }
+
+    @Override
+    public Promise<SocketAddress> getLocalAddress() {
+        return aValue(socketChannel.socket().getLocalSocketAddress());
     }
 
     @Override
@@ -147,10 +160,16 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
     @Override
     protected Promise<Void> closeAction() {
         try {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Closing socket: " + socketChannel.socket().getLocalSocketAddress()
+                        + " -> " + socketChannel.socket().getRemoteSocketAddress());
+            }
             socketChannel.close();
             return super.closeAction();
         } catch (IOException e) {
             return aFailure(e);
+        } finally {
+            channelContext.close();
         }
     }
 
@@ -178,7 +197,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                 private int zeroCount;
 
                 @Override
-                public Promise<Maybe<Integer>> call() throws Throwable {
+                public Promise<Maybe<Integer>> call() throws Exception {
                     if (eofSeen) {
                         return IOUtil.EOF_MAYBE_PROMISE;
                     }
@@ -249,6 +268,8 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
             try {
                 socketChannel.socket().shutdownInput();
                 return aVoid();
+            } catch (ClosedChannelException e) {
+                return aVoid();
             } catch (IOException e) {
                 return aFailure(e);
             }
@@ -270,7 +291,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
                 private boolean firstRun = true;
 
                 @Override
-                public Promise<Boolean> call() throws Throwable {
+                public Promise<Boolean> call() throws Exception {
                     if (buffer.remaining() == 0) {
                         return aFalse();
                     }
@@ -328,12 +349,7 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
         public Promise<Void> flush() {
             // data is sent as soon as it is possible, so the method is just waiting
             // until previous requests are processed.
-            return requests.run(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    return aVoid();
-                }
-            });
+            return requests.run(AsyncControl::aVoid);
         }
 
         @Override
@@ -350,6 +366,8 @@ class SelectorSocket extends CloseableBase implements ASocket, ExportsSelf<ASock
         protected Promise<Void> closeAction() {
             try {
                 socketChannel.socket().shutdownOutput();
+                return aVoid();
+            } catch (ClosedChannelException e) {
                 return aVoid();
             } catch (IOException e) {
                 return aFailure(e);

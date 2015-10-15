@@ -1,8 +1,6 @@
 package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
@@ -36,12 +34,7 @@ public final class StreamUtil {
      * @return the callable that invokes a read operation
      */
     public static <O> ACallable<Maybe<O>> producerFromStream(final AStream<O> stream) {
-        return new ACallable<Maybe<O>>() {
-            @Override
-            public Promise<Maybe<O>> call() throws Throwable {
-                return stream.next();
-            }
-        };
+        return stream::next;
     }
 
     /**
@@ -78,65 +71,44 @@ public final class StreamUtil {
      */
     public static <O> Promise<Long> connect(final AStream<O> stream, final ASink<? super O> sink) {
         final long[] count = new long[1];
-        final Cell<Outcome<Void>> stopped = new Cell<Outcome<Void>>();
-        sink.finished().listen(new AResolver<Void>() {
-            @Override
-            public void resolve(final Outcome<Void> resolution) throws Throwable {
-                stream.close();
-                stopped.setValue(resolution);
-            }
+        final Cell<Outcome<Void>> stopped = new Cell<>();
+        sink.finished().listen(resolution -> {
+            stream.close();
+            stopped.setValue(resolution);
         });
-        return aSeq(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoopFair(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        if (!stopped.isEmpty()) {
-                            return aFalse();
-                        }
-                        final Promise<Maybe<O>> next = aNow(StreamUtil.producerFromStream(stream));
-                        return next.mapOutcome(new AFunction<Boolean, Outcome<Maybe<O>>>() {
-                            @Override
-                            public Promise<Boolean> apply(final Outcome<Maybe<O>> value) throws Throwable {
-                                try {
-                                    if (value.isSuccess()) {
-                                        if (value.value().isEmpty()) {
-                                            return sink.close().thenValue(false);
-                                        } else {
-                                            if (!stopped.isEmpty()) {
-                                                return aFalse();
-                                            }
-                                            count[0]++;
-                                            return sink.put(value.value().value()).thenValue(true);
-                                        }
-                                    } else {
-                                        return sink.fail(value.failure()).thenFailure(value.failure());
-                                    }
-                                } catch (Throwable problem) {
-                                    return sink.fail(problem).thenFailure(problem);
-                                }
-                            }
-                        });
+        return aSeq(
+                () -> aSeqLoopFair(() -> {
+                    if (!stopped.isEmpty()) {
+                        return aFalse();
                     }
-                });
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return stopped.isEmpty() ? aVoid() : Promise.forOutcome(stopped.getValue());
-            }
-        }).thenDo(new ACallable<Long>() {
-            @Override
-            public Promise<Long> call() throws Throwable {
-                return aValue(count[0]);
-            }
-        }).finallyDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aAll(closeResourceAction(sink)).andLast(closeResourceAction(stream)).toVoid();
-            }
-        });
+                    final Promise<Maybe<O>> next = aNow(StreamUtil.producerFromStream(stream));
+                    return next.mapOutcome(value -> {
+                        try {
+                            if (value.isSuccess()) {
+                                if (value.value().isEmpty()) {
+                                    return sink.close().thenValue(false);
+                                } else {
+                                    if (!stopped.isEmpty()) {
+                                        return aFalse();
+                                    }
+                                    count[0]++;
+                                    return sink.put(value.value().value()).thenValue(true);
+                                }
+                            } else {
+                                return sink.fail(value.failure()).thenFailure(value.failure());
+                            }
+                        } catch (Throwable problem) {
+                            return sink.fail(problem).thenFailure(problem);
+                        }
+                    });
+                })
+        ).thenDo(
+                () -> stopped.isEmpty() ? aVoid() : Promise.forOutcome(stopped.getValue())
+        ).thenDo(
+                () -> aValue(count[0])
+        ).finallyDo(
+                () -> aAll(closeResourceAction(sink)).andLast(closeResourceAction(stream)).toVoid()
+        );
     }
 
 }

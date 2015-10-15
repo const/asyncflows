@@ -5,13 +5,14 @@ package net.sf.asyncobjects.core;
  *
  * @param <T> the value type
  */
+@FunctionalInterface
 public interface AResolver<T> {
     /**
      * This method is notified when resolution for some asynchronous
      * operation is ready.
      *
      * @param resolution the resolution
-     * @throws Throwable in case of any problem
+     * @throws Exception in case of any problem
      */
-    void resolve(Outcome<T> resolution) throws Throwable;
+    void resolve(Outcome<T> resolution) throws Exception;
 }

@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.nio.util;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.nio.AInput;
@@ -28,7 +27,7 @@ public final class CharIOUtil {
     /**
      * UTF-8 charset.
      */
-    public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
+    public static final Charset ISO8859_1 = Charset.forName("ISO-8859-1");
     /**
      * Unicode code point for NEXT LINE (NEL).
      */
@@ -76,25 +75,12 @@ public final class CharIOUtil {
             throw new IllegalArgumentException("The buffer capacity must be positive: " + buffer.capacity());
         }
         final StringBuilder builder = new StringBuilder();
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                return input.read(buffer).map(new AFunction<Boolean, Integer>() {
-                    @Override
-                    public Promise<Boolean> apply(final Integer value) throws Throwable {
-                        buffer.flip();
-                        builder.append(buffer);
-                        buffer.clear();
-                        return aBoolean(!isEof(value));
-                    }
-                });
-            }
-        }).thenDo(new ACallable<String>() {
-            @Override
-            public Promise<String> call() throws Throwable {
-                return aValue(builder.toString());
-            }
-        });
+        return aSeqLoop(() -> input.read(buffer).map(value -> {
+            buffer.flip();
+            builder.append(buffer);
+            buffer.clear();
+            return aBoolean(!isEof(value));
+        })).thenDo(() -> aValue(builder.toString()));
     }
 
     /**
@@ -145,7 +131,7 @@ public final class CharIOUtil {
             private boolean skippedSomething;
 
             @Override
-            public Promise<Maybe<String>> call() throws Throwable {
+            public Promise<Maybe<String>> call() throws Exception {
                 while (buffer.hasRemaining()) {
                     if (afterCr) {
                         final char c = buffer.charAt(0);
@@ -169,20 +155,16 @@ public final class CharIOUtil {
                     }
                 }
                 buffer.compact();
-                return input.read(buffer).map(new AFunction<Maybe<String>, Integer>() {
-                    @Override
-                    public Promise<Maybe<String>> apply(final Integer value) throws Throwable {
-                        buffer.flip();
-                        if (isEof(value)) {
-                            if (line.length() > 0 || skippedSomething) {
-                                return result();
-                            } else {
-                                return aMaybeValue(null);
-                            }
+                return input.read(buffer).map(value -> {
+                    buffer.flip();
+                    if (isEof(value)) {
+                        if (line.length() > 0 || skippedSomething) {
+                            return result();
+                        } else {
+                            return aMaybeValue(null);
                         }
-                        return aMaybeEmpty();
                     }
-
+                    return aMaybeEmpty();
                 });
             }
 

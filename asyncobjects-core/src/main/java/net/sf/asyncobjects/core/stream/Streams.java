@@ -25,7 +25,7 @@ public final class Streams {
      * @return the stream builder for the stream.
      */
     public static <A> StreamBuilder<A> aForProducer(final ACallable<Maybe<A>> producer) {
-        return new StreamBuilder<A>(new ProducerStream<A>(producer));
+        return new StreamBuilder<>(new ProducerStream<>(producer));
     }
 
     /**
@@ -57,6 +57,7 @@ public final class Streams {
      * @param <A>      the stream element type
      * @return the stream builder for the array.
      */
+    @SafeVarargs
     public static <A> StreamBuilder<A> aForArray(final A... elements) {
         return aForIterable(Arrays.asList(elements));
     }
@@ -80,6 +81,6 @@ public final class Streams {
      * @return the stream builder
      */
     public static <T> StreamBuilder<T> aForStream(final AStream<T> stream) {
-        return new StreamBuilder<T>(stream);
+        return new StreamBuilder<>(stream);
     }
 }

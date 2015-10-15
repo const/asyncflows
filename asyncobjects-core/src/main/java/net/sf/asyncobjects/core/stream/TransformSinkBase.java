@@ -1,10 +1,8 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
+import net.sf.asyncobjects.core.AsyncControl;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.RequestQueue;
-
-import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
 /**
  * Transform sink base where the next resource is a sink as well.
@@ -29,12 +27,7 @@ public abstract class TransformSinkBase<N, T> extends ChainedSinkBase<T, ASink<N
 
     @Override
     public Promise<Void> fail(final Throwable error) {
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return failNext(error);
-            }
-        });
+        return requests.run(() -> failNext(error));
     }
 
     /**
@@ -60,11 +53,6 @@ public abstract class TransformSinkBase<N, T> extends ChainedSinkBase<T, ASink<N
      */
     @Override
     protected Promise<Void> beforeClose() {
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aVoid();
-            }
-        });
+        return requests.run(AsyncControl::aVoid);
     }
 }

@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.CoreFunctionUtil;
 import net.sf.asyncobjects.core.Promise;
@@ -110,17 +109,8 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the next builder
      */
     public <N> ForwardStreamBuilder<N> flatMapIterator(final AFunction<Iterator<N>, T> mapper) {
-        return flatMapStream(new AFunction<AStream<N>, T>() {
-            @Override
-            public Promise<AStream<N>> apply(final T value) throws Throwable {
-                return mapper.apply(value).map(new AFunction<AStream<N>, Iterator<N>>() {
-                    @Override
-                    public Promise<AStream<N>> apply(final Iterator<N> value) throws Throwable {
-                        return aValue(Streams.aForIterator(value).localStream());
-                    }
-                });
-            }
-        });
+        return flatMapStream(value -> mapper.apply(value)
+                .map(value1 -> aValue(Streams.aForIterator(value1).localStream())));
     }
 
     /**
@@ -134,17 +124,7 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the next builder
      */
     public <N, C extends Iterable<N>> ForwardStreamBuilder<N> flatMapIterable(final AFunction<C, T> mapper) {
-        return flatMapIterator(new AFunction<Iterator<N>, T>() {
-            @Override
-            public Promise<Iterator<N>> apply(final T value) throws Throwable {
-                return evaluate(value, mapper).map(new AFunction<Iterator<N>, C>() {
-                    @Override
-                    public Promise<Iterator<N>> apply(final C value) throws Throwable {
-                        return aValue(value.iterator());
-                    }
-                });
-            }
-        });
+        return flatMapIterator(value -> evaluate(value, mapper).map(mappedValue -> aValue(mappedValue.iterator())));
     }
 
     /**
@@ -164,41 +144,30 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the filter
      */
     public ForwardStreamBuilder<T> filter(final AFunction<Boolean, T> filter) {
-        return flatMapMaybe(new AFunction<Maybe<T>, T>() {
-            @Override
-            public Promise<Maybe<T>> apply(final T value) throws Throwable {
-                return filter.apply(value).map(new AFunction<Maybe<T>, Boolean>() {
-                    @Override
-                    public Promise<Maybe<T>> apply(final Boolean filterResult) throws Throwable {
-                        if (filterResult) {
-                            return aMaybeValue(value);
-                        } else {
-                            return aMaybeEmpty();
-                        }
-                    }
-                });
+        return flatMapMaybe(value -> filter.apply(value).map(filterResult -> {
+            if (filterResult) {
+                return aMaybeValue(value);
+            } else {
+                return aMaybeEmpty();
             }
-        });
+        }));
     }
 
     /**
      * @return this item returns only changed elements
      */
     public ForwardStreamBuilder<T> changed() {
-        final Cell<T> current = new Cell<T>();
-        return filter(new AFunction<Boolean, T>() {
-            @Override
-            public Promise<Boolean> apply(final T value) throws Throwable {
-                if (current.isEmpty()) {
-                    current.setValue(value);
-                    return aTrue();
-                }
-                if (current.getValue() == null ? value == null : current.getValue().equals(value)) {
-                    return aFalse();
-                }
+        final Cell<T> current = new Cell<>();
+        return filter(value -> {
+            if (current.isEmpty()) {
                 current.setValue(value);
                 return aTrue();
             }
+            if (current.getValue() == null ? value == null : current.getValue().equals(value)) {
+                return aFalse();
+            }
+            current.setValue(value);
+            return aTrue();
         });
     }
 
@@ -221,30 +190,17 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the promise for the result.
      */
     public <R> Promise<R> leftFold(final R initial, final AFunction2<R, R, T> folder) {
-        final Cell<R> cell = new Cell<R>(initial);
-        return consume(new AFunction<Boolean, T>() {
-            @Override
-            public Promise<Boolean> apply(final T value) throws Throwable {
-                return folder.apply(cell.getValue(), value).map(new AFunction<Boolean, R>() {
-                    @Override
-                    public Promise<Boolean> apply(final R value) throws Throwable {
-                        cell.setValue(value);
-                        return aTrue();
-                    }
-                });
-            }
-        }).thenDo(new ACallable<R>() {
-            @Override
-            public Promise<R> call() throws Throwable {
-                return aValue(cell.getValue());
-            }
-        });
+        final Cell<R> cell = new Cell<>(initial);
+        return consume(value -> folder.apply(cell.getValue(), value).map(value1 -> {
+            cell.setValue(value1);
+            return aTrue();
+        })).thenDo(() -> aValue(cell.getValue()));
     }
 
     /**
      * @return the fold to unit value
      */
-    public Promise<Void> toUnit() {
+    public Promise<Void> toVoid() {
         return consume(CoreFunctionUtil.<Boolean, T>discardArgument(booleanCallable(true)));
     }
 
@@ -252,12 +208,9 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the fold to list
      */
     public Promise<List<T>> toList() {
-        return leftFold(new ArrayList<T>(), new AFunction2<List<T>, List<T>, T>() {
-            @Override
-            public Promise<List<T>> apply(final List<T> value1, final T value2) throws Throwable {
-                value1.add(value2);
-                return aValue(value1);
-            }
+        return leftFold(new ArrayList<>(), (list, producedValue) -> {
+            list.add(producedValue);
+            return aValue(list);
         });
     }
 
@@ -268,7 +221,7 @@ public abstract class ForwardStreamBuilder<T> {
      * @return the builder
      */
     public AllStreamBuilder<T> all(final int windowSize) {
-        return new AllStreamBuilder<T>(Streams.aForStream(
+        return new AllStreamBuilder<>(Streams.aForStream(
                 AllStreamBuilder.outcomeStream(localStream())).push().window(windowSize));
     }
 

@@ -101,12 +101,22 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
     }
 
     @Override
+    protected Promise<Void> closeAction() {
+        try {
+            serverSocket.close();
+            return aVoid();
+        } catch (IOException e) {
+            return aFailure(e);
+        }
+    }
+
+    @Override
     public AServerSocket export() {
-        return export(Vats.daemonVat());
+        return SocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
     }
 
     @Override
     public AServerSocket export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return export();
     }
 }

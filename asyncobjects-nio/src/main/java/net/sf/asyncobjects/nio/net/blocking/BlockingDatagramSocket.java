@@ -47,12 +47,6 @@ public class BlockingDatagramSocket implements ADatagramSocket, ExportsSelf<ADat
         this.socket = socket;
     }
 
-    /**
-     * Set socket options.
-     *
-     * @param options the options to set
-     * @return when options are set
-     */
     @Override
     public Promise<Void> setOptions(final SocketOptions options) {
         try {
@@ -63,12 +57,6 @@ public class BlockingDatagramSocket implements ADatagramSocket, ExportsSelf<ADat
         }
     }
 
-    /**
-     * Connect to the remote address.
-     *
-     * @param address the address to connect to
-     * @return when connected
-     */
     @Override
     public Promise<Void> connect(final SocketAddress address) {
         try {

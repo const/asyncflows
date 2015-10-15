@@ -69,12 +69,9 @@ public class SSLTestData {
      */
     private KeyStore getKeyStore(final char[] passphrase, final String name) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         final KeyStore ks = KeyStore.getInstance("JKS");
-        final InputStream stream = SSLTestData.class.getResourceAsStream(
-                "/net/sf/asyncobjects/nio/net/sockets/ssl/" + name);
-        try {
+        try (InputStream stream = SSLTestData.class.getResourceAsStream(
+                "/net/sf/asyncobjects/nio/net/sockets/ssl/" + name)) {
             ks.load(stream, passphrase);
-        } finally {
-            stream.close();
         }
         return ks;
     }

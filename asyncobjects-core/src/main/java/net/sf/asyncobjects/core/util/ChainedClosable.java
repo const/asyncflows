@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.util;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
@@ -26,19 +25,9 @@ public abstract class ChainedClosable<T extends ACloseable> extends CloseableInv
         this.wrapped = wrapped;
     }
 
-    /**
-     * The close action. Override it to implement a custom close operation.
-     *
-     * @return promise that resolves when close is complete
-     */
     @Override
     protected Promise<Void> closeAction() {
-        return aSeq(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return beforeClose();
-            }
-        }).finallyDo(ResourceUtil.closeResourceAction(wrapped));
+        return aSeq(this::beforeClose).finallyDo(ResourceUtil.closeResourceAction(wrapped));
     }
 
     /**

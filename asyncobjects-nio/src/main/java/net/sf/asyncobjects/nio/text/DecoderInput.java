@@ -1,7 +1,5 @@
 package net.sf.asyncobjects.nio.text;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.ChainedClosable;
@@ -92,8 +90,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
      */
     public static AInput<CharBuffer> decode(final AInput<ByteBuffer> input,
                                             final Charset charset, final int bufferSize) {
-        final ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
-        buffer.limit(0);
+        final ByteBuffer buffer = IOUtil.BYTE.writeBuffer(bufferSize);
         final CharsetDecoder charsetDecoder = charset.newDecoder();
         charsetDecoder.onMalformedInput(CodingErrorAction.REPLACE);
         charsetDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
@@ -124,67 +121,53 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
 
     @Override
     public Promise<Integer> read(final CharBuffer buffer) { // NOPMD
-        return requests.run(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable { // NOPMD
-                if (!isValidAndOpen()) {
-                    return invalidationPromise();
-                }
-                if (eofDecoded) {
-                    return IOUtil.EOF_PROMISE;
-                }
-                final int[] read = new int[1];
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        ensureValidAndOpen();
-                        final int position = buffer.position();
-                        final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
-                        eofDecoded = eofSeen && !bytes.hasRemaining();
-                        if (eofDecoded && position == buffer.position()) {
-                            read[0] = IOUtil.EOF;
-                            return aFalse();
-                        }
-                        if (result.isOverflow() || buffer.position() > position) {
-                            // the buffer might be too small to hold a character
-                            // may be next read will be better.
-                            final int decodedChars = buffer.position() - position;
-                            if (decodedChars == 0) {
-                                if (readZero) {
-                                    return aFailure(new IllegalArgumentException(
-                                            "The character does not fit in the buffer"));
-                                } else {
-                                    readZero = true;
-                                }
-                            } else {
-                                readZero = false;
-                            }
-                            read[0] = decodedChars;
-                            return aFalse();
-                        }
-                        if (result.isUnderflow() && !eofSeen) {
-                            bytes.compact();
-                            return wrapped.read(bytes).map(new AFunction<Boolean, Integer>() {
-                                @Override
-                                public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                    bytes.flip();
-                                    if (isEof(value)) {
-                                        eofSeen = true;
-                                    }
-                                    return aTrue();
-                                }
-                            });
-                        }
-                        result.throwException();
-                        return aFailure(new IllegalStateException("Unknown decode result type: " + result));
-                    }
-                }).thenDo(new ACallable<Integer>() {
-                    @Override
-                    public Promise<Integer> call() throws Throwable {
-                        return aValue(read[0]);
-                    }
-                }).observe(outcomeChecker());
+        return requests.run(() -> { // NOPMD
+            if (!isValidAndOpen()) {
+                return invalidationPromise();
             }
+            if (eofDecoded) {
+                return IOUtil.EOF_PROMISE;
+            }
+            final int[] read = new int[1];
+            return aSeqLoop(() -> {
+                ensureValidAndOpen();
+                final int position = buffer.position();
+                final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
+                eofDecoded = eofSeen && !bytes.hasRemaining();
+                if (eofDecoded && position == buffer.position()) {
+                    read[0] = IOUtil.EOF;
+                    return aFalse();
+                }
+                if (result.isOverflow() || buffer.position() > position) {
+                    // the buffer might be too small to hold a character
+                    // may be next read will be better.
+                    final int decodedChars = buffer.position() - position;
+                    if (decodedChars == 0) {
+                        if (readZero) {
+                            return aFailure(new IllegalArgumentException(
+                                    "The character does not fit in the buffer"));
+                        } else {
+                            readZero = true;
+                        }
+                    } else {
+                        readZero = false;
+                    }
+                    read[0] = decodedChars;
+                    return aFalse();
+                }
+                if (result.isUnderflow() && !eofSeen) {
+                    bytes.compact();
+                    return wrapped.read(bytes).map(value -> {
+                        bytes.flip();
+                        if (isEof(value)) {
+                            eofSeen = true;
+                        }
+                        return aTrue();
+                    });
+                }
+                result.throwException();
+                return aFailure(new IllegalStateException("Unknown decode result type: " + result));
+            }).thenDo(() -> aValue(read[0])).observe(outcomeChecker());
         });
     }
 

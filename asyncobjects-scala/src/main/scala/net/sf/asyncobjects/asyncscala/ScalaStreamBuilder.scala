@@ -1,12 +1,13 @@
 package net.sf.asyncobjects.asyncscala
 
-import net.sf.asyncobjects.core.stream._
+import net.sf.asyncobjects.asyncscala.AsyncScalaControl._
+import net.sf.asyncobjects.asyncscala.RichPromise._
 import net.sf.asyncobjects.core.Promise
 import net.sf.asyncobjects.core.data.Maybe
-import net.sf.asyncobjects.asyncscala.AsyncScalaControl._
-import RichPromise._
-import scala.collection.mutable.ArrayBuffer
+import net.sf.asyncobjects.core.stream._
+
 import scala.collection.convert.WrapAsJava._
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * The wrapper over ForwardStreamBuilder.
@@ -85,18 +86,11 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
   def flatMapStream[N](mapper: T => Promise[AStream[N]]): ScalaStreamBuilder[N] =
     new ScalaStreamBuilder[N](builder.flatMapStream(CoreFunctionConversions.toAFunction(mapper)))
 
-  /**
-   * The flat map for [[java.util.Iterator]] type. This operation after receiving the result reads the stream
-   * and makes it available for downstream processing in the specified order. The default implementation
-   * uses [[net.sf.asyncobjects.asyncscala.ScalaStreamBuilder]].flatMapStream(net.sf.asyncobjects.core.AFunction)
-   *
-   * @param mapper the mapper
-   * @tparam N    the next type
-   * @return the next builder
-   */
-  def flatMapJavaIterator[N](mapper: T => Promise[java.util.Iterator[N]]): ScalaStreamBuilder[N] =
-    new ScalaStreamBuilder[N](builder.flatMapIterator(CoreFunctionConversions.toAFunction(mapper)))
-
+  def flatMapIterable[N, C[X] <: Iterable[X]](mapper: T => Promise[C[N]]): ScalaStreamBuilder[N] =
+    flatMapJavaIterable[N, java.lang.Iterable](v =>
+      mapper.apply(v).flatMap {
+        c => asJavaIterable(c).asInstanceOf[java.lang.Iterable[N]]
+      })
 
   /**
    * The flat map for [[java.lang.Iterable]] type. This operation after receiving the result reads the stream
@@ -111,14 +105,20 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
   def flatMapJavaIterable[N, C[X] <: java.lang.Iterable[X]](mapper: T => Promise[C[N]]) =
     new ScalaStreamBuilder[N](builder.flatMapIterable(CoreFunctionConversions.toAFunction(mapper)))
 
-  def flatMapIterable[N, C[X] <: Iterable[X]](mapper: T => Promise[C[N]]): ScalaStreamBuilder[N] =
-    flatMapJavaIterable[N, java.lang.Iterable](v =>
-      mapper.apply(v).flatMap {
-        c => asJavaIterable(c).asInstanceOf[java.lang.Iterable[N]]
-      })
-
   def flatMapIterator[N](mapper: T => Promise[Iterator[N]]) =
     flatMapJavaIterator[N](v => mapper.apply(v).flatMap(c => asJavaIterator(c)))
+
+  /**
+   * The flat map for [[java.util.Iterator]] type. This operation after receiving the result reads the stream
+   * and makes it available for downstream processing in the specified order. The default implementation
+   * uses [[net.sf.asyncobjects.asyncscala.ScalaStreamBuilder]].flatMapStream(net.sf.asyncobjects.core.AFunction)
+   *
+   * @param mapper the mapper
+   * @tparam N    the next type
+   * @return the next builder
+   */
+  def flatMapJavaIterator[N](mapper: T => Promise[java.util.Iterator[N]]): ScalaStreamBuilder[N] =
+    new ScalaStreamBuilder[N](builder.flatMapIterator(CoreFunctionConversions.toAFunction(mapper)))
 
   /**
    * Buffer the stream. This operation tries to prefetch the specified amount of elements so downstream processing
@@ -156,6 +156,11 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
   def consume(loopBody: T => BooleanPromise): Promise[Void] = builder.consume(CoreFunctionConversions.toAFunction(loopBody))
 
   /**
+   * @return the list from the stream
+   */
+  def toList: Promise[List[T]] = leftFold(List.empty[T])((r, a) => a :: r).flatMap((l) => l.reverse)
+
+  /**
    * Left fold the stream. The default implementation is based on
    * [[net.sf.asyncobjects.asyncscala.ScalaStreamBuilder]].consume(AFunction).
    *
@@ -170,24 +175,25 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
   /**
    * @return the list from the stream
    */
-  def toList: Promise[List[T]] = leftFold(List.empty[T])((r, a) => a :: r).flatMap((l) => l.reverse)
-
-  /**
-   * @return the list from the stream
-   */
   def toArrayBuffer: Promise[ArrayBuffer[T]] = leftFold(new ArrayBuffer[T])((r, a) => r += a)
 
 
   /**
    * @return the fold to unit value
    */
-  def toUnit: Promise[Void] = builder.toUnit
+  def toUnit: Promise[Void] = builder.toVoid
 
   /**
    * @return the fold to list
    */
   def toJavaList: Promise[java.util.List[T]] = builder.toList
 
+  /**
+   * Start building all stream with the window size [[java.lang.Integer]].MAX_VALUE.
+   *
+   * @return the builder
+   */
+  def all: ScalaStreamBuilder[T] = all(Integer.MAX_VALUE)
 
   /**
    * Start building all stream with the specified window size.
@@ -196,13 +202,6 @@ class ScalaStreamBuilder[T](val builder: ForwardStreamBuilder[T]) {
    * @return the builder
    */
   def all(windowSize: Int): ScalaStreamBuilder[T] = new ScalaStreamBuilder[T](builder.all(windowSize))
-
-  /**
-   * Start building all stream with the window size [[java.lang.Integer]].MAX_VALUE.
-   *
-   * @return the builder
-   */
-  def all: ScalaStreamBuilder[T] = all(Integer.MAX_VALUE)
 }
 
 

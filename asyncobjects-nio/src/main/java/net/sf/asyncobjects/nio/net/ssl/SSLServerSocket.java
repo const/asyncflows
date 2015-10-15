@@ -51,12 +51,9 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
      * @return the void value
      */
     private AFunction<SocketAddress, SocketAddress> collectAddress() {
-        return new AFunction<SocketAddress, SocketAddress>() {
-            @Override
-            public Promise<SocketAddress> apply(final SocketAddress value) throws Throwable {
-                localAddress = value;
-                return aValue(value);
-            }
+        return value -> {
+            localAddress = value;
+            return aValue(value);
         };
     }
 
@@ -77,18 +74,10 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
 
     @Override
     public Promise<ASocket> accept() {
-        return wrapped.accept().map(new AFunction<ASocket, ASocket>() {
-            @Override
-            public Promise<ASocket> apply(final ASocket socket) throws Throwable {
-                return engineFactory.apply(localAddress).map(new AFunction<ASocket, SSLEngine>() {
-                    @Override
-                    public Promise<ASocket> apply(final SSLEngine engine) throws Throwable {
-                        final SSLSocket sslSocket = new SSLSocket(socket, engineFactory);
-                        return sslSocket.init(engine).thenValue((ASocket) sslSocket.export());
-                    }
-                });
-            }
-        });
+        return wrapped.accept().map(socket -> engineFactory.apply(localAddress).map(engine -> {
+            final SSLSocket sslSocket = new SSLSocket(socket, engineFactory);
+            return sslSocket.init(engine).thenValue((ASocket) sslSocket.export());
+        }));
     }
 
     @Override

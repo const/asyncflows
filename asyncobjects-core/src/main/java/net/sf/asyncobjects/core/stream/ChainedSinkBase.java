@@ -20,7 +20,7 @@ public abstract class ChainedSinkBase<I, U extends ACloseable> extends ChainedCl
     /**
      * The finished promise.
      */
-    private final Promise<Void> finished = new Promise<Void>();
+    private final Promise<Void> finished = new Promise<>();
 
     /**
      * The constructor from the underlying object.

@@ -1,12 +1,12 @@
 package net.sf.asyncobjects.asyncscala
 
-import net.sf.asyncobjects.core.util.SeqControl.SeqBuilder
-import net.sf.asyncobjects.core.{AFunction, ACallable}
 import net.sf.asyncobjects.asyncscala.AsyncScalaControl._
-import net.sf.asyncobjects.core.util.SeqControl
-import net.sf.asyncobjects.core.Promise
-import RichPromise._
+import net.sf.asyncobjects.asyncscala.RichPromise._
 import net.sf.asyncobjects.core.data.Maybe
+import net.sf.asyncobjects.core.util.SeqControl
+import net.sf.asyncobjects.core.util.SeqControl.SeqBuilder
+import net.sf.asyncobjects.core.{ACallable, AFunction, Promise}
+
 import scala.collection.convert.WrapAsJava._
 
 /**
@@ -42,22 +42,23 @@ object SeqScalaControl {
     def call(): Promise[Maybe[T]] = b.flatMap { v => DataConversions.fromOption(v)}
   })
 
+  def aSeqForUnit[T](c: Iterable[T])(body: T => BooleanPromise) = aSeqForUnitJava(asJavaIterable(c))(body)
+
   def aSeqForUnitJava[T](c: java.lang.Iterable[T])(body: T => BooleanPromise) = SeqControl.aSeqForUnit(c,
     CoreFunctionConversions.toAFunction(body))
 
-  def aSeqForUnitFairJava[T](c: java.lang.Iterable[T])(body: T => BooleanPromise) = SeqControl.aSeqForUnitFair(c,
-    CoreFunctionConversions.toAFunction(body))
-
-  def aSeqForUnit[T](c: Iterable[T])(body: T => BooleanPromise) = aSeqForUnitJava(asJavaIterable(c))(body)
-
   def aSeqForUnitFair[T](c: Iterable[T])(body: T => BooleanPromise) = aSeqForUnitFairJava(asJavaIterable(c))(body)
 
+  def aSeqForUnitFairJava[T](c: java.lang.Iterable[T])(body: T => BooleanPromise) = SeqControl.aSeqForUnitFair(c,
+    CoreFunctionConversions.toAFunction(body))
 
   class SeqScalaBuilder[T](val builder: SeqBuilder[T]) {
 
     def map[X](b: T => Promise[X]) = new SeqScalaBuilder[X](builder.map(CoreFunctionConversions.toAFunction(b)))
 
     def mapLast[X](b: T => Promise[X]) = builder.mapLast(CoreFunctionConversions.toAFunction(b))
+
+    def failedLast(body: PartialFunction[Throwable, Promise[T]]) = failed(body).finish()
 
     def finish() = builder.finish()
 
@@ -69,8 +70,6 @@ object SeqScalaControl {
       }))
     }
 
-    def failedLast(body: PartialFunction[Throwable, Promise[T]]) = failed(body).finish()
-
     def thenDo[X](b: => Promise[X]) = new SeqScalaBuilder[X](builder.thenDo(new ACallable[X] {
       def call(): Promise[X] = b
     }))
@@ -79,8 +78,8 @@ object SeqScalaControl {
       def call(): Promise[X] = b
     })
 
-    def finallyDo[X](b: => Promise[X]) = builder.finallyDo(new ACallable[X] {
-      def call(): Promise[X] = b
+    def finallyDo[X](b: => Promise[X]) = builder.finallyDo(new ACallable[Void] {
+      def call(): Promise[Void] = b.toVoid()
     })
   }
 

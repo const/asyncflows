@@ -6,13 +6,14 @@ package net.sf.asyncobjects.core;
  * @param <R> the output type
  * @param <A> the input type
  */
+@FunctionalInterface
 public interface AFunction<R, A> {
     /**
      * Evaluate result.
      *
      * @param value the value to map
      * @return the output type
-     * @throws Throwable in case of any problem
+     * @throws Exception in case of any problem
      */
-    Promise<R> apply(A value) throws Throwable;
+    Promise<R> apply(A value) throws Exception;
 }

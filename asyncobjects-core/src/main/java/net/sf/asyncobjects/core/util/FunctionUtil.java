@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.data.Tuple3;
 
@@ -26,12 +25,7 @@ public final class FunctionUtil {
      * @return the function
      */
     public static <R, A, B> AFunction<R, Tuple2<A, B>> uncurry2(final AFunction2<R, A, B> toZip) {
-        return new AFunction<R, Tuple2<A, B>>() {
-            @Override
-            public Promise<R> apply(final Tuple2<A, B> value) throws Throwable {
-                return toZip.apply(value.getValue1(), value.getValue2());
-            }
-        };
+        return value -> toZip.apply(value.getValue1(), value.getValue2());
     }
 
     /**
@@ -45,12 +39,7 @@ public final class FunctionUtil {
      * @return the function
      */
     public static <R, A, B, C> AFunction<R, Tuple3<A, B, C>> uncurry3(final AFunction3<R, A, B, C> toZip) {
-        return new AFunction<R, Tuple3<A, B, C>>() {
-            @Override
-            public Promise<R> apply(final Tuple3<A, B, C> value) throws Throwable {
-                return toZip.apply(value.getValue1(), value.getValue2(), value.getValue3());
-            }
-        };
+        return value -> toZip.apply(value.getValue1(), value.getValue2(), value.getValue3());
     }
 
     /**
@@ -64,12 +53,7 @@ public final class FunctionUtil {
      * @return the result function
      */
     public static <R, A, B> AFunction2<R, A, B> useUseSecondArg(final AFunction<R, B> function) {
-        return new AFunction2<R, A, B>() {
-            @Override
-            public Promise<R> apply(final A value1, final B value2) throws Throwable {
-                return function.apply(value2);
-            }
-        };
+        return (value1, value2) -> function.apply(value2);
     }
 
     /**
@@ -83,12 +67,7 @@ public final class FunctionUtil {
      * @return the result function
      */
     public static <R, A, B> AFunction2<R, A, B> useUseFirstArg(final AFunction<R, A> function) {
-        return new AFunction2<R, A, B>() {
-            @Override
-            public Promise<R> apply(final A value1, final B value2) throws Throwable {
-                return function.apply(value1);
-            }
-        };
+        return (value1, value2) -> function.apply(value1);
     }
 
 }

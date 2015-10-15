@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.ACloseable;
@@ -10,6 +9,7 @@ import net.sf.asyncobjects.nio.AChannel;
 import net.sf.asyncobjects.nio.AInput;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.BufferOperations;
+import net.sf.asyncobjects.nio.IOUtil;
 import net.sf.asyncobjects.nio.NIOExportUtil;
 
 import java.nio.Buffer;
@@ -71,9 +71,8 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
      * @return the pipe working on the current vat
      */
     public static AChannel<ByteBuffer> bytePipe(final int size) {
-        final ByteBuffer buffer = ByteBuffer.allocate(size);
-        buffer.limit(0);
-        return new BufferedPipe<ByteBuffer>(BufferOperations.BYTE, buffer).export();
+        final ByteBuffer buffer = IOUtil.BYTE.writeBuffer(size);
+        return new BufferedPipe<>(BufferOperations.BYTE, buffer).export();
     }
 
     /**
@@ -83,9 +82,8 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
      * @return the pipe working on the current vat
      */
     public static AChannel<CharBuffer> charPipe(final int size) {
-        final CharBuffer buffer = CharBuffer.allocate(size);
-        buffer.limit(0);
-        return new BufferedPipe<CharBuffer>(BufferOperations.CHAR, buffer).export();
+        final CharBuffer buffer = IOUtil.CHAR.writeBuffer(size);
+        return new BufferedPipe<>(BufferOperations.CHAR, buffer).export();
     }
 
     /**
@@ -152,28 +150,25 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
     private class Input extends StreamBase implements AInput<B> {
         @Override
         public Promise<Integer> read(final B buffer) {
-            final Promise<Integer> result = new Promise<Integer>();
-            return requests.runSeqLoopFair(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    if (closed) {
-                        return aFailure(new IllegalStateException("The stream is closed"));
-                    }
-                    if (!buffer.hasRemaining()) {
-                        notifySuccess(result.resolver(), 0);
-                        return aFalse();
-                    }
-                    if (pipeBuffer.hasRemaining()) {
-                        notifySuccess(result.resolver(), operations.put(buffer, pipeBuffer));
-                        output.requests.resume();
-                        return aFalse();
-                    }
-                    if (output.closed) {
-                        notifySuccess(result.resolver(), -1);
-                        return aFalse();
-                    }
-                    return requests.suspendThenTrue();
+            final Promise<Integer> result = new Promise<>();
+            return requests.runSeqLoopFair(() -> {
+                if (closed) {
+                    return aFailure(new IllegalStateException("The stream is closed"));
                 }
+                if (!buffer.hasRemaining()) {
+                    notifySuccess(result.resolver(), 0);
+                    return aFalse();
+                }
+                if (pipeBuffer.hasRemaining()) {
+                    notifySuccess(result.resolver(), operations.put(buffer, pipeBuffer));
+                    output.requests.resume();
+                    return aFalse();
+                }
+                if (output.closed) {
+                    notifySuccess(result.resolver(), -1);
+                    return aFalse();
+                }
+                return requests.suspendThenTrue();
             }).thenPromise(result);
         }
     }
@@ -184,44 +179,38 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportsSelf<
     private class Output extends StreamBase implements AOutput<B> {
         @Override
         public Promise<Void> write(final B buffer) {
-            return requests.runSeqLoopFair(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    if (closed) {
-                        return outputClosed();
-                    }
-                    if (!buffer.hasRemaining()) {
-                        return aFalse();
-                    }
-                    if (input.closed) {
-                        return inputClosed("write");
-                    }
-                    operations.append(pipeBuffer, buffer);
-                    if (!buffer.hasRemaining()) {
-                        return aFalse();
-                    }
-                    input.requests.resume();
-                    return requests.suspendThenTrue();
+            return requests.runSeqLoopFair(() -> {
+                if (closed) {
+                    return outputClosed();
                 }
+                if (!buffer.hasRemaining()) {
+                    return aFalse();
+                }
+                if (input.closed) {
+                    return inputClosed("write");
+                }
+                operations.append(pipeBuffer, buffer);
+                if (!buffer.hasRemaining()) {
+                    return aFalse();
+                }
+                input.requests.resume();
+                return requests.suspendThenTrue();
             });
         }
 
         @Override
         public Promise<Void> flush() {
-            return requests.runSeqLoopFair(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    if (!pipeBuffer.hasRemaining()) {
-                        return aFalse();
-                    }
-                    if (closed) {
-                        return outputClosed();
-                    }
-                    if (input.closed) {
-                        return inputClosed("flush");
-                    }
-                    return requests.suspendThenTrue();
+            return requests.runSeqLoopFair(() -> {
+                if (!pipeBuffer.hasRemaining()) {
+                    return aFalse();
                 }
+                if (closed) {
+                    return outputClosed();
+                }
+                if (input.closed) {
+                    return inputClosed("flush");
+                }
+                return requests.suspendThenTrue();
             });
         }
 

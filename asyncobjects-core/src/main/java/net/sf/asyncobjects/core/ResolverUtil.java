@@ -49,7 +49,7 @@ public final class ResolverUtil {
      */
     @SuppressWarnings("unchecked")
     public static <X> void notifySuccess(final AResolver<? super X> resolver, final X value) {
-        notifyResolver(resolver, new Success<X>(value));
+        notifyResolver(resolver, new Success<>(value));
     }
 
     /**

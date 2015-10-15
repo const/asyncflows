@@ -1,12 +1,10 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AsyncControl;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.nio.AInput;
+import net.sf.asyncobjects.nio.IOUtil;
 
 import java.nio.ByteBuffer;
 
@@ -15,12 +13,15 @@ import static net.sf.asyncobjects.core.AsyncControl.aFalse;
 import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 import static net.sf.asyncobjects.core.util.SeqControl.aSeqLoop;
-import static net.sf.asyncobjects.nio.IOUtil.isEof;
 
 /**
  * The parser context for the protocol implementation. It contains the data is needed for parsing binary streams.
  */
 public class ByteParserContext {
+    /**
+     * Default size of buffer for the input.
+     */
+    public static final int DEFAULT_BUFFER_SIZE = 8096;
     /**
      * The input stream.
      */
@@ -60,8 +61,17 @@ public class ByteParserContext {
      * @param bufferSize the buffer size
      */
     public ByteParserContext(final AInput<ByteBuffer> input, final int bufferSize) {
-        this(input, ByteBuffer.allocate(bufferSize));
-        buffer.limit(0);
+        this(input, IOUtil.BYTE.writeBuffer(bufferSize));
+    }
+
+
+    /**
+     * The constructor with default buffer size ({@value #DEFAULT_BUFFER_SIZE}).
+     *
+     * @param input the input stream
+     */
+    public ByteParserContext(final AInput<ByteBuffer> input) {
+        this(input, DEFAULT_BUFFER_SIZE);
     }
 
     /**
@@ -83,20 +93,17 @@ public class ByteParserContext {
         }
         readMode = true;
         buffer.compact();
-        return input.read(buffer).mapOutcome(new AFunction<Boolean, Outcome<Integer>>() {
-            @Override
-            public Promise<Boolean> apply(final Outcome<Integer> value) throws Throwable {
-                buffer.flip();
-                readMode = false;
-                if (value.isSuccess()) {
-                    if (isEof(value.value())) {
-                        eofRead = true;
-                    }
-                    return aTrue();
-                } else {
-                    invalidation = value.failure();
-                    return aFailure(invalidation);
+        return input.read(buffer).mapOutcome(value -> {
+            buffer.flip();
+            readMode = false;
+            if (value.isSuccess()) {
+                if (IOUtil.isEof(value.value())) {
+                    eofRead = true;
                 }
+                return aTrue();
+            } else {
+                invalidation = value.failure();
+                return aFailure(invalidation);
             }
         });
     }
@@ -121,14 +128,11 @@ public class ByteParserContext {
         if (buffer.remaining() >= amount) {
             return aVoid();
         }
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (buffer.remaining() >= amount) {
-                    return aFalse();
-                }
-                return readMore();
+        return aSeqLoop(() -> {
+            if (buffer.remaining() >= amount) {
+                return aFalse();
             }
+            return readMore();
         });
     }
 
@@ -149,6 +153,13 @@ public class ByteParserContext {
     }
 
     /**
+     * @return if there is no more data available.
+     */
+    public boolean isEof() {
+        return !buffer.hasRemaining() && isEofSeen();
+    }
+
+    /**
      * Ensure that context did not fail and that there are no read operation in the progress.
      */
     private void ensureValid() {
@@ -166,5 +177,12 @@ public class ByteParserContext {
     public ByteBuffer buffer() {
         ensureValid();
         return buffer;
+    }
+
+    /**
+     * @return get underlying input.
+     */
+    public AInput<ByteBuffer> input() {
+        return input;
     }
 }

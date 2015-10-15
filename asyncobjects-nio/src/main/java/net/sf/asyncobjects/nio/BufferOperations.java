@@ -21,6 +21,11 @@ public abstract class BufferOperations<B extends Buffer, A> {
         }
 
         @Override
+        public ByteBuffer buffer(final int size) {
+            return ByteBuffer.allocate(size);
+        }
+
+        @Override
         public void put(final ByteBuffer buffer, final byte[] array, final int arrayOffset, final int length) {
             buffer.put(array, arrayOffset, length);
         }
@@ -52,6 +57,11 @@ public abstract class BufferOperations<B extends Buffer, A> {
         @Override
         public char[] allocate(final int size) {
             return new char[size];
+        }
+
+        @Override
+        public CharBuffer buffer(final int size) {
+            return CharBuffer.allocate(size);
         }
 
         @Override
@@ -87,6 +97,14 @@ public abstract class BufferOperations<B extends Buffer, A> {
      * @return the array
      */
     public abstract A allocate(int size);
+
+    /**
+     * Allocate buffer of required type.
+     *
+     * @param size the size to allocate
+     * @return the array
+     */
+    public abstract B buffer(int size);
 
     /**
      * Put data from array to the buffer.
@@ -131,6 +149,9 @@ public abstract class BufferOperations<B extends Buffer, A> {
      * @return the amount of bytes.
      */
     public int put(final B destination, final B source) {
+        if (!destination.hasRemaining()) {
+            return 0;
+        }
         final int result;
         if (source.remaining() <= destination.remaining()) {
             result = source.remaining();

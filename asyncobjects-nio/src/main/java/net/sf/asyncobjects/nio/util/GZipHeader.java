@@ -1,7 +1,6 @@
 package net.sf.asyncobjects.nio.util; // NOPMD
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 
 import java.io.IOException;
@@ -96,7 +95,7 @@ public final class GZipHeader {
     /**
      * Extra fields.
      */
-    private final List<ExtraField> extraFields = new LinkedList<ExtraField>();
+    private final List<ExtraField> extraFields = new LinkedList<>();
     /**
      * The compression method.
      */
@@ -144,71 +143,43 @@ public final class GZipHeader {
     public static Promise<GZipHeader> read(final ByteParserContext context) {
         final GZipHeader header = new GZipHeader();
         final CRC32 headerCRC = new CRC32();
-        return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return readCoreHeader(context, headerCRC, header);
+        return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(
+                () -> readCoreHeader(context, headerCRC, header)
+        ).thenDo(() -> {
+            if ((header.getFlags() & FEXTRA) == 0) {
+                return aVoid();
             }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FEXTRA) == 0) {
-                    return aVoid();
+            return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(
+                    () -> readExtraFields(header, context, headerCRC));
+        }).thenDo(() -> {
+            if ((header.getFlags() & FNAME) == 0) {
+                return aVoid();
+            }
+            return readStringZero(context, headerCRC).map(value -> {
+                header.setName(value);
+                return aVoid();
+            });
+        }).thenDo(() -> {
+            if ((header.getFlags() & FCOMMENT) == 0) {
+                return aVoid();
+            }
+            return readStringZero(context, headerCRC).map(value -> {
+                header.setComment(value);
+                return aVoid();
+            });
+        }).thenDo(() -> {
+            if (!header.isHeaderChecked()) {
+                return aVoid();
+            }
+            return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(() -> {
+                final int current = (char) headerCRC.getValue();
+                final int crc = getUInt16(context, headerCRC);
+                if (crc != current) {
+                    throw new IOException(String.format(
+                            "Header CRC does not match: %04x != %04x ", current, crc));
                 }
-                return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return readExtraFields(header, context, headerCRC);
-                    }
-                });
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FNAME) == 0) {
-                    return aVoid();
-                }
-                return readStringZero(context, headerCRC).map(new AFunction<Void, String>() {
-                    @Override
-                    public Promise<Void> apply(final String value) throws Throwable {
-                        header.setName(value);
-                        return aVoid();
-                    }
-                });
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FCOMMENT) == 0) {
-                    return aVoid();
-                }
-                return readStringZero(context, headerCRC).map(new AFunction<Void, String>() {
-                    @Override
-                    public Promise<Void> apply(final String value) throws Throwable {
-                        header.setComment(value);
-                        return aVoid();
-                    }
-                });
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if (!header.isHeaderChecked()) {
-                    return aVoid();
-                }
-                return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        final int current = (char) headerCRC.getValue();
-                        final int crc = getUInt16(context, headerCRC);
-                        if (crc != current) {
-                            throw new IOException(String.format(
-                                    "Header CRC does not match: %04x != %04x ", current, crc));
-                        }
-                        return aVoid();
-                    }
-                });
-            }
+                return aVoid();
+            });
         }).thenValue(header);
     }
 
@@ -256,68 +227,43 @@ public final class GZipHeader {
      */
     public static Promise<Void> writeHeader(final ByteGeneratorContext context, final GZipHeader header) {
         final CRC32 crc = new CRC32();
-        return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return writeCoreHeader(header, context, crc);
+        return context.ensureAvailable(CORE_HEADER_SIZE).thenDo(
+                () -> writeCoreHeader(header, context, crc)
+        ).thenDo(() -> {
+            if (header.getExtraFields().isEmpty()) {
+                return aVoid();
             }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if (header.getExtraFields().isEmpty()) {
-                    return aVoid();
+            return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(() -> {
+                int size = 0;
+                for (final ExtraField extraField : header.getExtraFields()) {
+                    size += extraField.size();
                 }
-                return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        int size = 0;
-                        for (final ExtraField extraField : header.getExtraFields()) {
-                            size += extraField.size();
-                        }
-                        if (size > ByteIOUtil.UINT16_MASK) {
-                            throw new IOException("Extra fields are too large: " + size);
-                        }
-                        putUInt16(context, crc, (char) size);
-                        return aSeqForUnit(header.getExtraFields(), new AFunction<Boolean, ExtraField>() {
-                            @Override
-                            public Promise<Boolean> apply(final ExtraField field) throws Throwable {
-                                return writeExtraField(field, context, crc).thenValue(true);
-                            }
-                        });
-                    }
-                });
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FNAME) == 0) {
-                    return aVoid();
+                if (size > ByteIOUtil.UINT16_MASK) {
+                    throw new IOException("Extra fields are too large: " + size);
                 }
-                return writeStringZero(context, crc, header.getName());
+                putUInt16(context, crc, (char) size);
+                return aSeqForUnit(header.getExtraFields(),
+                        field -> writeExtraField(field, context, crc).thenValue(true));
+            });
+        }).thenDo(() -> {
+            if ((header.getFlags() & FNAME) == 0) {
+                return aVoid();
             }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FCOMMENT) == 0) {
-                    return aVoid();
-                }
-                return writeStringZero(context, crc, header.getComment());
+            return writeStringZero(context, crc, header.getName());
+        }).thenDo(() -> {
+            if ((header.getFlags() & FCOMMENT) == 0) {
+                return aVoid();
             }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                if ((header.getFlags() & FHCRC) == 0) {
-                    return aVoid();
-                }
-                return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        final char current = (char) crc.getValue();
-                        putUInt16(context, crc, current);
-                        return aVoid();
-                    }
-                });
+            return writeStringZero(context, crc, header.getComment());
+        }).thenDo(() -> {
+            if ((header.getFlags() & FHCRC) == 0) {
+                return aVoid();
             }
+            return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH).thenDo(() -> {
+                final char current = (char) crc.getValue();
+                putUInt16(context, crc, current);
+                return aVoid();
+            });
         });
     }
 
@@ -363,16 +309,13 @@ public final class GZipHeader {
     private static Promise<Void> writeExtraField(final ExtraField extraField, final ByteGeneratorContext context,
                                                  final CRC32 headerCRC) {
         return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH).thenDo(
-                new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        if (extraField.getData().length() > ByteIOUtil.UINT16_MASK) {
-                            throw new IOException("Extra field too big: " + extraField.size());
-                        }
-                        putUInt16(context, headerCRC, extraField.getId());
-                        putUInt16(context, headerCRC, (char) extraField.getData().length());
-                        return writeLatin1(context, headerCRC, extraField.getData(), true);
+                () -> {
+                    if (extraField.getData().length() > ByteIOUtil.UINT16_MASK) {
+                        throw new IOException("Extra field too big: " + extraField.size());
                     }
+                    putUInt16(context, headerCRC, extraField.getId());
+                    putUInt16(context, headerCRC, (char) extraField.getData().length());
+                    return writeLatin1(context, headerCRC, extraField.getData(), true);
                 });
 
     }
@@ -387,17 +330,9 @@ public final class GZipHeader {
      */
     private static Promise<Void> writeStringZero(final ByteGeneratorContext context,
                                                  final CRC32 headerCRC, final String text) {
-        return writeLatin1(context, headerCRC, text, false).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return context.ensureAvailable(1);
-            }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                put(context, headerCRC, (byte) 0);
-                return aVoid();
-            }
+        return writeLatin1(context, headerCRC, text, false).thenDo(() -> context.ensureAvailable(1)).thenDo(() -> {
+            put(context, headerCRC, (byte) 0);
+            return aVoid();
         });
 
     }
@@ -417,7 +352,7 @@ public final class GZipHeader {
             private int pos;
 
             @Override
-            public Promise<Boolean> call() throws Throwable {
+            public Promise<Boolean> call() throws Exception {
                 final ByteBuffer buffer = context.buffer();
                 while (buffer.hasRemaining() && pos < text.length()) {
                     final char c = text.charAt(pos++);
@@ -449,22 +384,16 @@ public final class GZipHeader {
                                                  final CRC32 headerCRC) {
         final int totalSize = getUInt16(context, headerCRC);
         final int[] currentSize = new int[1];
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (currentSize[0] == totalSize) {
-                    return aFalse();
-                }
-                return readExtraField(context, headerCRC, totalSize - currentSize[0]).map(
-                        new AFunction<Boolean, ExtraField>() {
-                            @Override
-                            public Promise<Boolean> apply(final ExtraField value) throws Throwable {
-                                currentSize[0] += value.size();
-                                header.getExtraFields().add(value);
-                                return aTrue();
-                            }
-                        });
+        return aSeqLoop(() -> {
+            if (currentSize[0] == totalSize) {
+                return aFalse();
             }
+            return readExtraField(context, headerCRC, totalSize - currentSize[0]).map(
+                    value -> {
+                        currentSize[0] += value.size();
+                        header.getExtraFields().add(value);
+                        return aTrue();
+                    });
         });
     }
 
@@ -574,36 +503,23 @@ public final class GZipHeader {
      */
     private static Promise<String> readStringZero(final ByteParserContext context, final CRC32 crc) {
         final StringBuilder rc = new StringBuilder();
-        return aSeq(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        final ByteBuffer buffer = context.buffer();
-                        while (true) {
-                            if (!buffer.hasRemaining()) {
-                                return context.readMore();
-                            }
-                            final byte b = buffer.get();
-                            if (crc != null) {
-                                crc.update(b);
-                            }
-                            if (b == 0) {
-                                return aFalse();
-                            } else {
-                                rc.append(ByteIOUtil.toLatin1(b));
-                            }
-                        }
-                    }
-                });
+        return aSeq(() -> aSeqLoop(() -> {
+            final ByteBuffer buffer = context.buffer();
+            while (true) {
+                if (!buffer.hasRemaining()) {
+                    return context.readMore();
+                }
+                final byte b = buffer.get();
+                if (crc != null) {
+                    crc.update(b);
+                }
+                if (b == 0) {
+                    return aFalse();
+                } else {
+                    rc.append(ByteIOUtil.toLatin1(b));
+                }
             }
-        }).thenDoLast(new ACallable<String>() {
-            @Override
-            public Promise<String> call() throws Throwable {
-                return aValue(rc.toString());
-            }
-        });
+        })).thenDoLast(() -> aValue(rc.toString()));
     }
 
     /**
@@ -619,46 +535,35 @@ public final class GZipHeader {
         final StringBuilder rc = new StringBuilder();
         final char[] id = new char[1];
 
-        return aSeq(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return context.ensureAvailable(ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH);
+        return aSeq(
+                () -> context.ensureAvailable(ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH)
+        ).thenDo(() -> {
+            id[0] = getUInt16(context, crc);
+            final int size = getUInt16(context, crc);
+            if (size + ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH > limit) {
+                throw new IOException("Field size is too big: " + size);
             }
-        }).thenDo(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                id[0] = getUInt16(context, crc);
-                final int size = getUInt16(context, crc);
-                if (size + ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH > limit) {
-                    throw new IOException("Field size is too big: " + size);
-                }
-                return aSeqLoop(new ACallable<Boolean>() {
-                    private int count;
+            return aSeqLoop(new ACallable<Boolean>() {
+                private int count;
 
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        final ByteBuffer buffer = context.buffer();
-                        while (count < size) {
-                            if (!buffer.hasRemaining()) {
-                                return context.readMore();
-                            }
-                            final byte b = buffer.get();
-                            if (crc != null) {
-                                crc.update(b);
-                            }
-                            count++;
-                            rc.append(ByteIOUtil.toLatin1(b));
+                @Override
+                public Promise<Boolean> call() throws Exception {
+                    final ByteBuffer buffer = context.buffer();
+                    while (count < size) {
+                        if (!buffer.hasRemaining()) {
+                            return context.readMore();
                         }
-                        return aFalse();
+                        final byte b = buffer.get();
+                        if (crc != null) {
+                            crc.update(b);
+                        }
+                        count++;
+                        rc.append(ByteIOUtil.toLatin1(b));
                     }
-                });
-            }
-        }).thenDoLast(new ACallable<ExtraField>() {
-            @Override
-            public Promise<ExtraField> call() throws Throwable {
-                return aValue(new ExtraField(id[0], rc.toString()));
-            }
-        });
+                    return aFalse();
+                }
+            });
+        }).thenDoLast(() -> aValue(new ExtraField(id[0], rc.toString())));
 
     }
 

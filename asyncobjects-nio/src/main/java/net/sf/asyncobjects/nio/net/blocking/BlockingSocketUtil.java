@@ -1,8 +1,6 @@
 package net.sf.asyncobjects.nio.net.blocking;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
 
 import static net.sf.asyncobjects.core.AsyncControl.doAsync;
@@ -27,12 +25,9 @@ public final class BlockingSocketUtil {
      * @return the action result
      */
     public static <T> T run(final AFunction<T, ASocketFactory> action) {
-        return doAsync(new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                final ASocketFactory factory = new BlockingSocketFactory().export();
-                return action.apply(factory);
-            }
+        return doAsync(() -> {
+            final ASocketFactory factory = new BlockingSocketFactory().export();
+            return action.apply(factory);
         });
     }
 
@@ -45,12 +40,9 @@ public final class BlockingSocketUtil {
      * @throws Throwable in case of the problem
      */
     public static <T> T runThrowable(final AFunction<T, ASocketFactory> action) throws Throwable {
-        return doAsyncThrowable(new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                final ASocketFactory factory = new BlockingSocketFactory().export();
-                return action.apply(factory);
-            }
+        return doAsyncThrowable(() -> {
+            final ASocketFactory factory = new BlockingSocketFactory().export();
+            return action.apply(factory);
         });
     }
 }

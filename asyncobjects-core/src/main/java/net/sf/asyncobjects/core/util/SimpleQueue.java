@@ -21,16 +21,16 @@ public final class SimpleQueue<T> implements AQueue<T>, ExportsSelf<AQueue<T>> {
     /**
      * The elements in the queue. Invariant: if elements is non-empty, {@link #resolvers} must be empty.
      */
-    private final Deque<T> elements = new LinkedList<T>();
+    private final Deque<T> elements = new LinkedList<>();
     /**
      * The resolvers waiting for value. Invariant: if resolvers is non-empty, {@link #elements} must be empty.
      */
-    private final Deque<AResolver<T>> resolvers = new LinkedList<AResolver<T>>();
+    private final Deque<AResolver<T>> resolvers = new LinkedList<>();
 
     @Override
     public Promise<T> take() {
         if (elements.isEmpty()) {
-            final Promise<T> rc = new Promise<T>();
+            final Promise<T> rc = new Promise<>();
             resolvers.addLast(rc.resolver());
             return rc;
         } else {

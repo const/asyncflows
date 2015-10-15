@@ -2,7 +2,6 @@ package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 
@@ -24,20 +23,7 @@ public final class RequestQueue {
     /**
      * List of actions in the queue.
      */
-    private final Deque<AResolver<Void>> queue = new ArrayDeque<AResolver<Void>>();
-    /**
-     * The resume resolver for the action promise.
-     */
-    private final AResolver<Object> resumeObserver = new AResolver<Object>() {
-        @Override
-        public void resolve(final Outcome<Object> resolution) throws Throwable {
-            if (queue.isEmpty()) {
-                running = false;
-            } else {
-                notifySuccess(queue.remove(), null);
-            }
-        }
-    };
+    private final Deque<AResolver<Void>> queue = new ArrayDeque<>();
     /**
      * If {@link #suspend()} operation is in progress, this a resolver aht awakes it.
      */
@@ -46,6 +32,16 @@ public final class RequestQueue {
      * If true, an action is currently running.
      */
     private boolean running;
+    /**
+     * The resume resolver for the action promise.
+     */
+    private final AResolver<Object> resumeObserver = resolution -> {
+        if (queue.isEmpty()) {
+            running = false;
+        } else {
+            notifySuccess(queue.remove(), null);
+        }
+    };
 
     /**
      * Awake the {@link #suspend()} method.
@@ -64,7 +60,7 @@ public final class RequestQueue {
         if (suspendResolver != null) {
             throw new IllegalStateException("The suspend operation is already in the progress");
         }
-        final Promise<Void> rc = new Promise<Void>();
+        final Promise<Void> rc = new Promise<>();
         suspendResolver = rc.resolver();
         return rc;
     }
@@ -80,16 +76,13 @@ public final class RequestQueue {
         if (suspendResolver != null) {
             throw new IllegalStateException("The suspend operation is already in the progress");
         }
-        final Promise<Boolean> rc = new Promise<Boolean>();
+        final Promise<Boolean> rc = new Promise<>();
         final AResolver<Boolean> resolver = rc.resolver();
-        suspendResolver = new AResolver<Void>() {
-            @Override
-            public void resolve(final Outcome<Void> resolution) throws Throwable {
-                if (resolution.isSuccess()) {
-                    notifySuccess(resolver, true);
-                } else {
-                    notifyFailure(resolver, resolution.failure());
-                }
+        suspendResolver = resolution -> {
+            if (resolution.isSuccess()) {
+                notifySuccess(resolver, true);
+            } else {
+                notifyFailure(resolver, resolution.failure());
             }
         };
         return rc;
@@ -106,16 +99,13 @@ public final class RequestQueue {
         if (suspendResolver != null) {
             throw new IllegalStateException("The suspend operation is already in the progress");
         }
-        final Promise<Maybe<T>> rc = new Promise<Maybe<T>>();
+        final Promise<Maybe<T>> rc = new Promise<>();
         final AResolver<Maybe<T>> resolver = rc.resolver();
-        suspendResolver = new AResolver<Void>() {
-            @Override
-            public void resolve(final Outcome<Void> resolution) throws Throwable {
-                if (resolution.isSuccess()) {
-                    notifySuccess(resolver, Maybe.<T>empty());
-                } else {
-                    notifyFailure(resolver, resolution.failure());
-                }
+        suspendResolver = resolution -> {
+            if (resolution.isSuccess()) {
+                notifySuccess(resolver, Maybe.<T>empty());
+            } else {
+                notifyFailure(resolver, resolution.failure());
             }
         };
         return rc;
@@ -130,7 +120,7 @@ public final class RequestQueue {
      */
     public <T> Promise<T> run(final ACallable<T> body) {
         if (running) {
-            final Promise<Void> blocker = new Promise<Void>();
+            final Promise<Void> blocker = new Promise<>();
             queue.addLast(blocker.resolver());
             return blocker.thenDo(body).observe(resumeObserver);
         } else {
@@ -147,12 +137,7 @@ public final class RequestQueue {
      * @return the promise that resolve when loop finishes.
      */
     public Promise<Void> runSeqLoopFair(final ACallable<Boolean> body) {
-        return run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoopFair(body);
-            }
-        });
+        return run(() -> aSeqLoopFair(body));
     }
 
     /**
@@ -164,12 +149,7 @@ public final class RequestQueue {
      * @return the promise that resolve when loop finishes.
      */
     public <T> Promise<T> runSeqMaybeLoopFair(final ACallable<Maybe<T>> body) {
-        return run(new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                return aSeqMaybeLoopFair(body);
-            }
-        });
+        return run(() -> aSeqMaybeLoopFair(body));
     }
 
     /**
@@ -180,12 +160,7 @@ public final class RequestQueue {
      * @return the promise that resolve when loop finishes.
      */
     public Promise<Void> runSeqLoop(final ACallable<Boolean> body) {
-        return run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoop(body);
-            }
-        });
+        return run(() -> aSeqLoop(body));
     }
 
     /**
@@ -197,12 +172,7 @@ public final class RequestQueue {
      * @return the promise that resolve when loop finishes.
      */
     public <T> Promise<T> runSeqMaybeLoop(final ACallable<Maybe<T>> body) {
-        return run(new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                return aSeqMaybeLoop(body);
-            }
-        });
+        return run(() -> aSeqMaybeLoop(body));
     }
 
 }

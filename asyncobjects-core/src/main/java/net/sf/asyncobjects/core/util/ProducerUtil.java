@@ -2,6 +2,7 @@ package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
+import net.sf.asyncobjects.core.AsyncControl;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 
@@ -18,13 +19,7 @@ public final class ProducerUtil {
     /**
      * The wrapper into {@link net.sf.asyncobjects.core.data.Maybe}.
      */
-    private static final AFunction<Maybe<Object>, Object> OPTIONAL_WRAPPER
-            = new AFunction<Maybe<Object>, Object>() {
-        @Override
-        public Promise<Maybe<Object>> apply(final Object value) throws Throwable {
-            return aMaybeValue(value);
-        }
-    };
+    private static final AFunction<Maybe<Object>, Object> OPTIONAL_WRAPPER = AsyncControl::aMaybeValue;
 
     /**
      * The private constructor for utility class.
@@ -55,14 +50,11 @@ public final class ProducerUtil {
      * @return a created producer
      */
     public static <T> ACallable<Maybe<T>> fromIterator(final Iterator<T> iterator) {
-        return new ACallable<Maybe<T>>() {
-            @Override
-            public Promise<Maybe<T>> call() throws Throwable {
-                if (iterator.hasNext()) {
-                    return aMaybeValue(iterator.next());
-                } else {
-                    return aMaybeEmpty();
-                }
+        return () -> {
+            if (iterator.hasNext()) {
+                return aMaybeValue(iterator.next());
+            } else {
+                return aMaybeEmpty();
             }
         };
     }
@@ -80,7 +72,7 @@ public final class ProducerUtil {
             private int current = start;
 
             @Override
-            public Promise<Maybe<Integer>> call() throws Throwable {
+            public Promise<Maybe<Integer>> call() throws Exception {
                 if (current <= end) {
                     return aMaybeValue(current++);
                 } else {
@@ -102,12 +94,7 @@ public final class ProducerUtil {
     public static <B, A> ACallable<Maybe<B>> mapProducer(final ACallable<Maybe<A>> producer,
                                                          final AFunction<B, A> mapper) {
         final AFunction<Maybe<B>, Maybe<A>> optionalMapper = toProducerMapper(mapper);
-        return new ACallable<Maybe<B>>() {
-            @Override
-            public Promise<Maybe<B>> call() throws Throwable {
-                return producer.call().map(optionalMapper);
-            }
-        };
+        return () -> producer.call().map(optionalMapper);
     }
 
     /**
@@ -119,14 +106,11 @@ public final class ProducerUtil {
      * @return the producer mapper
      */
     public static <B, A> AFunction<Maybe<B>, Maybe<A>> toProducerMapper(final AFunction<B, A> mapper) {
-        return new AFunction<Maybe<B>, Maybe<A>>() {
-            @Override
-            public Promise<Maybe<B>> apply(final Maybe<A> value) throws Throwable {
-                if (value.isEmpty()) {
-                    return aMaybeEmpty();
-                } else {
-                    return mapper.apply(value.value()).map(ProducerUtil.<B>optionalValueWrapper());
-                }
+        return value -> {
+            if (value.isEmpty()) {
+                return aMaybeEmpty();
+            } else {
+                return mapper.apply(value.value()).map(ProducerUtil.<B>optionalValueWrapper());
             }
         };
     }

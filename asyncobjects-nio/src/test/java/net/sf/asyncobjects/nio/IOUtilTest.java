@@ -1,7 +1,5 @@
 package net.sf.asyncobjects.nio;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.nio.adapters.Adapters;
 import org.junit.Test;
 
@@ -18,17 +16,10 @@ public class IOUtilTest {
     @Test
     public void testDiscard() {
         final String sample = "Test String";
-        final Long value = doAsync(new ACallable<Long>() {
-            @Override
-            public Promise<Long> call() throws Throwable {
-                return assertEqualsAsync((long) sample.length(), new ACallable<Long>() {
-                    @Override
-                    public Promise<Long> call() throws Throwable {
-                        return IOUtil.CHAR.discard(Adapters.getStringInput(sample), CharBuffer.allocate(2));
-                    }
-                });
-            }
-        });
+        final Long value = doAsync(() -> assertEqualsAsync((long) sample.length(),
+                        () -> IOUtil.CHAR.discard(Adapters.getStringInput(sample), CharBuffer.allocate(2))
+                )
+        );
         assertEquals(sample.length(), value.longValue());
     }
 }

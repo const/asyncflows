@@ -11,45 +11,22 @@ import static org.junit.Assert.fail;
 public class AsyncControlTest {
     @Test
     public void testSimple() {
-        final int rc = doAsync(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable {
-                return aValue(42);
-            }
-        });
+        final int rc = doAsync(() -> aValue(42));
         assertEquals(42, rc);
     }
 
     @Test
     public void testSimpleLater() {
-        final int rc = doAsync(new ACallable<Integer>() {
-            @Override
-            public Promise<Integer> call() throws Throwable {
-                return aLater(new ACallable<Integer>() {
-                    @Override
-                    public Promise<Integer> call() throws Throwable {
-                        return aValue(42);
-                    }
-                });
-            }
-        });
+        final int rc = doAsync(() -> aLater(() -> aValue(42)));
         assertEquals(42, rc);
     }
 
     @Test
     public void testThrowLater() {
         try {
-            doAsync(new ACallable<Integer>() {
-                @Override
-                public Promise<Integer> call() throws Throwable {
-                    return aLater(new ACallable<Integer>() {
-                        @Override
-                        public Promise<Integer> call() throws Throwable {
-                            throw new IllegalStateException("Test");
-                        }
-                    });
-                }
-            });
+            doAsync(() -> aLater(() -> {
+                throw new IllegalStateException("Test");
+            }));
             fail("the doAsync should throw an exception!");
         } catch (IllegalStateException ex) {
             assertEquals("Test", ex.getMessage());

@@ -2,7 +2,6 @@ package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.CloseableInvalidatingBase;
@@ -16,18 +15,16 @@ import static net.sf.asyncobjects.core.AsyncControl.aFailure;
  * @param <A> the element type
  */
 public abstract class StreamBase<A> extends CloseableInvalidatingBase implements AStream<A>, ExportsSelf<AStream<A>> {
+
     /**
      * The observer for the stream outcome.
      */
-    private final AResolver<Maybe<A>> streamOutcomeObserver = new AResolver<Maybe<A>>() {
-        @Override
-        public void resolve(final Outcome<Maybe<A>> resolution) throws Throwable {
-            if (!resolution.isSuccess()) {
-                invalidate(resolution.failure());
-                startClosing();
-            } else if (resolution.value() != null && resolution.value().isEmpty()) {
-                startClosing();
-            }
+    private final AResolver<Maybe<A>> streamOutcomeObserver = resolution -> {
+        if (!resolution.isSuccess()) {
+            invalidate(resolution.failure());
+            startClosing();
+        } else if (resolution.value() != null && resolution.value().isEmpty()) {
+            startClosing();
         }
     };
 

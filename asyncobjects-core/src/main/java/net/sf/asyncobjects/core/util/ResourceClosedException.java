@@ -1,7 +1,7 @@
 package net.sf.asyncobjects.core.util;
 
 /**
- * The promise fails with this exception when stream is alredy closed.
+ * The promise fails with this exception when stream is already closed.
  */
 public class ResourceClosedException extends RuntimeException {
 

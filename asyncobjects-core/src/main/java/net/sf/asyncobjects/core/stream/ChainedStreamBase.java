@@ -2,7 +2,6 @@ package net.sf.asyncobjects.core.stream;
 
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.ACloseable;
@@ -22,15 +21,12 @@ public abstract class ChainedStreamBase<O, I extends ACloseable>
     /**
      * The observer for the stream outcome.
      */
-    private final AResolver<Maybe<O>> streamOutcomeObserver = new AResolver<Maybe<O>>() {
-        @Override
-        public void resolve(final Outcome<Maybe<O>> resolution) throws Throwable {
-            if (!resolution.isSuccess()) {
-                invalidate(resolution.failure());
-                startClosing();
-            } else if (resolution.value() != null && resolution.value().isEmpty()) {
-                startClosing();
-            }
+    private final AResolver<Maybe<O>> streamOutcomeObserver = resolution -> {
+        if (!resolution.isSuccess()) {
+            invalidate(resolution.failure());
+            startClosing();
+        } else if (resolution.value() != null && resolution.value().isEmpty()) {
+            startClosing();
         }
     };
 

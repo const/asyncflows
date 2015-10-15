@@ -10,6 +10,7 @@ import net.sf.asyncobjects.core.Promise;
  * @param <B> the second argument type
  * @param <C> the third argument type
  */
+@FunctionalInterface
 public interface AFunction3<R, A, B, C> {
     /**
      * The apply operation.
@@ -18,7 +19,7 @@ public interface AFunction3<R, A, B, C> {
      * @param value2 the second argument
      * @param value3 the third argument
      * @return the result
-     * @throws Throwable in case of any problem
+     * @throws Exception in case of any problem
      */
-    Promise<R> apply(A value1, B value2, C value3) throws Throwable;
+    Promise<R> apply(A value1, B value2, C value3) throws Exception;
 }

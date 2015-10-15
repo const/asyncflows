@@ -1,9 +1,7 @@
 package net.sf.asyncobjects.nio.net.selector;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.data.Maybe;
 import net.sf.asyncobjects.core.util.CloseableBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -130,15 +128,12 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
             throw new IllegalArgumentException("Empty datagrams are not supported "
                     + "(it is impossible to distinguish not sent and empty)!");
         }
-        return sends.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                final int write = datagramChannel.write(buffer);
-                if (write != 0) {
-                    return aFalse();
-                }
-                return channelContext.waitForWrite();
+        return sends.runSeqLoop(() -> {
+            final int write = datagramChannel.write(buffer);
+            if (write != 0) {
+                return aFalse();
             }
+            return channelContext.waitForWrite();
         });
     }
 
@@ -148,35 +143,29 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
             throw new IllegalArgumentException("Empty datagrams are not supported "
                     + "(it is impossible to distinguish not sent and empty)!");
         }
-        return sends.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                final int write = datagramChannel.send(buffer, address);
-                if (write != 0) {
-                    return aFalse();
-                }
-                return channelContext.waitForWrite();
+        return sends.runSeqLoop(() -> {
+            final int write = datagramChannel.send(buffer, address);
+            if (write != 0) {
+                return aFalse();
             }
+            return channelContext.waitForWrite();
         });
     }
 
     @Override
     public Promise<SocketAddress> receive(final ByteBuffer buffer) {
         final int[] count = new int[1];
-        return receives.runSeqMaybeLoop(new ACallable<Maybe<SocketAddress>>() {
-            @Override
-            public Promise<Maybe<SocketAddress>> call() throws Throwable {
-                final SocketAddress address = datagramChannel.receive(buffer);
-                if (address != null) {
-                    return aMaybeValue(address);
-                } else {
-                    count[0]++;
-                    if (count[0] >= BROKEN_SELECT_LIMIT) {
-                        count[0] = 0;
-                        channelContext.changeSelector();
-                    }
-                    return channelContext.waitForRead();
+        return receives.runSeqMaybeLoop(() -> {
+            final SocketAddress address = datagramChannel.receive(buffer);
+            if (address != null) {
+                return aMaybeValue(address);
+            } else {
+                count[0]++;
+                if (count[0] >= BROKEN_SELECT_LIMIT) {
+                    count[0] = 0;
+                    channelContext.changeSelector();
                 }
+                return channelContext.waitForRead();
             }
         });
     }
@@ -188,6 +177,8 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, E
             return super.closeAction();
         } catch (IOException e) {
             return aFailure(e);
+        } finally {
+            channelContext.close();
         }
     }
 

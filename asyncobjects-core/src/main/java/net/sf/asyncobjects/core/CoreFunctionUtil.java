@@ -3,10 +3,7 @@ package net.sf.asyncobjects.core;
 import net.sf.asyncobjects.core.data.Maybe;
 
 import static net.sf.asyncobjects.core.AsyncControl.aFailure;
-import static net.sf.asyncobjects.core.AsyncControl.aFalse;
-import static net.sf.asyncobjects.core.AsyncControl.aMaybeValue;
 import static net.sf.asyncobjects.core.AsyncControl.aNow;
-import static net.sf.asyncobjects.core.AsyncControl.aTrue;
 import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.AsyncControl.aVoid;
 
@@ -17,48 +14,29 @@ public final class CoreFunctionUtil {
     /**
      * The identity function.
      */
-    private static final AFunction<Object, Object> IDENTITY = new AFunction<Object, Object>() {
-        @Override
-        public Promise<Object> apply(final Object value) throws Throwable {
-            return aValue(value);
-        }
-    };
+    private static final AFunction<Object, Object> IDENTITY = AsyncControl::aValue;
     /**
      * True callable.
      */
-    private static final ACallable<Boolean> TRUE_CALLABLE = new ACallable<Boolean>() {
-        @Override
-        public Promise<Boolean> call() throws Throwable {
-            return aTrue();
-        }
-    };
+    private static final ACallable<Boolean> TRUE_CALLABLE = AsyncControl::aTrue;
     /**
      * The false callable.
      */
-    private static final ACallable<Boolean> FALSE_CALLABLE = new ACallable<Boolean>() {
-        @Override
-        public Promise<Boolean> call() throws Throwable {
-            return aFalse();
-        }
-    };
+    private static final ACallable<Boolean> FALSE_CALLABLE = AsyncControl::aFalse;
     /**
      * The function that transfers everything to void.
      */
-    private static final AFunction<Void, ?> VOID_MAPPER = new AFunction<Void, Object>() {
-        @Override
-        public Promise<Void> apply(final Object value) throws Throwable {
-            return aVoid();
-        }
-    };
+    private static final AFunction<Void, ?> VOID_MAPPER = value -> aVoid();
     /**
      * The function that transfers everything to maybe.
      */
-    private static final AFunction<Maybe<Object>, Object> MAYBE_MAPPER = new AFunction<Maybe<Object>, Object>() {
-        @Override
-        public Promise<Maybe<Object>> apply(final Object value) throws Throwable {
-            return aMaybeValue(value);
-        }
-    };
+    private static final AFunction<Maybe<Object>, Object> MAYBE_MAPPER = AsyncControl::aMaybeValue;
+
+
+    /**
+     * The function that transfers everything to maybe.
+     */
+    private static final AFunction<Object, Maybe<Object>> UN_MAYBE_MAPPER = value -> aValue(value.value());
 
     /**
      * Private constructor for utility class.
@@ -76,12 +54,7 @@ public final class CoreFunctionUtil {
      * @return the callable
      */
     public static <I, O> ACallable<O> mapCallable(final ACallable<I> source, final AFunction<O, I> mapper) {
-        return new ACallable<O>() {
-            @Override
-            public Promise<O> call() throws Throwable {
-                return aNow(source).map(mapper);
-            }
-        };
+        return () -> aNow(source).map(mapper);
     }
 
     /**
@@ -113,12 +86,7 @@ public final class CoreFunctionUtil {
      * @return the combined funtion
      */
     public static <I, T, O> AFunction<O, I> chain(final AFunction<T, I> function1, final AFunction<O, T> function2) {
-        return new AFunction<O, I>() {
-            @Override
-            public Promise<O> apply(final I value) throws Throwable {
-                return evaluate(value, function1).map(function2);
-            }
-        };
+        return value -> evaluate(value, function1).map(function2);
     }
 
     /**
@@ -154,7 +122,7 @@ public final class CoreFunctionUtil {
     }
 
     /**
-     * Create identity function.
+     * The mapper to maybe value.
      *
      * @param <I> the function type
      * @return the identity function
@@ -165,6 +133,17 @@ public final class CoreFunctionUtil {
     }
 
     /**
+     * The mapper from maybe to the value.
+     *
+     * @param <I> the function type
+     * @return the identity function
+     */
+    @SuppressWarnings("unchecked")
+    public static <I> AFunction<I, Maybe<I>> unMaybeMapper() {
+        return (AFunction<I, Maybe<I>>) (Object) UN_MAYBE_MAPPER;
+    }
+
+    /**
      * The callable that always return the same value.
      *
      * @param value the value to return
@@ -172,13 +151,7 @@ public final class CoreFunctionUtil {
      * @return the callable instance
      */
     public static <T> ACallable<T> constantCallable(final T value) {
-        final Promise<T> rc = aValue(value);
-        return new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                return rc;
-            }
-        };
+        return promiseCallable(aValue(value));
     }
 
     /**
@@ -189,12 +162,7 @@ public final class CoreFunctionUtil {
      * @return the callable instance
      */
     public static <T> ACallable<T> promiseCallable(final Promise<T> promise) {
-        return new ACallable<T>() {
-            @Override
-            public Promise<T> call() throws Throwable {
-                return promise;
-            }
-        };
+        return () -> promise;
     }
 
     /**
@@ -206,12 +174,7 @@ public final class CoreFunctionUtil {
      * @return the one argument function
      */
     public static <B, A> AFunction<B, A> discardArgument(final ACallable<B> callable) {
-        return new AFunction<B, A>() {
-            @Override
-            public Promise<B> apply(final A value) throws Throwable {
-                return aNow(callable);
-            }
-        };
+        return value -> aNow(callable);
     }
 
     /**

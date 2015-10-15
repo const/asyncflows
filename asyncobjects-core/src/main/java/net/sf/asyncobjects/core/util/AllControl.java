@@ -1,9 +1,7 @@
 package net.sf.asyncobjects.core.util;
 
 import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.data.Tuple3;
@@ -26,7 +24,7 @@ public final class AllControl {
     /**
      * The all operator. It allows to start two or more activities in interleaving way. The activities could finish
      * with different types.
-     * <p/>
+     * <p>
      * <pre>{@code
      * aAll(new ACallable<String>() {
      *   public Promise<String> call() throws Throwable {
@@ -47,7 +45,7 @@ public final class AllControl {
      * @return the builder for the all operator
      */
     public static <T> AllBuilder<T> aAll(final ACallable<T> start) {
-        return new AllBuilder<T>(start);
+        return new AllBuilder<>(start);
     }
 
     /**
@@ -78,7 +76,7 @@ public final class AllControl {
          * @return the builder for the tuple
          */
         public <T2> AllBuilder2<T1, T2> and(final ACallable<T2> otherAction) {
-            return new AllBuilder2<T1, T2>(action, otherAction);
+            return new AllBuilder2<>(action, otherAction);
         }
 
         /**
@@ -125,25 +123,17 @@ public final class AllControl {
             public Promise<Tuple2<T1, T2>> finish() {
                 final Promise<T1> p1 = aNow(action1);
                 final Promise<T2> p2 = aNow(action2);
-                final Promise<Tuple2<T1, T2>> rc = new Promise<Tuple2<T1, T2>>();
+                final Promise<Tuple2<T1, T2>> rc = new Promise<>();
                 final AResolver<Tuple2<T1, T2>> resolver = rc.resolver();
-                p1.listen(new AResolver<T1>() {
-                    @Override
-                    public void resolve(final Outcome<T1> resolution1) throws Throwable {
-                        p2.listen(new AResolver<T2>() {
-                            @Override
-                            public void resolve(final Outcome<T2> resolution2) throws Throwable {
-                                if (!resolution1.isSuccess()) {
-                                    notifyFailure(resolver, resolution1.failure());
-                                } else if (!resolution2.isSuccess()) {
-                                    notifyFailure(resolver, resolution2.failure());
-                                } else {
-                                    notifySuccess(resolver, Tuple2.of(resolution1.value(), resolution2.value()));
-                                }
-                            }
-                        });
+                p1.listen(resolution1 -> p2.listen(resolution2 -> {
+                    if (!resolution1.isSuccess()) {
+                        notifyFailure(resolver, resolution1.failure());
+                    } else if (!resolution2.isSuccess()) {
+                        notifyFailure(resolver, resolution2.failure());
+                    } else {
+                        notifySuccess(resolver, Tuple2.of(resolution1.value(), resolution2.value()));
                     }
-                });
+                }));
                 return rc;
             }
 
@@ -155,7 +145,7 @@ public final class AllControl {
              * @return the builder for the tuple
              */
             public <T3> AllBuilder3<T1, T2, T3> and(final ACallable<T3> otherAction) {
-                return new AllBuilder3<T1, T2, T3>(action1, action2, otherAction);
+                return new AllBuilder3<>(action1, action2, otherAction);
             }
 
             /**
@@ -173,24 +163,14 @@ public final class AllControl {
              * @return the value of the first branch (ignore all others)
              */
             public Promise<T1> selectValue1() {
-                return finish().map(new AFunction<T1, Tuple2<T1, T2>>() {
-                    @Override
-                    public Promise<T1> apply(final Tuple2<T1, T2> value) throws Throwable {
-                        return aValue(value.getValue1());
-                    }
-                });
+                return finish().map(value -> aValue(value.getValue1()));
             }
 
             /**
              * @return the value of the second branch (ignore all others)
              */
             public Promise<T2> selectValue2() {
-                return finish().map(new AFunction<T2, Tuple2<T1, T2>>() {
-                    @Override
-                    public Promise<T2> apply(final Tuple2<T1, T2> value) throws Throwable {
-                        return aValue(value.getValue2());
-                    }
-                });
+                return finish().map(value -> aValue(value.getValue2()));
             }
 
             /**
@@ -248,33 +228,20 @@ public final class AllControl {
                 final Promise<T1> p1 = aNow(action1);
                 final Promise<T2> p2 = aNow(action2);
                 final Promise<T3> p3 = aNow(action3);
-                final Promise<Tuple3<T1, T2, T3>> rc = new Promise<Tuple3<T1, T2, T3>>();
+                final Promise<Tuple3<T1, T2, T3>> rc = new Promise<>();
                 final AResolver<Tuple3<T1, T2, T3>> resolver = rc.resolver();
-                p1.listen(new AResolver<T1>() {
-                    @Override
-                    public void resolve(final Outcome<T1> resolution1) throws Throwable {
-                        p2.listen(new AResolver<T2>() {
-                            @Override
-                            public void resolve(final Outcome<T2> resolution2) throws Throwable {
-                                p3.listen(new AResolver<T3>() {
-                                    @Override
-                                    public void resolve(final Outcome<T3> resolution3) throws Throwable {
-                                        if (!resolution1.isSuccess()) {
-                                            notifyFailure(resolver, resolution1.failure());
-                                        } else if (!resolution2.isSuccess()) {
-                                            notifyFailure(resolver, resolution2.failure());
-                                        } else if (!resolution3.isSuccess()) {
-                                            notifyFailure(resolver, resolution3.failure());
-                                        } else {
-                                            notifySuccess(resolver, new Tuple3<T1, T2, T3>(resolution1.value(),
-                                                    resolution2.value(), resolution3.value()));
-                                        }
-                                    }
-                                });
-                            }
-                        });
+                p1.listen(resolution1 -> p2.listen(resolution2 -> p3.listen(resolution3 -> {
+                    if (!resolution1.isSuccess()) {
+                        notifyFailure(resolver, resolution1.failure());
+                    } else if (!resolution2.isSuccess()) {
+                        notifyFailure(resolver, resolution2.failure());
+                    } else if (!resolution3.isSuccess()) {
+                        notifyFailure(resolver, resolution3.failure());
+                    } else {
+                        notifySuccess(resolver, new Tuple3<>(resolution1.value(),
+                                resolution2.value(), resolution3.value()));
                     }
-                });
+                })));
                 return rc;
             }
 
@@ -293,36 +260,21 @@ public final class AllControl {
              * @return the value of the first branch (ignore all others)
              */
             public Promise<T1> selectValue1() {
-                return finish().map(new AFunction<T1, Tuple3<T1, T2, T3>>() {
-                    @Override
-                    public Promise<T1> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aValue(value.getValue1());
-                    }
-                });
+                return finish().map(value -> aValue(value.getValue1()));
             }
 
             /**
              * @return the value of the second branch (ignore all others)
              */
             public Promise<T2> selectValue2() {
-                return finish().map(new AFunction<T2, Tuple3<T1, T2, T3>>() {
-                    @Override
-                    public Promise<T2> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aValue(value.getValue2());
-                    }
-                });
+                return finish().map(value -> aValue(value.getValue2()));
             }
 
             /**
              * @return the value of the third branch (ignore all others)
              */
             public Promise<T3> selectValue3() {
-                return finish().map(new AFunction<T3, Tuple3<T1, T2, T3>>() {
-                    @Override
-                    public Promise<T3> apply(final Tuple3<T1, T2, T3> value) throws Throwable {
-                        return aValue(value.getValue3());
-                    }
-                });
+                return finish().map(value -> aValue(value.getValue3()));
             }
 
         }

@@ -13,12 +13,9 @@ public class SingleThreadVatTest {
     public void testSimple() {
         final Cell<Vat> result = new Cell<Vat>();
         final SingleThreadVat vat = new SingleThreadVat(null);
-        vat.execute(vat, new Runnable() {
-            @Override
-            public void run() {
-                result.setValue(Vat.current());
-                vat.stop(null);
-            }
+        vat.execute(vat, () -> {
+            result.setValue(Vat.current());
+            vat.stop(null);
         });
         vat.runInCurrentThread();
         assertSame(vat, result.getValue());

@@ -18,7 +18,7 @@ public abstract class SinkBase<A> extends CloseableInvalidatingBase implements A
     /**
      * The finished promise.
      */
-    private final Promise<Void> finished = new Promise<Void>();
+    private final Promise<Void> finished = new Promise<>();
 
     @Override
     public Promise<Void> fail(final Throwable error) {

@@ -28,6 +28,19 @@ public final class Tuple2<T1, T2> {
     }
 
     /**
+     * Make tuple.
+     *
+     * @param value1 the first value
+     * @param value2 the second value
+     * @param <T1>   the first value type
+     * @param <T2>   the second value type
+     * @return the tuple
+     */
+    public static <T1, T2> Tuple2<T1, T2> of(final T1 value1, final T2 value2) {
+        return new Tuple2<>(value1, value2);
+    }
+
+    /**
      * @return the 1st value
      */
     public T2 getValue2() {
@@ -56,7 +69,7 @@ public final class Tuple2<T1, T2> {
             return false;
         }
         //noinspection RedundantIfStatement
-        if (value2 != null ? !value2.equals(tuple2.value2) : tuple2.value2 != null) {
+        if (value2 != null ? !value2.equals(tuple2.value2) : tuple2.value2 != null) { // NOPMD
             return false;
         }
 
@@ -73,23 +86,6 @@ public final class Tuple2<T1, T2> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("(");
-        sb.append(value1);
-        sb.append(", ").append(value2);
-        sb.append(')');
-        return sb.toString();
-    }
-
-    /**
-     * Make tuple.
-     *
-     * @param value1 the first value
-     * @param value2 the second value
-     * @param <T1>   the first value type
-     * @param <T2>   the second value type
-     * @return the tuple
-     */
-    public static <T1, T2> Tuple2<T1, T2> of(final T1 value1, final T2 value2) {
-        return new Tuple2<T1, T2>(value1, value2);
+        return "(" + value1 + ", " + value2 + ')';
     }
 }

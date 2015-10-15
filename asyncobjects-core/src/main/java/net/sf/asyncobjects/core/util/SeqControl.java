@@ -1,4 +1,4 @@
-package net.sf.asyncobjects.core.util;
+package net.sf.asyncobjects.core.util; // NOPMD
 
 import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
@@ -52,23 +52,18 @@ public final class SeqControl {
      * @return the promises that resolves when body fails or returns true
      */
     public static Promise<Void> aSeqLoopFair(final ACallable<Boolean> body) {
-        final Promise<Void> result = new Promise<Void>();
+        final Promise<Void> result = new Promise<>();
         final AResolver<Void> resolver = result.resolver();
         final Vat vat = Vat.current();
         ResolverUtil.notifySuccess(new AResolver<Boolean>() {
             private final AResolver<Boolean> self = this;
 
             @Override
-            public void resolve(final Outcome<Boolean> resolution) throws Throwable {
+            public void resolve(final Outcome<Boolean> resolution) throws Exception {
                 try {
                     if (resolution.isSuccess()) {
                         if (resolution.value()) {
-                            vat.execute(vat, new Runnable() {
-                                @Override
-                                public void run() {
-                                    aNow(body).listen(self);
-                                }
-                            });
+                            vat.execute(vat, () -> aNow(body).listen(self));
                         } else {
                             ResolverUtil.notifySuccess(resolver, null);
                         }
@@ -93,15 +88,12 @@ public final class SeqControl {
      */
     public static <T> Promise<Void> aSeqForUnit(final Iterable<T> iterable, final AFunction<Boolean, T> body) {
         final Iterator<T> iterator = iterable.iterator();
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (!iterator.hasNext()) {
-                    return aFalse();
-                }
-                final T next = iterator.next();
-                return body.apply(next);
+        return aSeqLoop(() -> {
+            if (!iterator.hasNext()) {
+                return aFalse();
             }
+            final T next = iterator.next();
+            return body.apply(next);
         });
     }
 
@@ -115,15 +107,12 @@ public final class SeqControl {
      */
     public static <T> Promise<Void> aSeqForUnitFair(final Iterable<T> iterable, final AFunction<Boolean, T> body) {
         final Iterator<T> iterator = iterable.iterator();
-        return aSeqLoopFair(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (!iterator.hasNext()) {
-                    return aFalse();
-                }
-                final T next = iterator.next();
-                return body.apply(next);
+        return aSeqLoopFair(() -> {
+            if (!iterator.hasNext()) {
+                return aFalse();
             }
+            final T next = iterator.next();
+            return body.apply(next);
         });
     }
 
@@ -139,13 +128,13 @@ public final class SeqControl {
      * @return the promises that resolves when body fails or returns true
      */
     public static Promise<Void> aSeqLoop(final ACallable<Boolean> body) { // NOPMD
-        final Promise<Void> result = new Promise<Void>();
+        final Promise<Void> result = new Promise<>();
         final AResolver<Void> resolver = result.resolver();
-        final Cell<Promise<Void>> adjustedResult = new Cell<Promise<Void>>();
+        final Cell<Promise<Void>> adjustedResult = new Cell<>();
         ResolverUtil.notifySuccess(new AResolver<Boolean>() { // NOPMD
 
             @Override
-            public void resolve(final Outcome<Boolean> resolution) throws Throwable {
+            public void resolve(final Outcome<Boolean> resolution) throws Exception {
                 try {
                     Promise<Boolean> last = null;
                     Outcome<Boolean> outcome = resolution;
@@ -220,23 +209,18 @@ public final class SeqControl {
      * @return the promises that resolves when body fails or returns non-empty value
      */
     public static <A> Promise<A> aSeqMaybeLoopFair(final ACallable<Maybe<A>> body) {
-        final Promise<A> result = new Promise<A>();
+        final Promise<A> result = new Promise<>();
         final AResolver<A> resolver = result.resolver();
         final Vat vat = Vat.current();
         ResolverUtil.notifySuccess(new AResolver<Maybe<A>>() {
             private final AResolver<Maybe<A>> self = this;
 
             @Override
-            public void resolve(final Outcome<Maybe<A>> resolution) throws Throwable {
+            public void resolve(final Outcome<Maybe<A>> resolution) throws Exception {
                 try {
                     if (resolution.isSuccess()) {
                         if (resolution.value().isEmpty()) {
-                            vat.execute(vat, new Runnable() {
-                                @Override
-                                public void run() {
-                                    aNow(body).listen(self);
-                                }
-                            });
+                            vat.execute(vat, () -> aNow(body).listen(self));
                         } else {
                             ResolverUtil.notifySuccess(resolver, resolution.value().value());
                         }
@@ -259,28 +243,15 @@ public final class SeqControl {
      * @return the promises that resolves when body fails or returns non-empty value
      */
     public static <A> Promise<A> aSeqMaybeLoop(final ACallable<Maybe<A>> body) {
-        final Cell<A> result = new Cell<A>();
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                return body.call().map(new AFunction<Boolean, Maybe<A>>() {
-                    @Override
-                    public Promise<Boolean> apply(final Maybe<A> value) throws Throwable {
-                        if (value.hasValue()) {
-                            result.setValue(value.value());
-                            return aFalse();
-                        } else {
-                            return aTrue();
-                        }
-                    }
-                });
+        final Cell<A> result = new Cell<>();
+        return aSeqLoop(() -> body.call().map(value -> {
+            if (value.hasValue()) {
+                result.setValue(value.value());
+                return aFalse();
+            } else {
+                return aTrue();
             }
-        }).thenDo(new ACallable<A>() {
-            @Override
-            public Promise<A> call() throws Throwable {
-                return aValue(result.getValue());
-            }
-        });
+        })).thenDo(() -> aValue(result.getValue()));
     }
 
     /**
@@ -319,7 +290,7 @@ public final class SeqControl {
          * @return the sequence builder with next step
          */
         public <N> SeqBuilder<N> map(final AFunction<N, T> mapper) {
-            return new SeqBuilder<N>(mapCallable(action, mapper));
+            return new SeqBuilder<>(mapCallable(action, mapper));
         }
 
         /**
@@ -362,21 +333,13 @@ public final class SeqControl {
          * @return the builder
          */
         public SeqBuilder<T> failed(final AFunction<T, Throwable> catcher) {
-            return new SeqBuilder<T>(new ACallable<T>() {
-                @Override
-                public Promise<T> call() throws Throwable {
-                    return aNow(action).mapOutcome(new AFunction<T, Outcome<T>>() {
-                        @Override
-                        public Promise<T> apply(final Outcome<T> value) throws Throwable {
-                            if (value.isSuccess()) {
-                                return Promise.forOutcome(value);
-                            } else {
-                                return catcher.apply(value.failure());
-                            }
-                        }
-                    });
+            return new SeqBuilder<>(() -> aNow(action).mapOutcome(value -> {
+                if (value.isSuccess()) {
+                    return Promise.forOutcome(value);
+                } else {
+                    return catcher.apply(value.failure());
                 }
-            });
+            }));
         }
 
         /**
@@ -399,10 +362,10 @@ public final class SeqControl {
          * @return a promise for the sequence result
          */
         @SuppressWarnings("unchecked")
-        public Promise<T> finallyDo(final ACallable<?> finallyAction) {
+        public Promise<T> finallyDo(final ACallable<Void> finallyAction) {
             final Promise<T> current = aNow(action);
             if (current.isResolved()) {
-                final Promise<Object> promise = (Promise<Object>) aNow(finallyAction);
+                final Promise<Void> promise = aNow(finallyAction);
                 if (promise.isResolved()) {
                     if (promise.getOutcome().isSuccess() || !current.getOutcome().isSuccess()) {
                         return current;
@@ -410,36 +373,24 @@ public final class SeqControl {
                         return aFailure(promise.getOutcome().failure());
                     }
                 } else {
-                    return promise.mapOutcome(new AFunction<T, Outcome<Object>>() {
-                        @Override
-                        public Promise<T> apply(final Outcome<Object> value) throws Throwable {
-                            if (value.isSuccess() || !current.getOutcome().isSuccess()) {
-                                return current;
-                            } else {
-                                return aFailure(value.failure());
-                            }
+                    return promise.mapOutcome(value -> {
+                        if (value.isSuccess() || !current.getOutcome().isSuccess()) {
+                            return current;
+                        } else {
+                            return aFailure(value.failure());
                         }
                     });
                 }
             } else {
-                final Promise<T> rc = new Promise<T>();
+                final Promise<T> rc = new Promise<>();
                 final AResolver<T> resolver = rc.resolver();
-                current.listen(new AResolver<T>() {
-                    @Override
-                    public void resolve(final Outcome<T> resolution) throws Throwable {
-                        aNow(finallyAction).listen(new AResolver<Object>() {
-                            @Override
-                            public void resolve(final Outcome<Object> finallyResolution)
-                                    throws Throwable {
-                                if (!finallyResolution.isSuccess() && resolution.isSuccess()) {
-                                    notifyResolver(resolver, ((Failure<Object>) finallyResolution).<T>toOtherType());
-                                } else {
-                                    notifyResolver(resolver, resolution);
-                                }
-                            }
-                        });
+                current.listen(resolution -> aNow(finallyAction).listen(finallyResolution -> {
+                    if (finallyResolution.isFailure() && resolution.isSuccess()) {
+                        notifyResolver(resolver, ((Failure<Void>) finallyResolution).<T>toOtherType());
+                    } else {
+                        notifyResolver(resolver, resolution);
                     }
-                });
+                }));
                 return rc;
             }
         }

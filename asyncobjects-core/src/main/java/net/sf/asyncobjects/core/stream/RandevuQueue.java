@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
@@ -57,7 +56,7 @@ public final class RandevuQueue<T> {
      * @return the pair of the sink and stream
      */
     public static <T> Tuple2<ASink<T>, AStream<T>> local() {
-        final RandevuQueue<T> queue = new RandevuQueue<T>();
+        final RandevuQueue<T> queue = new RandevuQueue<>();
         return Tuple2.of((ASink<T>) queue.sink, (AStream<T>) queue.stream);
     }
 
@@ -68,14 +67,14 @@ public final class RandevuQueue<T> {
      * @return the pair of the sink and queue
      */
     public static <T> Tuple2<ASink<T>, AStream<T>> exported() {
-        final RandevuQueue<T> queue = new RandevuQueue<T>();
+        final RandevuQueue<T> queue = new RandevuQueue<>();
         return Tuple2.of(queue.sink.export(), queue.stream.export());
     }
 
     /**
      * This is a bit special sink implementation that provides a feed at the stream.
      */
-    private class RandevuSink extends CloseableInvalidatingBase implements ASink<T>, ExportsSelf<ASink<T>> {
+    private final class RandevuSink extends CloseableInvalidatingBase implements ASink<T>, ExportsSelf<ASink<T>> {
         /**
          * The request queue for the promise.
          */
@@ -83,51 +82,52 @@ public final class RandevuQueue<T> {
         /**
          * The finished promise.
          */
-        private final Promise<Void> finished = new Promise<Void>();
+        private final Promise<Void> finished = new Promise<>();
         /**
          * True if the sink is closed.
          */
         private boolean eof; // NOPMD
 
+        /**
+         * The constructor.
+         */
+        private RandevuSink() {
+            // do nothing
+        }
+
         @Override
         public Promise<Void> put(final T value) {
-            return requests.runSeqLoop(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    if (!isValid()) {
-                        return invalidationPromise();
-                    }
-                    if (stream.isClosed()) {
-                        // just discard a value
-                        return aFalse();
-                    }
-                    if (currentRequest != null) {
-                        notifySuccess(currentRequest, Maybe.value(value));
-                        currentRequest = null;
-                        return aFalse();
-                    }
-                    return requests.suspendThenTrue();
+            return requests.runSeqLoop(() -> {
+                if (!isValid()) {
+                    return invalidationPromise();
                 }
+                if (stream.isClosed()) {
+                    // just discard a value
+                    return aFalse();
+                }
+                if (currentRequest != null) {
+                    notifySuccess(currentRequest, Maybe.value(value));
+                    currentRequest = null;
+                    return aFalse();
+                }
+                return requests.suspendThenTrue();
             });
         }
 
         @Override
         public Promise<Void> fail(final Throwable error) {
-            return requests.run(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    final Throwable t = error == null ? new IllegalArgumentException("error cannot be null") : error;
-                    invalidate(t);
-                    if (finished.getState() == Promise.State.INITIAL) {
-                        notifyFailure(finished.resolver(), error);
-                    }
-                    problem = t;
-                    if (currentRequest != null) {
-                        notifyFailure(currentRequest, t);
-                        currentRequest = null;
-                    }
-                    return aVoid();
+            return requests.run(() -> {
+                final Throwable t = error == null ? new IllegalArgumentException("error cannot be null") : error;
+                invalidate(t);
+                if (finished.getState() == Promise.State.INITIAL) {
+                    notifyFailure(finished.resolver(), error);
                 }
+                problem = t;
+                if (currentRequest != null) {
+                    notifyFailure(currentRequest, t);
+                    currentRequest = null;
+                }
+                return aVoid();
             });
         }
 
@@ -138,16 +138,13 @@ public final class RandevuQueue<T> {
 
         @Override
         protected Promise<Void> closeAction() {
-            return requests.run(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    eof = true;
-                    if (currentRequest != null) {
-                        notifySuccess(currentRequest, Maybe.<T>empty());
-                        currentRequest = null;
-                    }
-                    return aVoid();
+            return requests.run(() -> {
+                eof = true;
+                if (currentRequest != null) {
+                    notifySuccess(currentRequest, Maybe.<T>empty());
+                    currentRequest = null;
                 }
+                return aVoid();
             });
         }
 
@@ -165,28 +162,32 @@ public final class RandevuQueue<T> {
     /**
      * The stream part of the randevu queue.
      */
-    private class RandevuStream extends StreamBase<T> {
+    private final class RandevuStream extends StreamBase<T> {
         /**
          * The request queue for stream.
          */
         private final RequestQueue requests = new RequestQueue();
 
+        /**
+         * The constructor.
+         */
+        private RandevuStream() {
+            // do nothing
+        }
+
         @Override
         protected Promise<Maybe<T>> produce() throws Throwable {
-            return requests.run(new ACallable<Maybe<T>>() {
-                @Override
-                public Promise<Maybe<T>> call() throws Throwable {
-                    if (problem != null) {
-                        return aFailure(problem);
-                    }
-                    if (sink.eof) {
-                        return aMaybeEmpty();
-                    }
-                    final Promise<Maybe<T>> promise = new Promise<Maybe<T>>();
-                    currentRequest = promise.resolver();
-                    sink.requests.resume();
-                    return promise;
+            return requests.run(() -> {
+                if (problem != null) {
+                    return aFailure(problem);
                 }
+                if (sink.eof) {
+                    return aMaybeEmpty();
+                }
+                final Promise<Maybe<T>> promise = new Promise<>();
+                currentRequest = promise.resolver();
+                sink.requests.resume();
+                return promise;
             });
         }
 

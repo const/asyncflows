@@ -54,32 +54,17 @@ public final class StreamExportUtil {
         return new ASink<T>() {
             @Override
             public Promise<Void> put(final T value) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return sink.put(value);
-                    }
-                });
+                return aLater(vat, () -> sink.put(value));
             }
 
             @Override
             public Promise<Void> fail(final Throwable error) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return sink.fail(error);
-                    }
-                });
+                return aLater(vat, () -> sink.fail(error));
             }
 
             @Override
             public Promise<Void> finished() {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return sink.finished();
-                    }
-                });
+                return aLater(vat, sink::finished);
             }
 
             @Override

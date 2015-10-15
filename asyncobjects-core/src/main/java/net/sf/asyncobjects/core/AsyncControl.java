@@ -132,17 +132,12 @@ public final class AsyncControl {
      * @return the result promise
      */
     public static <T> Promise<T> aLater(final Vat vat, final ACallable<T> body) {
-        final Promise<T> rc = new Promise<T>();
+        final Promise<T> rc = new Promise<>();
         final AResolver<T> resolver = rc.resolver();
         try {
-            vat.execute(new Runnable() {
-                @Override
-                public void run() {
-                    aNow(body).listen(resolver);
-                }
-            });
+            vat.execute(() -> aNow(body).listen(resolver));
         } catch (Throwable throwable) {
-            ResolverUtil.notifyResolver(resolver, new Failure<T>(throwable));
+            ResolverUtil.notifyResolver(resolver, new Failure<>(throwable));
         }
         return rc;
     }
@@ -155,18 +150,13 @@ public final class AsyncControl {
      * @return the result promise
      */
     public static <T> Promise<T> aLater(final ACallable<T> body) {
-        final Promise<T> rc = new Promise<T>();
+        final Promise<T> rc = new Promise<>();
         final AResolver<T> resolver = rc.resolver();
         try {
             final Vat vat = Vat.current();
-            vat.execute(vat, new Runnable() {
-                @Override
-                public void run() {
-                    aNow(body).listen(resolver);
-                }
-            });
+            vat.execute(vat, () -> aNow(body).listen(resolver));
         } catch (Throwable throwable) {
-            ResolverUtil.notifyResolver(resolver, new Failure<T>(throwable));
+            ResolverUtil.notifyResolver(resolver, new Failure<>(throwable));
         }
         return rc;
     }
@@ -198,19 +188,16 @@ public final class AsyncControl {
      * @return promise that resolves to the result of the execution
      */
     public static Promise<Void> aDaemonRun(final Runnable action) {
-        final Promise<Void> rc = new Promise<Void>();
+        final Promise<Void> rc = new Promise<>();
         final AResolver<Void> resolver = rc.resolver();
-        Vats.DAEMON_EXECUTOR.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    action.run();
-                } catch (Throwable t) {
-                    notifyFailure(resolver, t);
-                    return;
-                }
-                notifySuccess(resolver, null);
+        Vats.DAEMON_EXECUTOR.execute(() -> {
+            try {
+                action.run();
+            } catch (Throwable t) {
+                notifyFailure(resolver, t);
+                return;
             }
+            notifySuccess(resolver, null);
         });
         return rc;
     }
@@ -226,19 +213,11 @@ public final class AsyncControl {
     public static <T> T doAsyncThrowable(final ACallable<T> body) throws Throwable {
         final Object stopKey = new Object();
         final SingleThreadVat vat = new SingleThreadVat(stopKey);
-        final Cell<Outcome<T>> value = new Cell<Outcome<T>>();
-        vat.execute(vat, new Runnable() {
-            @Override
-            public void run() {
-                aNow(body).listen(new AResolver<T>() {
-                    @Override
-                    public void resolve(final Outcome<T> resolution) throws Throwable {
-                        value.setValue(resolution);
-                        vat.stop(stopKey);
-                    }
-                });
-            }
-        });
+        final Cell<Outcome<T>> value = new Cell<>();
+        vat.execute(vat, () -> aNow(body).listen(resolution -> {
+            value.setValue(resolution);
+            vat.stop(stopKey);
+        }));
         vat.runInCurrentThread();
         return value.getValue().force();
     }
@@ -253,14 +232,10 @@ public final class AsyncControl {
     public static <T> T doAsync(final ACallable<T> body) {
         try {
             return doAsyncThrowable(body);
+        } catch (Error | RuntimeException t) { // NOPMD
+            throw t;
         } catch (Throwable t) {
-            if (t instanceof Error) {
-                throw (Error) t;
-            } else if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            } else {
-                throw new UndeclaredThrowableException(t, "A checked exception is received");
-            }
+            throw new UndeclaredThrowableException(t, "A checked exception is received");
         }
     }
 

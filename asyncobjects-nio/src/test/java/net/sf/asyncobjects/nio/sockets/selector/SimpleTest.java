@@ -1,15 +1,9 @@
 package net.sf.asyncobjects.nio.sockets.selector;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.data.Tuple3;
-import net.sf.asyncobjects.core.util.AFunction3;
-import net.sf.asyncobjects.nio.AInput;
-import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.IOUtil;
-import net.sf.asyncobjects.nio.net.AServerSocket;
 import net.sf.asyncobjects.nio.net.ASocket;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
 import net.sf.asyncobjects.nio.net.blocking.BlockingSocketUtil;
@@ -23,14 +17,12 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static net.sf.asyncobjects.core.AsyncControl.aValue;
 import static net.sf.asyncobjects.core.CoreFunctionUtil.constantCallable;
 import static net.sf.asyncobjects.core.util.AllControl.aAll;
 import static net.sf.asyncobjects.core.util.ResourceUtil.aTry;
-import static net.sf.asyncobjects.core.util.SeqControl.aSeq;
 import static net.sf.asyncobjects.nio.net.SocketUtil.aTrySocket;
 import static net.sf.asyncobjects.nio.util.DigestingInput.digestAndDiscardInput;
-import static net.sf.asyncobjects.nio.util.DigestingOutput.digestOutput;
+import static net.sf.asyncobjects.nio.util.DigestingOutput.generateDigested;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -40,25 +32,17 @@ import static org.junit.Assert.assertEquals;
 public class SimpleTest {
     @Test
     public void testSelector() throws Throwable {
-        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.runThrowable(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, ASocketFactory>() {
-            @Override
-            public Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> apply(final ASocketFactory socketFactory) throws Throwable {
-                return checkSocketFactory(socketFactory);
-            }
-        });
+        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
+                SelectorVatUtil.runThrowable(this::checkSocketFactory);
         assertEquals(result.getValue1(), result.getValue2().getValue3());
         assertArrayEquals(result.getValue2().getValue1(), result.getValue2().getValue2());
     }
 
     @Test
-    @Ignore
+    @Ignore(value = "sometimes hangs")
     public void testBlocking() throws Throwable {
-        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = BlockingSocketUtil.runThrowable(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, ASocketFactory>() {
-            @Override
-            public Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> apply(final ASocketFactory socketFactory) throws Throwable {
-                return checkSocketFactory(socketFactory);
-            }
-        });
+        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
+                BlockingSocketUtil.runThrowable(this::checkSocketFactory);
         assertEquals(result.getValue1(), result.getValue2().getValue3());
         assertArrayEquals(result.getValue2().getValue1(), result.getValue2().getValue2());
     }
@@ -70,83 +54,48 @@ public class SimpleTest {
      * @return the test result (stream size from server, (output digest, input digest, length).
      */
     private Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> checkSocketFactory(final ASocketFactory socketFactory) {
-        return aTry(socketFactory.makeServerSocket()).run(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, AServerSocket>() {
-            @Override
-            public Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> apply(final AServerSocket serverSocket) throws Throwable {
-                return aSeq(new ACallable<SocketAddress>() {
-                    @Override
-                    public Promise<SocketAddress> call() throws Throwable {
-                        return serverSocket.bind(new InetSocketAddress(0));
-                    }
-                }).mapLast(new AFunction<Tuple2<Long, Tuple3<byte[], byte[], Long>>, SocketAddress>() {
-                    @Override
-                    public Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> apply(final SocketAddress socketAddress) throws Throwable {
-                        return aAll(new ACallable<Long>() {
-                            @Override
-                            public Promise<Long> call() throws Throwable {
-                                return aTrySocket(serverSocket.accept()).run(new AFunction3<Long, ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>>() {
-                                    @Override
-                                    public Promise<Long> apply(final ASocket socket, final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output) throws Throwable {
-                                        return IOUtil.BYTE.copy(input, output, false, ByteBuffer.allocate(1024));
-                                    }
-                                });
-                            }
-                        }).andLast(new ACallable<Tuple3<byte[], byte[], Long>>() {
-                            @Override
-                            public Promise<Tuple3<byte[], byte[], Long>> call() throws Throwable {
-                                return aTry(socketFactory.makeSocket()).run(new AFunction<Tuple3<byte[], byte[], Long>, ASocket>() {
-                                    @Override
-                                    public Promise<Tuple3<byte[], byte[], Long>> apply(final ASocket socket) throws Throwable {
-                                        final Random rnd = new Random();
-                                        final long length = rnd.nextInt(10240) + 1024;
-
-                                        final SocketAddress connectAddress = new InetSocketAddress("localhost", ((InetSocketAddress) socketAddress).getPort());
-                                        return socket.connect(connectAddress).thenDo(new ACallable<Tuple3<byte[], byte[], Long>>() {
-                                            @Override
-                                            public Promise<Tuple3<byte[], byte[], Long>> call() throws Throwable {
-                                                return aAll(new ACallable<byte[]>() {
-                                                    @Override
-                                                    public Promise<byte[]> call() throws Throwable {
-                                                        final Promise<byte[]> digest = new Promise<byte[]>();
-                                                        return aTry(new ACallable<AOutput<ByteBuffer>>() {
-                                                            @Override
-                                                            public Promise<AOutput<ByteBuffer>> call() throws Throwable {
-                                                                return socket.getOutput().map(new AFunction<AOutput<ByteBuffer>, AOutput<ByteBuffer>>() {
-                                                                    @Override
-                                                                    public Promise<AOutput<ByteBuffer>> apply(final AOutput<ByteBuffer> output) throws Throwable {
-                                                                        return aValue(digestOutput(output, digest.resolver()).md5());
-                                                                    }
-                                                                });
-                                                            }
-                                                        }).run(new AFunction<Void, AOutput<ByteBuffer>>() {
-                                                            @Override
-                                                            public Promise<Void> apply(final AOutput<ByteBuffer> output) throws Throwable {
-                                                                final byte[] data = new byte[(int) length];
-                                                                rnd.nextBytes(data);
-                                                                return output.write(ByteBuffer.wrap(data));
-                                                            }
-                                                        }).thenPromise(digest);
-                                                    }
-                                                }).and(new ACallable<byte[]>() {
-                                                    @Override
-                                                    public Promise<byte[]> call() throws Throwable {
-                                                        return aTry(socket.getInput()).run(new AFunction<byte[], AInput<ByteBuffer>>() {
-                                                            @Override
-                                                            public Promise<byte[]> apply(final AInput<ByteBuffer> value) throws Throwable {
-                                                                return digestAndDiscardInput(value, AbstractDigestingStream.MD5);
-                                                            }
-                                                        });
-                                                    }
-                                                }).andLast(constantCallable(length));
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        return aTry(socketFactory.makeServerSocket()).run(
+                serverSocket -> serverSocket.bind(new InetSocketAddress(0)).map(
+                        socketAddress -> aAll(
+                                () -> aTrySocket(serverSocket.accept()).run(
+                                        (socket, input, output) ->
+                                                IOUtil.BYTE.copy(input, output, false, ByteBuffer.allocate(1024)))
+                        ).andLast(
+                                () -> aTry(socketFactory.makeSocket()).run(
+                                        socket -> digestingClient(socket, socketAddress))
+                        )
+                )
+        );
     }
+
+    /**
+     * The digesting client for the specified socket address.
+     *
+     * @param socket        the socket
+     * @param socketAddress the socket address
+     * @return output digest, input digest, and length
+     */
+    private Promise<Tuple3<byte[], byte[], Long>> digestingClient(final ASocket socket,
+                                                                  final SocketAddress socketAddress) {
+        final Random rnd = new Random();
+        final long length = rnd.nextInt(10240) + 1024;
+
+        final SocketAddress connectAddress = new InetSocketAddress("localhost",
+                ((InetSocketAddress) socketAddress).getPort());
+        return socket.connect(connectAddress).thenDo(
+                () -> aAll(
+                        () -> generateDigested(socket.getOutput(),
+                                AbstractDigestingStream.MD5,
+                                output -> {
+                                    final byte[] data = new byte[(int) length];
+                                    rnd.nextBytes(data);
+                                    return output.write(ByteBuffer.wrap(data));
+                                })
+                ).and(
+                        () -> aTry(socket.getInput()).run(
+                                input -> digestAndDiscardInput(input, AbstractDigestingStream.MD5)
+                        )
+                ).andLast(constantCallable(length)));
+    }
+
 }

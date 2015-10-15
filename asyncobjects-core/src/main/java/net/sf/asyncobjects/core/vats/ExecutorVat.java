@@ -33,11 +33,6 @@ public final class ExecutorVat extends BatchedVat {
 
     @Override
     protected void schedule() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                runBatch();
-            }
-        });
+        executor.execute(() -> runBatch());
     }
 }

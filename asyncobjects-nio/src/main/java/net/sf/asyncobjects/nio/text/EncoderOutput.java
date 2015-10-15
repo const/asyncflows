@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio.text;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.ChainedClosable;
@@ -94,8 +93,7 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
      */
     public static AOutput<CharBuffer> encode(final AOutput<ByteBuffer> output, final CharsetEncoder encoder,
                                              final int bufferSize) {
-        final CharBuffer chars = CharBuffer.allocate(bufferSize);
-        chars.limit(0);
+        final CharBuffer chars = IOUtil.CHAR.writeBuffer(bufferSize);
         final ByteBuffer bytes = ByteBuffer.allocate((int) (bufferSize * encoder.averageBytesPerChar()) + BUFFER_PAD);
         return encode(output, encoder, bytes, chars);
     }
@@ -138,29 +136,23 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
 
     @Override
     public Promise<Void> write(final CharBuffer buffer) {
-        return requests.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                BufferOperations.CHAR.append(chars, buffer);
-                if (!buffer.hasRemaining()) {
-                    return aFalse();
-                } else {
-                    final CoderResult result = encoder.encode(chars, bytes, false);
-                    if (result.isUnderflow()) {
+        return requests.runSeqLoop(() -> {
+            BufferOperations.CHAR.append(chars, buffer);
+            if (!buffer.hasRemaining()) {
+                return aFalse();
+            } else {
+                final CoderResult result = encoder.encode(chars, bytes, false);
+                if (result.isUnderflow()) {
+                    return aTrue();
+                } else if (result.isOverflow()) {
+                    bytes.flip();
+                    return wrapped.write(bytes).thenDo(() -> {
+                        bytes.compact();
                         return aTrue();
-                    } else if (result.isOverflow()) {
-                        bytes.flip();
-                        return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
-                            @Override
-                            public Promise<Boolean> call() throws Throwable {
-                                bytes.compact();
-                                return aTrue();
-                            }
-                        });
-                    } else {
-                        result.throwException();
-                        return aFalse();
-                    }
+                    });
+                } else {
+                    result.throwException();
+                    return aFalse();
                 }
             }
         }).observe(outcomeChecker());
@@ -173,55 +165,34 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
      * @return the promise that finishes when flush is done.
      */
     public Promise<Void> internalFlush(final boolean eof) {
-        return aSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (eof ? !isValid() : !isValidAndOpen()) {
-                    return invalidationPromise();
+        return aSeqLoop(() -> {
+            if (eof ? !isValid() : !isValidAndOpen()) {
+                return invalidationPromise();
+            }
+            final CoderResult result = encoder.encode(chars, bytes, eof);
+            if (result.isOverflow() || result.isUnderflow() && bytes.position() > 0) {
+                bytes.flip();
+                return wrapped.write(bytes).thenDo(() -> {
+                    bytes.compact();
+                    return aTrue();
+                });
+            } else {
+                if (result.isError()) {
+                    result.throwException();
                 }
-                final CoderResult result = encoder.encode(chars, bytes, eof);
-                if (result.isOverflow() || result.isUnderflow() && bytes.position() > 0) {
-                    bytes.flip();
-                    return wrapped.write(bytes).thenDo(new ACallable<Boolean>() {
-                        @Override
-                        public Promise<Boolean> call() throws Throwable {
-                            bytes.compact();
-                            return aTrue();
-                        }
-                    });
-                } else {
-                    if (result.isError()) {
-                        result.throwException();
-                    }
-                    return aFalse();
-                }
+                return aFalse();
             }
         });
     }
 
     @Override
     public Promise<Void> flush() {
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return internalFlush(false).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return wrapped.flush();
-                    }
-                }).observe(outcomeChecker());
-            }
-        });
+        return requests.run(() -> internalFlush(false).thenDo(wrapped::flush).observe(outcomeChecker()));
     }
 
     @Override
     protected Promise<Void> beforeClose() {
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return isValid() ? internalFlush(true) : aVoid();
-            }
-        });
+        return requests.run(() -> isValid() ? internalFlush(true) : aVoid());
     }
 
     @Override

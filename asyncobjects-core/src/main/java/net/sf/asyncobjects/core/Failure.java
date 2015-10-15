@@ -53,6 +53,12 @@ public final class Failure<T> extends Outcome<T> {
     }
 
     @Override
+    public boolean isFailure() {
+        return true;
+    }
+
+    // NOPMD
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -64,7 +70,8 @@ public final class Failure<T> extends Outcome<T> {
         final Failure failure1 = (Failure) o;
 
         //noinspection RedundantIfStatement
-        if (!failure.equals(failure1.failure)) {
+        if (!failure.equals(failure1.failure)) {  // NOPMD
+
             return false;
         }
 
@@ -78,9 +85,6 @@ public final class Failure<T> extends Outcome<T> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Failure{");
-        sb.append(failure);
-        sb.append('}');
-        return sb.toString();
+        return "Failure{" + failure + '}';
     }
 }

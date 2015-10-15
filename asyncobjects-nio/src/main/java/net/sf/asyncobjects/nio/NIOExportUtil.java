@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.nio;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.core.vats.Vats;
@@ -32,22 +31,12 @@ public final class NIOExportUtil {
         return new AChannel<B>() {
             @Override
             public Promise<AInput<B>> getInput() {
-                return aLater(vat, new ACallable<AInput<B>>() {
-                    @Override
-                    public Promise<AInput<B>> call() throws Throwable {
-                        return channel.getInput();
-                    }
-                });
+                return aLater(vat, channel::getInput);
             }
 
             @Override
             public Promise<AOutput<B>> getOutput() {
-                return aLater(vat, new ACallable<AOutput<B>>() {
-                    @Override
-                    public Promise<AOutput<B>> call() throws Throwable {
-                        return channel.getOutput();
-                    }
-                });
+                return aLater(vat, channel::getOutput);
             }
 
             @Override
@@ -97,12 +86,7 @@ public final class NIOExportUtil {
         return new AInput<B>() {
             @Override
             public Promise<Integer> read(final B buffer) {
-                return aLater(readVat, new ACallable<Integer>() {
-                    @Override
-                    public Promise<Integer> call() throws Throwable {
-                        return input.read(buffer);
-                    }
-                });
+                return aLater(readVat, () -> input.read(buffer));
             }
 
             @Override
@@ -157,22 +141,12 @@ public final class NIOExportUtil {
 
             @Override
             public Promise<Void> write(final B buffer) {
-                return aLater(writeVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return output.write(buffer);
-                    }
-                });
+                return aLater(writeVat, () -> output.write(buffer));
             }
 
             @Override
             public Promise<Void> flush() {
-                return aLater(writeVat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return output.flush();
-                    }
-                });
+                return aLater(writeVat, output::flush);
             }
         };
     }

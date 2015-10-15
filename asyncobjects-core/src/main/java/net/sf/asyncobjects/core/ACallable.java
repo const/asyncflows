@@ -5,12 +5,13 @@ package net.sf.asyncobjects.core;
  *
  * @param <T> the result type
  */
+@FunctionalInterface
 public interface ACallable<T> {
     /**
      * Run action that expects unit promise.
      *
      * @return promise for result
-     * @throws Throwable in case of any problem
+     * @throws Exception in case of any problem
      */
-    Promise<T> call() throws Throwable;
+    Promise<T> call() throws Exception;
 }

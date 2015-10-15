@@ -1,12 +1,7 @@
-package net.sf.asyncobjects.nio.net.ssl;
+package net.sf.asyncobjects.nio.net.ssl; // NOPMD
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
-import net.sf.asyncobjects.core.data.Maybe;
-import net.sf.asyncobjects.core.data.Tuple2;
 import net.sf.asyncobjects.core.util.ChainedClosable;
 import net.sf.asyncobjects.core.util.RequestQueue;
 import net.sf.asyncobjects.core.vats.Vat;
@@ -43,6 +38,7 @@ import static net.sf.asyncobjects.nio.IOUtil.isEof;
  * @param <T> the wrapped channel type
  */
 public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<T> implements AChannel<ByteBuffer> {
+    // TODO consider ByteGeneratorContext, ByteParserContext
     /**
      * The always empty buffer.
      */
@@ -51,17 +47,6 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
      * The tasks.
      */
     private final RequestQueue tasks = new RequestQueue();
-    /**
-     * The invalidation observer.
-     */
-    private final AResolver<Object> invalidationObserver = new AResolver<Object>() {
-        @Override
-        public void resolve(final Outcome<Object> resolution) throws Throwable {
-            if (!resolution.isSuccess()) {
-                invalidateChannel(resolution.failure());
-            }
-        }
-    };
     /**
      * The configured SSL engine.
      */
@@ -89,6 +74,14 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
      * with null in case of the problem.
      */
     private AResolver<Void> netDataResolver;
+    /**
+     * The invalidation observer.
+     */
+    private final AResolver<Object> invalidationObserver = resolution -> {
+        if (!resolution.isSuccess()) {
+            invalidateChannel(resolution.failure());
+        }
+    };
 
     /**
      * The constructor from the underlying object.
@@ -139,7 +132,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         if (buffer == null) {
             throw new IllegalArgumentException("The buffer is null");
         }
-        final Promise<Void> rc = new Promise<Void>();
+        final Promise<Void> rc = new Promise<>();
         netData = buffer;
         netDataResolver = rc.resolver();
         return rc;
@@ -160,15 +153,11 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         }
         this.engine = initEngine;
         return aAll(promiseCallable(wrapped.getInput())).andLast(promiseCallable(wrapped.getOutput())).map(
-                new AFunction<Void, Tuple2<AInput<ByteBuffer>, AOutput<ByteBuffer>>>() {
-                    @Override
-                    public Promise<Void> apply(final Tuple2<AInput<ByteBuffer>, AOutput<ByteBuffer>> value)
-                            throws Throwable {
-                        input = new SSLInput(value.getValue1());
-                        output = new SSLOutput(value.getValue2());
-                        doTasks();
-                        return aVoid();
-                    }
+                value -> {
+                    input = new SSLInput(value.getValue1());
+                    output = new SSLOutput(value.getValue2());
+                    doTasks();
+                    return aVoid();
                 }).observe(invalidationObserver);
     }
 
@@ -176,39 +165,36 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
      * Loop that walks over the tasks.
      */
     public void doTasks() {
-        tasks.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                ensureValid();
-                if (!isOpen()) {
-                    return aFalse();
-                }
-                final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-                switch (handshakeStatus) {
-                    case FINISHED:
-                    case NOT_HANDSHAKING:
-                        ensureHandshakeEnded();
-                        input.unwraps.resume();
-                        output.wraps.resume();
-                        return tasks.suspendThenTrue();
-                    case NEED_TASK:
-                        ensureHandshakeStarted();
-                        final Runnable delegatedTask = engine.getDelegatedTask();
-                        if (delegatedTask == null) {
-                            throw new IllegalStateException("No task to run");
-                        }
-                        return aDaemonRun(delegatedTask).thenValue(true);
-                    case NEED_WRAP:
-                        ensureHandshakeStarted();
-                        output.wraps.resume();
-                        return tasks.suspendThenTrue();
-                    case NEED_UNWRAP:
-                        ensureHandshakeStarted();
-                        input.unwraps.resume();
-                        return tasks.suspendThenTrue();
-                    default:
-                        throw new IllegalStateException("Unknown handshake status: " + handshakeStatus);
-                }
+        tasks.runSeqLoop(() -> {
+            ensureValid();
+            if (!isOpen()) {
+                return aFalse();
+            }
+            final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
+            switch (handshakeStatus) {
+                case FINISHED:
+                case NOT_HANDSHAKING:
+                    ensureHandshakeEnded();
+                    input.unwraps.resume();
+                    output.wraps.resume();
+                    return tasks.suspendThenTrue();
+                case NEED_TASK:
+                    ensureHandshakeStarted();
+                    final Runnable delegatedTask = engine.getDelegatedTask();
+                    if (delegatedTask == null) {
+                        throw new IllegalStateException("No task to run");
+                    }
+                    return aDaemonRun(delegatedTask).thenValue(true);
+                case NEED_WRAP:
+                    ensureHandshakeStarted();
+                    output.wraps.resume();
+                    return tasks.suspendThenTrue();
+                case NEED_UNWRAP:
+                    ensureHandshakeStarted();
+                    input.unwraps.resume();
+                    return tasks.suspendThenTrue();
+                default:
+                    throw new IllegalStateException("Unknown handshake status: " + handshakeStatus);
             }
         }).listen(invalidationObserver);
     }
@@ -245,7 +231,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
      */
     private void ensureHandshakeStarted() {
         if (isValidAndOpen() && currentHandshake == null) {
-            currentHandshake = new Promise<Void>();
+            currentHandshake = new Promise<>();
             final SSLEngineResult.HandshakeStatus status = engine.getHandshakeStatus();
             if (status == SSLEngineResult.HandshakeStatus.FINISHED
                     || status == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
@@ -275,9 +261,6 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         return aFailure(new IllegalStateException("BUG: Something strange with handshake"));
     }
 
-    /**
-     * @return the input for the channel.
-     */
     @Override
     public Promise<AInput<ByteBuffer>> getInput() {
         if (!isValidAndOpen()) {
@@ -289,9 +272,6 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         return aValue(NIOExportUtil.export(Vat.current(), input));
     }
 
-    /**
-     * @return the output for the channel.
-     */
     @Override
     public Promise<AOutput<ByteBuffer>> getOutput() {
         if (!isValidAndOpen()) {
@@ -364,109 +344,102 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
          * @return the unwrap loop outcome
          */
         private Promise<Void> doUnwraps() { // NOPMD
-            return unwraps.runSeqLoop(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable { // NOPMD
-                    ensureValid();
-                    if (engine.isInboundDone()) {
-                        eofUnwrapped = true;
+            return unwraps.runSeqLoop(() -> { // NOPMD
+                ensureValid();
+                if (engine.isInboundDone()) {
+                    eofUnwrapped = true;
+                    output.wraps.resume();
+                    reads.resume();
+                    return aFalse();
+                }
+                final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
+                switch (handshakeStatus) {
+                    case FINISHED:
+                    case NOT_HANDSHAKING:
+                        ensureHandshakeEnded();
+                        if (user == null && isOpen()) {
+                            // no need to unwrap anything, since there is no active read operation
+                            return unwraps.suspendThenTrue();
+                        }
+                        break;
+                    case NEED_TASK:
+                        ensureHandshakeStarted();
+                        tasks.resume();
+                        return unwraps.suspendThenTrue();
+                    case NEED_WRAP:
+                        ensureHandshakeStarted();
                         output.wraps.resume();
-                        reads.resume();
-                        return aFalse();
-                    }
-                    final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-                    switch (handshakeStatus) {
-                        case FINISHED:
-                        case NOT_HANDSHAKING:
-                            ensureHandshakeEnded();
-                            if (user == null && isOpen()) {
-                                // no need to unwrap anything, since there is no active read operation
-                                return unwraps.suspendThenTrue();
-                            }
-                            break;
-                        case NEED_TASK:
-                            ensureHandshakeStarted();
-                            tasks.resume();
-                            return unwraps.suspendThenTrue();
-                        case NEED_WRAP:
-                            ensureHandshakeStarted();
-                            output.wraps.resume();
-                            return unwraps.suspendThenTrue();
-                        case NEED_UNWRAP:
-                            ensureHandshakeStarted();
-                            break;
-                        default:
-                            throw new IllegalStateException("Unknown handshake status: " + handshakeStatus);
-                    }
+                        return unwraps.suspendThenTrue();
+                    case NEED_UNWRAP:
+                        ensureHandshakeStarted();
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown handshake status: " + handshakeStatus);
+                }
 
-                    if (packet == null) {
-                        packet = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
-                        packet.limit(0);
+                if (packet == null) {
+                    packet = IOUtil.BYTE.writeBuffer(engine.getSession().getPacketBufferSize());
+                }
+                SSLEngineResult unwrap = null;
+                if (user != null && (app == null || app.position() == 0)) {
+                    unwrap = engine.unwrap(packet, user);
+                    if (unwrap.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
+                        unwrap = null;
                     }
-                    SSLEngineResult unwrap = null;
-                    if (user != null && (app == null || app.position() == 0)) {
-                        unwrap = engine.unwrap(packet, user);
-                        if (unwrap.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
-                            unwrap = null;
-                        }
-                    } else if (app == null) {
-                        unwrap = engine.unwrap(packet, EMPTY);
-                        if (unwrap.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
-                            unwrap = null;
-                        }
+                } else if (app == null) {
+                    unwrap = engine.unwrap(packet, EMPTY);
+                    if (unwrap.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
+                        unwrap = null;
                     }
-                    if (unwrap == null) {
-                        if (app == null) {
-                            app = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
-                        }
-                        unwrap = engine.unwrap(packet, app);
+                }
+                if (unwrap == null) {
+                    if (app == null) {
+                        app = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
                     }
-                    switch (unwrap.getStatus()) {
-                        case BUFFER_UNDERFLOW:
-                            if (netData != null) {
-                                BufferOperations.BYTE.append(packet, netData);
-                                if (!netData.hasRemaining()) {
-                                    notifySuccess(netDataResolver, null);
-                                    netDataResolver = null;
-                                }
-                                return aTrue();
+                    unwrap = engine.unwrap(packet, app);
+                }
+                switch (unwrap.getStatus()) {
+                    case BUFFER_UNDERFLOW:
+                        if (netData != null) {
+                            BufferOperations.BYTE.append(packet, netData);
+                            if (!netData.hasRemaining()) {
+                                notifySuccess(netDataResolver, null);
+                                netDataResolver = null;
                             }
-                            packet.compact();
-                            final SSLEngineResult finalUnwrap = unwrap;
-                            return wrapped.read(packet).map(new AFunction<Boolean, Integer>() {
-                                @Override
-                                public Promise<Boolean> apply(final Integer value) throws Throwable {
-                                    packet.flip();
-                                    if (isEof(value)) {
-                                        engine.closeInbound();
-                                        if (packet.hasRemaining()) {
-                                            invalidateChannel(new IOException("SSLEngine wants more data, "
-                                                    + "but none is available " + finalUnwrap));
-                                        }
-                                    }
-                                    return aTrue();
-                                }
-                            });
-                        case BUFFER_OVERFLOW:
-                            if (app.position() > 0) {
-                                reads.resume();
-                                return unwraps.suspendThenTrue();
-                            }
-                            final int newCapacity = engine.getSession().getApplicationBufferSize();
-                            if (app.capacity() <= newCapacity) {
-                                throw new IllegalStateException("OVERFLOW, but capacity did not change" + unwrap);
-                            }
-                            final ByteBuffer newApp = ByteBuffer.allocate(newCapacity);
-                            app.flip();
-                            newApp.put(app);
                             return aTrue();
-                        case CLOSED:
-                        case OK:
+                        }
+                        packet.compact();
+                        final SSLEngineResult finalUnwrap = unwrap;
+                        return wrapped.read(packet).map(value -> {
+                            packet.flip();
+                            if (isEof(value)) {
+                                engine.closeInbound();
+                                if (packet.hasRemaining()) {
+                                    invalidateChannel(new IOException("SSLEngine wants more data, "
+                                            + "but none is available " + finalUnwrap));
+                                }
+                            }
+                            return aTrue();
+                        });
+                    case BUFFER_OVERFLOW:
+                        if (app.position() > 0) {
                             reads.resume();
-                            return aTrue();
-                        default:
-                            throw new IllegalStateException("Unknown status: " + handshakeStatus);
-                    }
+                            return unwraps.suspendThenTrue();
+                        }
+                        final int newCapacity = engine.getSession().getApplicationBufferSize();
+                        if (app.capacity() <= newCapacity) {
+                            throw new IllegalStateException("OVERFLOW, but capacity did not change" + unwrap);
+                        }
+                        final ByteBuffer newApp = ByteBuffer.allocate(newCapacity);
+                        app.flip();
+                        newApp.put(app);
+                        return aTrue();
+                    case CLOSED:
+                    case OK:
+                        reads.resume();
+                        return aTrue();
+                    default:
+                        throw new IllegalStateException("Unknown status: " + handshakeStatus);
                 }
             }).observe(invalidationObserver);
         }
@@ -485,46 +458,40 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         @Override
         public Promise<Integer> read(final ByteBuffer buffer) {
             final int savedPosition = buffer.position();
-            return reads.runSeqMaybeLoop(new ACallable<Maybe<Integer>>() {
-                @Override
-                public Promise<Maybe<Integer>> call() throws Throwable {
-                    ensureValidAndOpen();
-                    if (buffer.position() > savedPosition) {
-                        // something has been read into the buffer, just return diff
-                        user = null;
-                        return aMaybeValue(buffer.position() - savedPosition);
-                    }
-                    if (buffer.position() < savedPosition) {
-                        user = null;
-                        return aFailure(new IllegalArgumentException("Input buffer changes while "
-                                + "read operation is in progress " + (buffer.position() - savedPosition)));
-                    }
-                    if (buffer.position() == buffer.capacity()) {
-                        user = null;
-                        return aFailure(new IllegalArgumentException("Buffer is full: " + buffer));
-                    }
-                    if (app != null && app.position() > 0) {
-                        app.flip();
-                        final int rc = BufferOperations.BYTE.put(buffer, app);
-                        app.compact();
-                        user = null;
-                        unwraps.resume();
-                        return aMaybeValue(rc);
-                    }
-                    if (eofUnwrapped) {
-                        user = null;
-                        return IOUtil.EOF_MAYBE_PROMISE;
-                    }
-                    user = buffer;
-                    unwraps.resume();
-                    return reads.suspendThenEmpty();
+            return reads.runSeqMaybeLoop(() -> {
+                ensureValidAndOpen();
+                if (buffer.position() > savedPosition) {
+                    // something has been read into the buffer, just return diff
+                    user = null;
+                    return aMaybeValue(buffer.position() - savedPosition);
                 }
-            }).observe(new AResolver<Integer>() {
-                @Override
-                public void resolve(final Outcome<Integer> resolution) throws Throwable {
-                    if (user == buffer) { // NOPMD
-                        user = null;
-                    }
+                if (buffer.position() < savedPosition) {
+                    user = null;
+                    return aFailure(new IllegalArgumentException("Input buffer changes while "
+                            + "read operation is in progress " + (buffer.position() - savedPosition)));
+                }
+                if (buffer.position() == buffer.capacity()) {
+                    user = null;
+                    return aFailure(new IllegalArgumentException("Buffer is full: " + buffer));
+                }
+                if (app != null && app.position() > 0) {
+                    app.flip();
+                    final int rc = BufferOperations.BYTE.put(buffer, app);
+                    app.compact();
+                    user = null;
+                    unwraps.resume();
+                    return aMaybeValue(rc);
+                }
+                if (eofUnwrapped) {
+                    user = null;
+                    return IOUtil.EOF_MAYBE_PROMISE;
+                }
+                user = buffer;
+                unwraps.resume();
+                return reads.suspendThenEmpty();
+            }).observe(resolution -> {
+                if (user == buffer) { // NOPMD
+                    user = null;
                 }
             });
         }
@@ -585,92 +552,86 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
          * @return the wrap loop outcome
          */
         private Promise<Void> doWraps() { // NOPMD
-            return wraps.runSeqLoop(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable { // NOPMD
-                    ensureValid();
-                    if (engine.isOutboundDone()) {
-                        return aFalse();
-                    }
-                    if (flushNeeded != null) {
-                        return wrapped.flush().thenDo(new ACallable<Boolean>() {
-                            @Override
-                            public Promise<Boolean> call() throws Throwable {
-                                notifySuccess(flushNeeded, null);
-                                flushNeeded = null;
-                                return aTrue();
-                            }
-                        });
-                    }
-                    final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-                    switch (handshakeStatus) {
-                        case FINISHED:
-                        case NOT_HANDSHAKING:
-                            ensureHandshakeEnded();
-                            if ((user == null || !user.hasRemaining()) && !isClosed()) {
-                                return wraps.suspendThenTrue();
-                            }
-                            break;
-                        case NEED_TASK:
-                            ensureHandshakeStarted();
-                            tasks.resume();
+            return wraps.runSeqLoop(() -> { // NOPMD
+                ensureValid();
+                if (engine.isOutboundDone()) {
+                    return aFalse();
+                }
+                if (flushNeeded != null) {
+                    return wrapped.flush().thenDo(() -> {
+                        notifySuccess(flushNeeded, null);
+                        flushNeeded = null;
+                        return aTrue();
+                    });
+                }
+                final SSLEngineResult.HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
+                switch (handshakeStatus) {
+                    case FINISHED:
+                    case NOT_HANDSHAKING:
+                        ensureHandshakeEnded();
+                        if ((user == null || !user.hasRemaining()) && !isClosed()) {
                             return wraps.suspendThenTrue();
-                        case NEED_UNWRAP:
-                            ensureHandshakeStarted();
-                            input.unwraps.resume();
-                            return wraps.suspendThenTrue();
-                        case NEED_WRAP:
-                            ensureHandshakeStarted();
-                            break;
-                        default:
-                            throw new IllegalStateException("Unsupported handshake status: " + handshakeStatus);
-                    }
-                    if (packet == null) {
-                        packet = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
-                    }
-                    final SSLEngineResult wrap = engine.wrap(user == null ? EMPTY : user, packet);
-                    switch (wrap.getStatus()) { // NOPMD
-                        // PMD is confused by ifs, and thinks that break is missing
-                        // http://sourceforge.net/p/pmd/bugs/795/
-                        case CLOSED:
-                        case OK:
-                            if (user != null && !user.hasRemaining()) {
-                                writes.resume();
-                            }
-                            if (packet.position() > 0) {
-                                return writePacketAndContinue();
-                            } else {
-                                if (wrap.bytesConsumed() == 0 && wrap.bytesConsumed() == 0) {
-                                    return wraps.suspendThenTrue();
-                                } else {
-                                    return aTrue();
-                                }
-                            }
-                        case BUFFER_OVERFLOW:
-                            int newSize = engine.getSession().getPacketBufferSize();
-                            if (packet.capacity() >= newSize) {
-                                newSize = packet.capacity() + packet.remaining() + MAGIC_PAD;
-                            }
-                            final ByteBuffer newPacket = ByteBuffer.allocate(newSize);
-                            packet.flip();
-                            newPacket.put(packet);
-                            packet = newPacket;
-                            if (packet.position() > 0) {
-                                return writePacketAndContinue();
-                            } else {
-                                return aTrue();
-                            }
-                        case BUFFER_UNDERFLOW:
+                        }
+                        break;
+                    case NEED_TASK:
+                        ensureHandshakeStarted();
+                        tasks.resume();
+                        return wraps.suspendThenTrue();
+                    case NEED_UNWRAP:
+                        ensureHandshakeStarted();
+                        input.unwraps.resume();
+                        return wraps.suspendThenTrue();
+                    case NEED_WRAP:
+                        ensureHandshakeStarted();
+                        break;
+                    default:
+                        throw new IllegalStateException("Unsupported handshake status: " + handshakeStatus);
+                }
+                if (packet == null) {
+                    packet = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+                }
+                final SSLEngineResult wrap = engine.wrap(user == null ? EMPTY : user, packet);
+                switch (wrap.getStatus()) { // NOPMD
+                    // PMD is confused by ifs, and thinks that break is missing
+                    // http://sourceforge.net/p/pmd/bugs/795/
+                    case CLOSED:
+                    case OK:
+                        if (user != null && !user.hasRemaining()) {
                             writes.resume();
-                            if (wrap.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING
-                                    || wrap.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
+                        }
+                        if (packet.position() > 0) {
+                            return writePacketAndContinue();
+                        } else {
+                            if (wrap.bytesConsumed() == 0 && wrap.bytesConsumed() == 0) {
                                 return wraps.suspendThenTrue();
                             } else {
                                 return aTrue();
                             }
-                        default:
-                            throw new IllegalStateException("Unknown wrap outcome: " + wrap);
-                    }
+                        }
+                    case BUFFER_OVERFLOW:
+                        int newSize = engine.getSession().getPacketBufferSize();
+                        if (packet.capacity() >= newSize) {
+                            newSize = packet.capacity() + packet.remaining() + MAGIC_PAD;
+                        }
+                        final ByteBuffer newPacket = ByteBuffer.allocate(newSize);
+                        packet.flip();
+                        newPacket.put(packet);
+                        packet = newPacket;
+                        if (packet.position() > 0) {
+                            return writePacketAndContinue();
+                        } else {
+                            return aTrue();
+                        }
+                    case BUFFER_UNDERFLOW:
+                        writes.resume();
+                        if (wrap.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING
+                                || wrap.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
+                            return wraps.suspendThenTrue();
+                        } else {
+                            return aTrue();
+                        }
+                    default:
+                        throw new IllegalStateException("Unknown wrap outcome: " + wrap);
                 }
             }).observe(invalidationObserver);
         }
@@ -680,57 +641,40 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
          */
         private Promise<Boolean> writePacketAndContinue() {
             packet.flip();
-            return wrapped.write(packet).thenDo(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    packet.compact();
-                    return aTrue();
-                }
+            return wrapped.write(packet).thenDo(() -> {
+                packet.compact();
+                return aTrue();
             });
         }
 
         @Override
         public Promise<Void> write(final ByteBuffer buffer) {
-            return writes.runSeqLoopFair(new ACallable<Boolean>() {
-                @Override
-                public Promise<Boolean> call() throws Throwable {
-                    ensureValidAndOpen();
-                    if (!buffer.hasRemaining()) {
-                        return aFalse();
-                    }
-                    user = buffer;
-                    wraps.resume();
-                    return writes.suspendThenTrue();
+            return writes.runSeqLoopFair(() -> {
+                ensureValidAndOpen();
+                if (!buffer.hasRemaining()) {
+                    return aFalse();
                 }
-            }).observe(new AResolver<Void>() {
-                @Override
-                public void resolve(final Outcome<Void> resolution) throws Throwable {
-                    if (user == buffer) { // NOPMD
-                        user = null;
-                    }
+                user = buffer;
+                wraps.resume();
+                return writes.suspendThenTrue();
+            }).observe(resolution -> {
+                if (user == buffer) { // NOPMD
+                    user = null;
                 }
             });
         }
 
         @Override
         public Promise<Void> flush() {
-            return writes.run(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    ensureValidAndOpen();
-                    final Promise<Void> rc = new Promise<Void>();
-                    flushNeeded = rc.resolver();
-                    wraps.resume();
-                    return rc;
-                }
+            return writes.run(() -> {
+                ensureValidAndOpen();
+                final Promise<Void> rc = new Promise<>();
+                flushNeeded = rc.resolver();
+                wraps.resume();
+                return rc;
             });
         }
 
-        /**
-         * The close action. Override it to implement a custom close operation.
-         *
-         * @return promise that resolves when close is complete
-         */
         @Override
         protected Promise<Void> closeAction() {
             writes.resume();

@@ -1,9 +1,6 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
-import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.CloseableInvalidatingBase;
 import net.sf.asyncobjects.core.util.RequestQueue;
@@ -60,6 +57,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
      * true if header has been written.
      */
     private boolean headerWritten;
+    // TODO flush method
 
 
     /**
@@ -126,49 +124,43 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
 
     @Override
     public Promise<Void> write(final ByteBuffer buffer) {
-        return writes.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                ensureValidAndOpen();
-                if (!headerWritten) {
-                    headerWritten = true;
-                    return handleHeader(output, compressed).thenValue(true);
-                }
-                if (!buffer.hasRemaining()) {
-                    return aFalse();
-                }
-                final byte[] data;
-                final int offset;
-                final int len;
-                if (buffer.hasArray()) {
-                    data = buffer.array();
-                    offset = buffer.arrayOffset() + buffer.position();
-                    len = Math.min(buffer.remaining(), compressed.capacity());
-                } else {
-                    if (tempArray == null) {
-                        tempArray = new byte[TEMP_ARRAY_SIZE];
-                    }
-                    data = tempArray;
-                    offset = 0;
-                    len = Math.min(Math.min(tempArray.length, buffer.remaining()), compressed.capacity());
-                    final int p = buffer.position();
-                    buffer.get(tempArray, 0, len);
-                    buffer.position(p);
-                }
-                deflater.setInput(data, offset, len);
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        if (deflater.needsInput()) {
-                            buffer.position(buffer.position() + len);
-                            handleWrittenData(data, offset, len);
-                            return aFalse();
-                        } else {
-                            return deflateAndWrite();
-                        }
-                    }
-                }).thenValue(true);
+        return writes.runSeqLoop(() -> {
+            ensureValidAndOpen();
+            if (!headerWritten) {
+                headerWritten = true;
+                return handleHeader(output, compressed).thenValue(true);
             }
+            if (!buffer.hasRemaining()) {
+                return aFalse();
+            }
+            final byte[] data;
+            final int offset;
+            final int len;
+            if (buffer.hasArray()) {
+                data = buffer.array();
+                offset = buffer.arrayOffset() + buffer.position();
+                len = Math.min(buffer.remaining(), compressed.capacity());
+            } else {
+                if (tempArray == null) {
+                    tempArray = new byte[TEMP_ARRAY_SIZE];
+                }
+                data = tempArray;
+                offset = 0;
+                len = Math.min(Math.min(tempArray.length, buffer.remaining()), compressed.capacity());
+                final int p = buffer.position();
+                buffer.get(tempArray, 0, len);
+                buffer.position(p);
+            }
+            deflater.setInput(data, offset, len);
+            return aSeqLoop(() -> {
+                if (deflater.needsInput()) {
+                    buffer.position(buffer.position() + len);
+                    handleWrittenData(data, offset, len);
+                    return aFalse();
+                } else {
+                    return deflateAndWrite();
+                }
+            }).thenValue(true);
         }).observe(outcomeChecker());
     }
 
@@ -183,15 +175,12 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
         if (count > 0) {
             compressed.position(compressed.position() + count);
             compressed.flip();
-            return output.write(compressed).mapOutcome(new AFunction<Boolean, Outcome<Void>>() {
-                @Override
-                public Promise<Boolean> apply(final Outcome<Void> value) throws Throwable {
-                    compressed.compact();
-                    if (value.isSuccess()) {
-                        return aTrue();
-                    } else {
-                        return aFailure(value.failure());
-                    }
+            return output.write(compressed).mapOutcome(value -> {
+                compressed.compact();
+                if (value.isSuccess()) {
+                    return aTrue();
+                } else {
+                    return aFailure(value.failure());
                 }
             }).observe(outcomeChecker());
         } else {
@@ -201,50 +190,33 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
 
     @Override
     public Promise<Void> flush() {
-        return writes.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                ensureValidAndOpen();
-                return output.flush().observe(outcomeChecker());
-            }
+        return writes.run(() -> {
+            ensureValidAndOpen();
+            return output.flush().observe(outcomeChecker());
         });
     }
 
     @Override
     protected Promise<Void> closeAction() {
         if (isValid()) {
-            return aSeq(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    if (headerWritten) {
-                        return aVoid();
+            return aSeq(() -> {
+                if (headerWritten) {
+                    return aVoid();
+                } else {
+                    headerWritten = true;
+                    return handleHeader(output, compressed);
+                }
+            }).thenDo(() -> {
+                deflater.setInput(ByteIOUtil.EMPTY_ARRAY, 0, 0);
+                deflater.finish();
+                return aSeqLoop(() -> {
+                    if (deflater.finished()) {
+                        return aFalse();
                     } else {
-                        headerWritten = true;
-                        return handleHeader(output, compressed);
+                        return deflateAndWrite();
                     }
-                }
-            }).thenDo(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    deflater.setInput(ByteIOUtil.EMPTY_ARRAY, 0, 0);
-                    deflater.finish();
-                    return aSeqLoop(new ACallable<Boolean>() {
-                        @Override
-                        public Promise<Boolean> call() throws Throwable {
-                            if (deflater.finished()) {
-                                return aFalse();
-                            } else {
-                                return deflateAndWrite();
-                            }
-                        }
-                    });
-                }
-            }).thenDoLast(new ACallable<Void>() {
-                @Override
-                public Promise<Void> call() throws Throwable {
-                    return handleFinish(output, compressed);
-                }
-            });
+                });
+            }).thenDoLast(() -> handleFinish(output, compressed));
         } else {
             return invalidationPromise();
         }

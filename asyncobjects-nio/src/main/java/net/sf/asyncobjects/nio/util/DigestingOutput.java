@@ -1,10 +1,11 @@
 package net.sf.asyncobjects.nio.util;
 
-import net.sf.asyncobjects.core.ACallable;
+import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.util.RequestQueue;
+import net.sf.asyncobjects.core.util.ResourceUtil;
 import net.sf.asyncobjects.core.vats.Vat;
 import net.sf.asyncobjects.nio.AOutput;
 import net.sf.asyncobjects.nio.NIOExportUtil;
@@ -56,27 +57,45 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
         };
     }
 
+    /**
+     * Generate data for output in action, then close the stream producing the digest.
+     *
+     * @param output    the output to generate to
+     * @param algorithm the algorithm
+     * @param action    the action
+     * @return the promise for digest
+     */
+    public static Promise<byte[]> generateDigested(final AOutput<ByteBuffer> output, final String algorithm,
+                                                   final AFunction<Void, AOutput<ByteBuffer>> action) {
+        final Promise<byte[]> result = new Promise<>();
+        return ResourceUtil.aTryResource(
+                digestOutput(output, result.resolver()).using(algorithm)
+        ).run(
+                action
+        ).thenPromise(result);
+    }
+
+    /**
+     * Generate digested.
+     *
+     * @param output    the output to generate to
+     * @param algorithm the algorithm
+     * @param action    the action
+     * @return the promise for digest
+     */
+    public static Promise<byte[]> generateDigested(final Promise<AOutput<ByteBuffer>> output, final String algorithm,
+                                                   final AFunction<Void, AOutput<ByteBuffer>> action) {
+        return output.map(output1 -> generateDigested(output1, algorithm, action));
+    }
+
     @Override
     public Promise<Void> write(final ByteBuffer buffer) {
         final int positionBeforeWrite = buffer.position();
-        final Promise<Void> write = aNow(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return wrapped.write(buffer);
-            }
-        });
-        return requests.run(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return write.observe(outcomeChecker()).thenDo(new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        updateDigest(buffer, positionBeforeWrite);
-                        return aVoid();
-                    }
-                });
-            }
-        });
+        final Promise<Void> write = aNow(() -> wrapped.write(buffer));
+        return requests.run(() -> write.observe(outcomeChecker()).thenDo(() -> {
+            updateDigest(buffer, positionBeforeWrite);
+            return aVoid();
+        }));
     }
 
     @Override

@@ -1,7 +1,5 @@
 package net.sf.asyncobjects.core.util;
 
-import net.sf.asyncobjects.core.ACallable;
-import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.ExportsSelf;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
@@ -21,36 +19,16 @@ public class ResourceUtilTest {
 
     @Test
     public void tryTest() {
-        final Cell<Boolean> r1 = new Cell<Boolean>(false);
-        final Cell<Boolean> r2 = new Cell<Boolean>(false);
-        final Cell<Boolean> r3 = new Cell<Boolean>(false);
-        doAsync(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aTry(new ACallable<ACloseable>() {
-                    @Override
-                    public Promise<ACloseable> call() throws Throwable {
-                        return aValue(new SampleResource(r1).export());
-                    }
-                }).andChain(new AFunction<ACloseable, ACloseable>() {
-                    @Override
-                    public Promise<ACloseable> apply(final ACloseable value) throws Throwable {
-                        return aValue(new SampleResource(r2).export());
-                    }
-                }).andChainSecond(new AFunction<ACloseable, ACloseable>() {
-                    @Override
-                    public Promise<ACloseable> apply(final ACloseable value) throws Throwable {
-                        return aValue(new SampleResource(r3).export());
-                    }
-                }).run(new AFunction3<Void, ACloseable, ACloseable, ACloseable>() {
-                    @Override
-                    public Promise<Void> apply(final ACloseable value1, final ACloseable value2,
-                                               final ACloseable value3) throws Throwable {
-                        return aVoid();
-                    }
-                });
-            }
-        });
+        final Cell<Boolean> r1 = new Cell<>(false);
+        final Cell<Boolean> r2 = new Cell<>(false);
+        final Cell<Boolean> r3 = new Cell<>(false);
+        doAsync(() -> aTry(
+                () -> aValue(new SampleResource(r1).export())
+        ).andChain(
+                value -> aValue(new SampleResource(r2).export())
+        ).andChainSecond(
+                value -> aValue(new SampleResource(r3).export())
+        ).run((value1, value2, value3) -> aVoid()));
         assertTrue(r1.getValue());
         assertTrue(r2.getValue());
         assertTrue(r3.getValue());
@@ -87,12 +65,7 @@ public class ResourceUtilTest {
 
         @Override
         public ACloseable export(final Vat vat) {
-            return new ACloseable() {
-                @Override
-                public Promise<Void> close() {
-                    return ResourceUtil.closeResource(vat, SampleResource.this);
-                }
-            };
+            return () -> ResourceUtil.closeResource(vat, SampleResource.this);
         }
     }
 }

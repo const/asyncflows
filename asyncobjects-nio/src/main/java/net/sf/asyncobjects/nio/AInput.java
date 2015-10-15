@@ -9,6 +9,8 @@ import java.nio.Buffer;
  * An input based on NIO buffers.
  *
  * @param <B> the buffer type
+ *            <p>
+ *            TODO buffer specific subtypes.
  */
 public interface AInput<B extends Buffer> extends ACloseable {
     /**

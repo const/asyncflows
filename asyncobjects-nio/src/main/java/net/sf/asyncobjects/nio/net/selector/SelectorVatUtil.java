@@ -1,10 +1,7 @@
 package net.sf.asyncobjects.nio.net.selector;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
-import net.sf.asyncobjects.core.AResolver;
 import net.sf.asyncobjects.core.Outcome;
-import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.data.Cell;
 import net.sf.asyncobjects.nio.net.ASocketFactory;
 
@@ -16,6 +13,11 @@ import static net.sf.asyncobjects.core.AsyncControl.aNow;
  * Utilities for the selector vat.
  */
 public final class SelectorVatUtil {
+    /**
+     * The socket factory.
+     */
+    private static final ThreadLocal<ASocketFactory> SOCKET_FACTORY = new ThreadLocal<ASocketFactory>();
+
     /**
      * The private constructor for the utility class.
      */
@@ -35,25 +37,19 @@ public final class SelectorVatUtil {
         final Object stopKey = new Object();
         final SelectorVat vat = new SelectorVat(stopKey);
         final Cell<Outcome<T>> value = new Cell<Outcome<T>>();
-        vat.execute(vat, new Runnable() {
-            @Override
-            public void run() {
-                aNow(new ACallable<T>() {
-                    @Override
-                    public Promise<T> call() throws Throwable {
-                        final ASocketFactory selectorSocketFactory = new SelectorSocketFactory(vat).export(vat);
-                        return action.apply(selectorSocketFactory);
-                    }
-                }).listen(new AResolver<T>() {
-                    @Override
-                    public void resolve(final Outcome<T> resolution) throws Throwable {
-                        value.setValue(resolution);
-                        vat.stop(stopKey);
-                    }
-                });
-            }
-        });
-        vat.runInCurrentThread();
+        vat.execute(vat, () -> aNow(() -> {
+            final ASocketFactory selectorSocketFactory = new SelectorSocketFactory(vat).export(vat);
+            SOCKET_FACTORY.set(selectorSocketFactory);
+            return action.apply(selectorSocketFactory);
+        }).listen(resolution -> {
+            value.setValue(resolution);
+            vat.stop(stopKey);
+        }));
+        try {
+            vat.runInCurrentThread();
+        } finally {
+            SOCKET_FACTORY.remove();
+        }
         return value.getValue().force();
     }
 
@@ -67,14 +63,17 @@ public final class SelectorVatUtil {
     public static <T> T run(final AFunction<T, ASocketFactory> action) {
         try {
             return runThrowable(action);
+        } catch (Error | RuntimeException t) { // NOPMD
+            throw t;
         } catch (Throwable t) {
-            if (t instanceof Error) {
-                throw (Error) t;
-            } else if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            } else {
-                throw new UndeclaredThrowableException(t, "A checked exception is received");
-            }
+            throw new UndeclaredThrowableException(t, "A checked exception is received");
         }
+    }
+
+    /**
+     * @return get socket factory
+     */
+    public static ASocketFactory getSocketFactory() {
+        return SOCKET_FACTORY.get();
     }
 }

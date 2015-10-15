@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.util;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.Promise;
 import net.sf.asyncobjects.core.vats.Vat;
 
@@ -25,45 +24,26 @@ public final class UtilExportUtil {
      * @return the exported class
      */
     public static ASemaphore export(final Vat vat, final ASemaphore semaphore) {
+        // TODO refactor all exports use actually inner classes with inheritance
         return new ASemaphore() {
             @Override
             public void release(final int permits) {
-                aSend(vat, new Runnable() {
-                    @Override
-                    public void run() {
-                        semaphore.release(permits);
-                    }
-                });
+                aSend(vat, () -> semaphore.release(permits));
             }
 
             @Override
             public void release() {
-                aSend(vat, new Runnable() {
-                    @Override
-                    public void run() {
-                        semaphore.release();
-                    }
-                });
+                aSend(vat, semaphore::release);
             }
 
             @Override
             public Promise<Void> acquire() {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return semaphore.acquire();
-                    }
-                });
+                return aLater(vat, semaphore::acquire);
             }
 
             @Override
             public Promise<Void> acquire(final int permits) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return semaphore.acquire(permits);
-                    }
-                });
+                return aLater(vat, () -> semaphore.acquire(permits));
             }
         };
     }
@@ -80,23 +60,36 @@ public final class UtilExportUtil {
         return new AQueue<T>() {
             @Override
             public Promise<T> take() {
-                return aLater(vat, new ACallable<T>() {
-                    @Override
-                    public Promise<T> call() throws Throwable {
-                        return queue.take();
-                    }
-                });
+                return aLater(vat, queue::take);
             }
 
             @Override
             public Promise<Void> put(final T element) {
-                return aLater(vat, new ACallable<Void>() {
-                    @Override
-                    public Promise<Void> call() throws Throwable {
-                        return queue.put(element);
-                    }
-                });
+                return aLater(vat, () -> queue.put(element));
             }
         };
+    }
+
+    /**
+     * Export consumer on the current vat.
+     *
+     * @param listener the listener to export
+     * @param <T>      the event type
+     * @return the exported listener
+     */
+    public static <T> AConsumer<T> export(final AConsumer<T> listener) {
+        return export(Vat.current(), listener);
+    }
+
+    /**
+     * Export consumer on the current vat.
+     *
+     * @param vat      the vat
+     * @param listener the listener to export
+     * @param <T>      the event type
+     * @return the exported consumer
+     */
+    public static <T> AConsumer<T> export(final Vat vat, final AConsumer<T> listener) {
+        return event -> aSend(vat, () -> listener.accept(event));
     }
 }

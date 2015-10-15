@@ -23,7 +23,7 @@ public class OutcomeTest {
         assertEquals(f1, f1);
         final Failure<Object> f2 = new Failure<Object>(f1.failure());
         assertEquals(f1, f2);
-        assertFalse(f1.equals(new Cell<Object>().getValue()));
+        assertFalse(f1.equals(new Cell<>().getValue()));
         assertEquals(f1.hashCode(), f2.hashCode());
         assertNotEquals(f1, new Failure<Object>(new IllegalArgumentException()));
         assertNotEquals(f1, new Failure<Object>(null));

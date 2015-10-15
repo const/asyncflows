@@ -1,6 +1,5 @@
 package net.sf.asyncobjects.core.stream;
 
-import net.sf.asyncobjects.core.ACallable;
 import net.sf.asyncobjects.core.AFunction;
 import net.sf.asyncobjects.core.Outcome;
 import net.sf.asyncobjects.core.Promise;
@@ -54,12 +53,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
 
     @Override
     public SinkStreamBuilder<T> push() {
-        return new SinkStreamBuilder<T>(new SinkStreamBuilder.SinkConnector<T>() {
-            @Override
-            public void connect(final ASink<T> nextSink) {
-                StreamUtil.connect(current, nextSink);
-            }
-        });
+        return new SinkStreamBuilder<>(nextSink -> StreamUtil.connect(current, nextSink));
     }
 
     @Override
@@ -70,7 +64,7 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
     @Override
     public <N> StreamBuilder<N> map(final AFunction<N, T> mapper) {
         final AFunction<Maybe<N>, Maybe<T>> producerMapper = ProducerUtil.toProducerMapper(mapper);
-        return new StreamBuilder<N>(new ChainedStreamBase<N, AStream<T>>(current) {
+        return new StreamBuilder<>(new ChainedStreamBase<N, AStream<T>>(current) {
             @Override
             protected Promise<Maybe<N>> produce() {
                 return wrapped.next().map(producerMapper);
@@ -80,50 +74,36 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
 
     @Override
     public <N> ForwardStreamBuilder<N> flatMapStream(final AFunction<AStream<N>, T> mapper) {
-        return new StreamBuilder<N>(new ChainedStreamBase<N, AStream<AStream<N>>>(map(mapper).current) {
+        return new StreamBuilder<>(new ChainedStreamBase<N, AStream<AStream<N>>>(map(mapper).current) {
             private final RequestQueue requests = new RequestQueue();
             private AStream<N> mapped;
             private boolean eof;
 
             @Override
             protected Promise<Maybe<N>> produce() {
-                return requests.run(new ACallable<Maybe<N>>() {
-                    @Override
-                    public Promise<Maybe<N>> call() throws Throwable {
-                        return aSeqMaybeLoopFair(new ACallable<Maybe<Maybe<N>>>() {
-                            @Override
-                            public Promise<Maybe<Maybe<N>>> call() throws Throwable {
-                                if (mapped == null) {
-                                    if (eof) {
-                                        return aMaybeValue(Maybe.<N>empty());
-                                    }
-                                    return wrapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<AStream<N>>>() {
-                                        @Override
-                                        public Promise<Maybe<Maybe<N>>> apply(final Maybe<AStream<N>> value) {
-                                            if (value.isEmpty()) {
-                                                eof = true;
-                                                return aMaybeValue(Maybe.<N>empty());
-                                            }
-                                            mapped = value.value();
-                                            return aMaybeEmpty();
-                                        }
-                                    });
-                                }
-                                return mapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<N>>() {
-                                    @Override
-                                    public Promise<Maybe<Maybe<N>>> apply(final Maybe<N> value) throws Throwable {
-                                        if (value.isEmpty()) {
-                                            mapped = null;
-                                            return aMaybeEmpty();
-                                        } else {
-                                            return aMaybeValue(value);
-                                        }
-                                    }
-                                });
+                return requests.run(() -> aSeqMaybeLoopFair(() -> {
+                    if (mapped == null) {
+                        if (eof) {
+                            return aMaybeValue(Maybe.<N>empty());
+                        }
+                        return wrapped.next().map(value -> {
+                            if (value.isEmpty()) {
+                                eof = true;
+                                return aMaybeValue(Maybe.<N>empty());
                             }
+                            mapped = value.value();
+                            return aMaybeEmpty();
                         });
                     }
-                });
+                    return mapped.next().map(value -> {
+                        if (value.isEmpty()) {
+                            mapped = null;
+                            return aMaybeEmpty();
+                        } else {
+                            return aMaybeValue(value);
+                        }
+                    });
+                }));
             }
         });
     }
@@ -132,53 +112,39 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
     public ForwardStreamBuilder<T> window(final int size) {
         final RequestQueue writes = new RequestQueue();
         final RequestQueue reads = new RequestQueue();
-        final ArrayDeque<Outcome<Maybe<T>>> elements = new ArrayDeque<Outcome<Maybe<T>>>(size);
+        final ArrayDeque<Outcome<Maybe<T>>> elements = new ArrayDeque<>(size);
         final boolean[] closed = new boolean[1];
         // prefetch process, it never fails
-        writes.runSeqLoop(new ACallable<Boolean>() {
-            @Override
-            public Promise<Boolean> call() throws Throwable {
-                if (closed[0]) {
-                    elements.clear();
-                    return aFalse();
-                }
-                if (elements.size() >= size) {
-                    return writes.suspendThenTrue();
-                }
-                return aNow(new ACallable<Maybe<T>>() {
-                    @Override
-                    public Promise<Maybe<T>> call() throws Throwable {
-                        return stream().next();
-                    }
-                }).mapOutcome(new AFunction<Boolean, Outcome<Maybe<T>>>() {
-                    @Override
-                    public Promise<Boolean> apply(final Outcome<Maybe<T>> value) throws Throwable {
-                        elements.addLast(value);
-                        reads.resume();
-                        return aBoolean(value.isSuccess() && value.value().hasValue());
-                    }
-                });
+        writes.runSeqLoop(() -> {
+            if (closed[0]) {
+                elements.clear();
+                return aFalse();
             }
+            if (elements.size() >= size) {
+                return writes.suspendThenTrue();
+            }
+            return aNow(() -> stream().next()).mapOutcome(value -> {
+                elements.addLast(value);
+                reads.resume();
+                return aBoolean(value.isSuccess() && value.value().hasValue());
+            });
         });
-        return new StreamBuilder<T>(new StreamBase<T>() {
+        return new StreamBuilder<>(new StreamBase<T>() {
             @Override
             protected Promise<Maybe<T>> produce() throws Throwable {
-                return reads.runSeqMaybeLoop(new ACallable<Maybe<Maybe<T>>>() {
-                    @Override
-                    public Promise<Maybe<Maybe<T>>> call() throws Throwable {
-                        if (!isValidAndOpen()) {
-                            return invalidationPromise();
-                        }
-                        if (elements.isEmpty()) {
-                            return reads.suspendThenEmpty();
-                        }
-                        final Outcome<Maybe<T>> element = elements.removeFirst();
-                        writes.resume();
-                        if (element.isSuccess()) {
-                            return aMaybeValue(element.value());
-                        } else {
-                            return aFailure(element.failure());
-                        }
+                return reads.runSeqMaybeLoop(() -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
+                    }
+                    if (elements.isEmpty()) {
+                        return reads.suspendThenEmpty();
+                    }
+                    final Outcome<Maybe<T>> element = elements.removeFirst();
+                    writes.resume();
+                    if (element.isSuccess()) {
+                        return aMaybeValue(element.value());
+                    } else {
+                        return aFailure(element.failure());
                     }
                 });
             }
@@ -194,51 +160,30 @@ public class StreamBuilder<T> extends ForwardStreamBuilder<T> {
     @Override
     public Promise<Void> consume(final AFunction<Boolean, T> loopBody) {
         final AStream<T> stream = current;
-        return aSeq(new ACallable<Void>() {
-            @Override
-            public Promise<Void> call() throws Throwable {
-                return aSeqLoop(new ACallable<Boolean>() {
-                    @Override
-                    public Promise<Boolean> call() throws Throwable {
-                        return stream.next().map(new AFunction<Boolean, Maybe<T>>() {
-                            @Override
-                            public Promise<Boolean> apply(final Maybe<T> value) throws Throwable {
-                                if (value.isEmpty()) {
-                                    return aFalse();
-                                }
-                                return loopBody.apply(value.value());
-                            }
-                        });
-                    }
-                });
+        return aSeq(() -> aSeqLoop(() -> stream.next().map(value -> {
+            if (value.isEmpty()) {
+                return aFalse();
             }
-        }).finallyDo(ResourceUtil.closeResourceAction(current));
+            return loopBody.apply(value.value());
+        }))).finallyDo(ResourceUtil.closeResourceAction(current));
     }
 
     @Override
     public <N> StreamBuilder<N> flatMapMaybe(final AFunction<Maybe<N>, T> mapper) {
-        return new StreamBuilder<N>(new ChainedStreamBase<N, AStream<Maybe<N>>>(map(mapper).current) {
+        return new StreamBuilder<>(new ChainedStreamBase<N, AStream<Maybe<N>>>(map(mapper).current) {
             private final RequestQueue requests = new RequestQueue();
 
             @Override
             protected Promise<Maybe<N>> produce() {
-                return requests.runSeqMaybeLoop(new ACallable<Maybe<Maybe<N>>>() {
-                    @Override
-                    public Promise<Maybe<Maybe<N>>> call() throws Throwable {
-                        return wrapped.next().map(new AFunction<Maybe<Maybe<N>>, Maybe<Maybe<N>>>() {
-                            @Override
-                            public Promise<Maybe<Maybe<N>>> apply(final Maybe<Maybe<N>> value) {
-                                if (value.isEmpty()) {
-                                    return aMaybeValue(Maybe.<N>empty());
-                                } else if (value.value().isEmpty()) {
-                                    return aMaybeEmpty();
-                                } else {
-                                    return aValue(value);
-                                }
-                            }
-                        });
+                return requests.runSeqMaybeLoop(() -> wrapped.next().map(value -> {
+                    if (value.isEmpty()) {
+                        return aMaybeValue(Maybe.<N>empty());
+                    } else if (value.value().isEmpty()) {
+                        return aMaybeEmpty();
+                    } else {
+                        return aValue(value);
                     }
-                });
+                }));
             }
         });
     }
