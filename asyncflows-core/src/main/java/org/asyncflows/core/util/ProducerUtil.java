@@ -1,6 +1,6 @@
 package org.asyncflows.core.util;
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
@@ -8,8 +8,8 @@ import org.asyncflows.core.function.ASupplier;
 
 import java.util.Iterator;
 
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.failureSupplier;
 
 /**
@@ -19,7 +19,7 @@ public final class ProducerUtil {
     /**
      * The wrapper into {@link Maybe}.
      */
-    private static final AFunction<Object, Maybe<Object>> OPTIONAL_WRAPPER = AsyncControl::aMaybeValue;
+    private static final AFunction<Object, Maybe<Object>> OPTIONAL_WRAPPER = CoreFlows::aMaybeValue;
 
     /**
      * The private constructor for utility class.

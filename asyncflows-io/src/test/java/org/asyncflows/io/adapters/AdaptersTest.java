@@ -9,9 +9,9 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

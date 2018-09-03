@@ -5,8 +5,8 @@ import org.asyncflows.core.vats.Vats;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aSend;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aSend;
 
 public class FunctionExporter {
     /**

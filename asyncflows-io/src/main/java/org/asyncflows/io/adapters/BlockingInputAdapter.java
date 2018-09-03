@@ -12,8 +12,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.Buffer;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The simple adapter for JDK input. The adapter is not thread safe.

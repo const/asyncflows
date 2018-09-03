@@ -5,7 +5,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AResolver;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 
 /**

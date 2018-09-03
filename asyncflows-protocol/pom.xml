@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>asyncflows-protocol</artifactId>
+    <name>AsyncFlows: Protocol support - utilities</name>
 
     <dependencies>
         <dependency>

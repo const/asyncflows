@@ -7,9 +7,9 @@ import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.RequestQueue;
 
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.function.AsyncFunctionUtil.booleanSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
 

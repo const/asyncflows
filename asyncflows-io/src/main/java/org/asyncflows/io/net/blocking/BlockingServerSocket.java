@@ -16,9 +16,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The blocking server socket implementation. Note that by default it exports on the daemon vat.

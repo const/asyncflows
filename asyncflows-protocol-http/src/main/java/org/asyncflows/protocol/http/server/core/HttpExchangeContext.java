@@ -13,7 +13,7 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aNow;
+import static org.asyncflows.core.CoreFlows.aNow;
 
 /**
  * HTTP exchange for the server side. This object is handled by the server to the request handlers.

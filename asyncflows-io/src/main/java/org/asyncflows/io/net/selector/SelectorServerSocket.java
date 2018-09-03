@@ -18,10 +18,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * Server socket based on selectors.

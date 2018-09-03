@@ -8,7 +8,7 @@ import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.ChainedClosable;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
+import static org.asyncflows.core.CoreFlows.aFailure;
 
 /**
  * Build stream that works above some resource.

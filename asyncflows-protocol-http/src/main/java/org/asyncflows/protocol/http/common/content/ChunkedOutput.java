@@ -12,7 +12,7 @@ import static org.asyncflows.protocol.LineUtil.CR;
 import static org.asyncflows.protocol.LineUtil.CRLF;
 import static org.asyncflows.protocol.LineUtil.LF;
 import static org.asyncflows.protocol.LineUtil.writeASCII;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The chunked output.

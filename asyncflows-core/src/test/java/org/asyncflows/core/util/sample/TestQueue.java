@@ -9,8 +9,8 @@ import org.asyncflows.core.vats.Vat;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static org.asyncflows.core.AsyncControl.aResolver;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aResolver;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
 public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {

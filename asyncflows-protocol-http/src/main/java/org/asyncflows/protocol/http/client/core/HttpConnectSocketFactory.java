@@ -27,11 +27,11 @@ import java.net.SocketException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The socket factory.

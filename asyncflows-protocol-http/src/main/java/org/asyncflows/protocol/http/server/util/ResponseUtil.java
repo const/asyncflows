@@ -12,8 +12,8 @@ import org.asyncflows.core.Promise;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 
 /**
  * The utility class that contains helper methods for responding.

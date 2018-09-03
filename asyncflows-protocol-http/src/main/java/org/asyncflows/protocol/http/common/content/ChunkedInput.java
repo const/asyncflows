@@ -17,14 +17,14 @@ import org.asyncflows.core.function.AResolver;
 import java.nio.ByteBuffer;
 
 import static org.asyncflows.io.IOUtil.isEof;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifyResolver;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The chunked input.

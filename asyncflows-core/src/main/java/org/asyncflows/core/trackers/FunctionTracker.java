@@ -9,7 +9,7 @@ import org.asyncflows.core.util.RequestQueue;
 
 import java.util.Objects;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
 import static org.asyncflows.core.function.FunctionExporter.exportConsumer;
 

@@ -6,8 +6,8 @@ import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.core.Promise;
 
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 
 /**
  * The connection factory.

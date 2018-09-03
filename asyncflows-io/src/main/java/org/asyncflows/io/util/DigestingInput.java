@@ -13,8 +13,8 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 
 import static org.asyncflows.io.IOUtil.isEof;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The input that forwards requests further and digests the input.

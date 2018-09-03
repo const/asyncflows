@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The utility class for handling client messages.

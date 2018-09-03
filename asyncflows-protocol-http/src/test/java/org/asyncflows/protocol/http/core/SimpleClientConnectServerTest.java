@@ -9,7 +9,7 @@ import org.asyncflows.core.function.AFunction;
 
 import java.net.URI;
 
-import static org.asyncflows.core.util.ResourceUtil.aTryResource;
+import static org.asyncflows.core.util.CoreFlowsResource.aTryResource;
 
 /**
  * The same test as {@link SimpleClientServerTest}, but uses the test server with connect proxy.

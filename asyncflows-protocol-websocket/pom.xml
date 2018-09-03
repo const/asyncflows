@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>asyncflows-protocol-websocket</artifactId>
+    <name>AsyncFlows: Protocol Support - WebSockets</name>
 
     <dependencies>
         <dependency>

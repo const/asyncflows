@@ -9,10 +9,10 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.RequestQueue;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 

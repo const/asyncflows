@@ -10,12 +10,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aBoolean;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aBoolean;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
 import static org.asyncflows.core.streams.AsyncStreams.aForRange;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

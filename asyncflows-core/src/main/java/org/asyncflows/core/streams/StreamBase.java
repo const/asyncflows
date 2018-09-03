@@ -7,7 +7,7 @@ import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
+import static org.asyncflows.core.CoreFlows.aFailure;
 
 /**
  * The base for the simple streams.

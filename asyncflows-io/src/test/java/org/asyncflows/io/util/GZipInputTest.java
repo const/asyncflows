@@ -4,14 +4,14 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.adapters.Adapters;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
 import static org.asyncflows.core.AsyncContext.doAsyncThrowable;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -53,7 +53,7 @@ public class GZipInputTest {
         final Tuple2<Long, GZipHeader> rc = doAsyncThrowable(() -> {
             final Promise<GZipHeader> header = new Promise<>();
             return aAll(
-                    () -> ResourceUtil.aTryResource(
+                    () -> CoreFlowsResource.aTryResource(
                             Adapters.getResource(GZipInputTest.class, file)
                     ).andChain(
                             value -> aValue(GZipInput.gunzip(value, header.resolver()))

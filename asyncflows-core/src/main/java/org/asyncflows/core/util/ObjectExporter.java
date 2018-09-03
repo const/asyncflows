@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aSend;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aSend;
 
 /**
  * Create a reflection based proxy for the class.

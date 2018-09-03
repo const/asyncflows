@@ -1,27 +1,27 @@
 package org.asyncflows.core.streams;
 
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.util.ProducerUtil;
 import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.util.ArrayDeque;
 
-import static org.asyncflows.core.AsyncControl.aBoolean;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqUntilValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aBoolean;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The stream builder provides fluent interfaces for building streams.
@@ -94,7 +94,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
                                 return aMaybeValue(Maybe.<N>empty());
                             }
                             mapped = value.value();
-                            return AsyncControl.<Maybe<N>>aMaybeEmpty();
+                            return CoreFlows.<Maybe<N>>aMaybeEmpty();
                         });
                     }
                     return mapped.next().flatMap(value -> {
@@ -167,7 +167,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
                 return aFalse();
             }
             return loopBody.apply(value.value());
-        }))).finallyDo(ResourceUtil.closeResourceAction(current));
+        }))).finallyDo(CoreFlowsResource.closeResourceAction(current));
     }
 
     @Override

@@ -3,11 +3,11 @@ package org.asyncflows.core.streams;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.util.concurrent.Executor;
 
-import static org.asyncflows.core.AsyncControl.aLater;
+import static org.asyncflows.core.CoreFlows.aLater;
 
 /**
  * The export utility class for the streams.
@@ -38,7 +38,7 @@ public final class StreamExportUtil {
 
             @Override
             public Promise<Void> close() {
-                return ResourceUtil.closeResource(vat, stream);
+                return CoreFlowsResource.closeResource(vat, stream);
             }
         };
     }
@@ -70,7 +70,7 @@ public final class StreamExportUtil {
 
             @Override
             public Promise<Void> close() {
-                return ResourceUtil.closeResource(vat, sink);
+                return CoreFlowsResource.closeResource(vat, sink);
             }
         };
     }

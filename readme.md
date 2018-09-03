@@ -65,7 +65,7 @@ It is rarely needed to use vat directly. The typical cases are:
 ### Default Execution Context 
 
 When an asynchronous context is needed, but it is not clear whether the current thread has one,
-It is possible to use `Vat.defaultExecutor()` method, that return current vat, if it is present, 
+It is possible to use `Vat.defaultVat()` method, that return current vat, if it is present, 
 or new daemon vat if it is not present. Differently from JDK, the default is a daemon vat instead 
 for ForkJoin pool, because the framework is oriented on interaction with external services 
 (that could block threads in some cases) rather than for CPU computations.
@@ -135,7 +135,7 @@ assertEquals(42, i);
 ``` 
 The operation above creates `SingeThreadedVat`, run it on current thread, and then stops vat when `CompletableStage`
 is done with success or failure. If it is done with success, operation exits with value, otherwise it throws
-`ExecutionException`.  
+`AsycExecutionException`.  
 
 ## Trivial
 

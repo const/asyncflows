@@ -10,7 +10,7 @@ import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.vats.Vat;
@@ -28,14 +28,14 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import static org.asyncflows.core.AsyncControl.aBoolean;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aBoolean;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The selector socket.
@@ -344,7 +344,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
         public Promise<Void> flush() {
             // data is sent as soon as it is possible, so the method is just waiting
             // until previous requests are processed.
-            return requests.run(AsyncControl::aVoid);
+            return requests.run(CoreFlows::aVoid);
         }
 
         @Override

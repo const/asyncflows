@@ -14,27 +14,27 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import static org.asyncflows.core.AsyncContext.withDefaultContext;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aOutcome;
-import static org.asyncflows.core.AsyncControl.aResolver;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aOutcome;
+import static org.asyncflows.core.CoreFlows.aResolver;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
 /**
  * Utility class with sequential control utilities.
  */
-public final class AsyncSeqControl {
+public final class CoreFlowsSeq {
 
     /**
      * Private constructor for utility class.
      */
-    private AsyncSeqControl() {
+    private CoreFlowsSeq() {
         // do nothing
     }
 

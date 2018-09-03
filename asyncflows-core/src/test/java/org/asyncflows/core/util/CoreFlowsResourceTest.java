@@ -8,15 +8,15 @@ import org.asyncflows.core.function.ACloseable;
 import org.junit.jupiter.api.Test;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Resource util test.
  */
-public class ResourceUtilTest {
+public class CoreFlowsResourceTest {
 
     @Test
     public void tryTest() {
@@ -61,7 +61,7 @@ public class ResourceUtilTest {
 
         @Override
         public ACloseable export(final Vat vat) {
-            return () -> ResourceUtil.closeResource(vat, SampleResource.this);
+            return () -> CoreFlowsResource.closeResource(vat, SampleResource.this);
         }
     }
 }

@@ -6,7 +6,7 @@ import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.ChainedClosable;
 import org.asyncflows.core.util.NeedsExport;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 
 /**

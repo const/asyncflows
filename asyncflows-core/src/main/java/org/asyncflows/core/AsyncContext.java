@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aResolver;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aResolver;
 
 /**
  * Asynchronous context operations.
@@ -56,7 +56,7 @@ public class AsyncContext {
     public static <R> R withDefaultContext(BiFunction<ARunner, Executor, R> function) {
         final Vat current = Vat.currentOrNull();
         if (current != null) {
-            return function.apply(AsyncControl::aNow, current);
+            return function.apply(CoreFlows::aNow, current);
         } else {
             final Vat vat = Vats.defaultVat();
             return function.apply(new ARunner() {

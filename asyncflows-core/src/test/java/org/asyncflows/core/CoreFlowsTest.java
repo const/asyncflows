@@ -3,12 +3,12 @@ package org.asyncflows.core;
 import org.junit.jupiter.api.Test;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class AsyncControlTest {
+public class CoreFlowsTest {
     @Test
     public void testSimple() {
         final int rc = doAsync(() -> aValue(42));

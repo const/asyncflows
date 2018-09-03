@@ -24,8 +24,8 @@ import static org.asyncflows.protocol.LineUtil.LF;
 import static org.asyncflows.protocol.LineUtil.MAX_ISO_8859_1;
 import static org.asyncflows.protocol.LineUtil.isBlank;
 import static org.asyncflows.protocol.LineUtil.writeLatin1;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The HTTP headers structure. The structure is keeping headers in the normalized form.

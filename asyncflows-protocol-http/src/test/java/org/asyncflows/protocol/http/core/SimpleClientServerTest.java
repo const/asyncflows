@@ -18,19 +18,19 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
-import static org.asyncflows.core.util.ResourceUtil.aTryResource;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
+import static org.asyncflows.core.util.CoreFlowsResource.aTryResource;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -145,7 +145,7 @@ public class SimpleClientServerTest extends HttpServerTestBase {
      * @return the promise for the digests.
      */
     private Promise<Tuple2<byte[], byte[]>> checkEchoHandler(final AHttpClient client, final URI uri) {
-        return ResourceUtil.aTryResource(client).andChain(AHttpClient::newRequest).runWithSecond(
+        return CoreFlowsResource.aTryResource(client).andChain(AHttpClient::newRequest).runWithSecond(
                 request -> {
                     final HttpHeaders headers = new HttpHeaders();
                     headers.setHeader(HttpHeadersUtil.CONNECTION_HEADER, HttpHeadersUtil.UPGRADE_HEADER);

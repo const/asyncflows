@@ -4,8 +4,8 @@ import org.asyncflows.core.Promise;
 
 import java.util.concurrent.Executor;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aSend;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aSend;
 
 /**
  * Exports for utility classes.

@@ -12,8 +12,8 @@ import org.asyncflows.core.vats.Vats;
 
 import java.net.SocketException;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * Blocking socket factory.

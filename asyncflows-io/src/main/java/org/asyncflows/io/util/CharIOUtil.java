@@ -9,12 +9,12 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 import static org.asyncflows.io.IOUtil.isEof;
-import static org.asyncflows.core.AsyncControl.aBoolean;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqUntilValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aBoolean;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * Character IO utilities.

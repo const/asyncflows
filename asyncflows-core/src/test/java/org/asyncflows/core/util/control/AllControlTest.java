@@ -1,24 +1,24 @@
 package org.asyncflows.core.util.control;
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.data.Tuple3;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.AsyncAllControl;
+import org.asyncflows.core.util.CoreFlowsAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.booleanSupplier;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncAllControl.aAllForCollect;
-import static org.asyncflows.core.util.AsyncAllControl.aPar;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsAll.aAllForCollect;
+import static org.asyncflows.core.util.CoreFlowsAll.aPar;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -61,9 +61,9 @@ public class AllControlTest {
     public void testAll2Failures() {
         final Outcome<Tuple2<String, Integer>> rc1 = doAsync(() ->
                 aAll(
-                        () -> AsyncControl.<String>aFailure(new IllegalStateException("1"))
+                        () -> CoreFlows.<String>aFailure(new IllegalStateException("1"))
                 ).andLast(
-                        () -> AsyncControl.<Integer>aFailure(new IllegalStateException("2"))
+                        () -> CoreFlows.<Integer>aFailure(new IllegalStateException("2"))
                 ).toOutcomePromise());
         assertFalse(rc1.isSuccess());
         //noinspection ThrowableResultOfMethodCallIgnored
@@ -91,7 +91,7 @@ public class AllControlTest {
                 ).map((value1, value2) -> aValue(Tuple2.of(value1, value2)));
             }
 
-            private AsyncAllControl.AllBuilder.AllBuilder2<String, Integer> partialAll() {
+            private CoreFlowsAll.AllBuilder.AllBuilder2<String, Integer> partialAll() {
                 return aAll(
                         () -> aValue("The answer")
                 ).and(
@@ -116,7 +116,7 @@ public class AllControlTest {
                 ).map((value1, value2, value3) -> aValue(Tuple3.of(value1, value2, value3)));
             }
 
-            private AsyncAllControl.AllBuilder.AllBuilder3<String, Integer, Boolean> partialAll() {
+            private CoreFlowsAll.AllBuilder.AllBuilder3<String, Integer, Boolean> partialAll() {
                 return aAll(
                         () -> aValue("The answer")
                 ).and(

@@ -7,7 +7,7 @@ import org.asyncflows.core.function.AFunction;
 
 import java.lang.reflect.UndeclaredThrowableException;
 
-import static org.asyncflows.core.AsyncControl.aNow;
+import static org.asyncflows.core.CoreFlows.aNow;
 
 /**
  * Utilities for the selector vat.

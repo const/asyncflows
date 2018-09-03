@@ -11,8 +11,8 @@ import org.asyncflows.core.util.RequestQueue;
 
 import java.nio.CharBuffer;
 
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
 
 /**
  * The line stream.

@@ -6,7 +6,7 @@ import org.asyncflows.core.function.AResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
+import static org.asyncflows.core.CoreFlows.aFailure;
 
 /**
  * The closeable that could be invalidated.

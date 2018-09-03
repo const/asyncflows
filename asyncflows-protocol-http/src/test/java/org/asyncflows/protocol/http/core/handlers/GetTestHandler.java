@@ -15,8 +15,8 @@ import org.asyncflows.core.Promise;
 
 import java.util.Map;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 
 /**
  * The handler that produces the specified amount of the random data.

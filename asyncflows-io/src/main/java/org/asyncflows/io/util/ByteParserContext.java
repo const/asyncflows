@@ -2,17 +2,17 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The parser context for the protocol implementation. It contains the data is needed for parsing binary streams.
@@ -118,7 +118,7 @@ public class ByteParserContext {
      * @return the promise for empty value
      */
     public <T> Promise<Maybe<T>> readMoreEmpty() {
-        return readMore().thenPromise(AsyncControl.<T>aMaybeEmpty());
+        return readMore().thenPromise(CoreFlows.<T>aMaybeEmpty());
     }
 
     /**

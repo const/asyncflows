@@ -21,8 +21,8 @@ import static org.asyncflows.io.net.SocketUtil.aTrySocket;
 import static org.asyncflows.io.util.DigestingInput.digestAndDiscardInput;
 import static org.asyncflows.io.util.DigestingOutput.generateDigested;
 import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

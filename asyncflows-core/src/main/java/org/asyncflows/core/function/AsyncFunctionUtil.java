@@ -1,14 +1,14 @@
 package org.asyncflows.core.function;
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 
 import java.util.function.Function;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  *
@@ -48,11 +48,11 @@ public class AsyncFunctionUtil {
     }
 
     public static ASupplier<Boolean> booleanSupplier(boolean value) {
-        return value ? AsyncControl::aTrue : AsyncControl::aFalse;
+        return value ? CoreFlows::aTrue : CoreFlows::aFalse;
     }
 
     public static <T> AFunction<T, Maybe<T>> maybeMapper() {
-        return AsyncControl::aMaybeValue;
+        return CoreFlows::aMaybeValue;
     }
 
 }

@@ -10,8 +10,8 @@ import org.asyncflows.core.function.AResolver;
 import java.nio.ByteBuffer;
 
 import static org.asyncflows.io.IOUtil.isEof;
-import static org.asyncflows.core.AsyncControl.aOutcome;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aOutcome;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The stream that is limited by the specified size, the {@link #close()} does not close underlying stream.

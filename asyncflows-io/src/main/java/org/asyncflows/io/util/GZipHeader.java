@@ -17,13 +17,13 @@ import static org.asyncflows.io.binary.BinaryReader.readSequence;
 import static org.asyncflows.io.binary.BinaryReader.readUint16;
 import static org.asyncflows.io.binary.BinaryReader.readerField;
 import static org.asyncflows.io.binary.BinaryReader.withCRC32;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqForUnit;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForUnit;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The GZip Header data.The format is specified in

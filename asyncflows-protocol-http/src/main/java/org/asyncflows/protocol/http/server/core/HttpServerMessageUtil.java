@@ -20,12 +20,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqUntilValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 
 /**
  * Utilities for HTTP message parsing and generation on the server side.

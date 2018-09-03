@@ -5,7 +5,7 @@ import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 

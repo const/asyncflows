@@ -1,6 +1,6 @@
 package org.asyncflows.core.util.control;
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.data.Cell;
 import org.asyncflows.core.function.ASupplier;
@@ -12,20 +12,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aBoolean;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aBoolean;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.streams.AsyncStreams.aForArray;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqForCollect;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqForUnit;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqUntilValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForCollect;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForUnit;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -77,7 +77,7 @@ public class SeqControlTest {
                         () -> aValue(42)
                 ).map(
                         value -> aLater(() -> aValue("The answer is " + value))
-                ).finallyDo(AsyncControl::aVoid));
+                ).finallyDo(CoreFlows::aVoid));
         assertEquals("The answer is 42", test);
     }
 

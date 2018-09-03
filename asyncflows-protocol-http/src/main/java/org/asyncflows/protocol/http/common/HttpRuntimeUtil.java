@@ -3,7 +3,7 @@ package org.asyncflows.protocol.http.common;
 import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.core.function.AFunction;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
+import static org.asyncflows.core.CoreFlows.aFailure;
 
 /**
  * The class that provide some utilities related to control flow.

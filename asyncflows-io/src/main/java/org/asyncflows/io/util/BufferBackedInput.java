@@ -13,7 +13,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The reader over buffer. It just reads data from the buffer until it ends.

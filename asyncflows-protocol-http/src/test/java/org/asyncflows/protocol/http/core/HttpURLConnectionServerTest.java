@@ -14,8 +14,8 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The server test. It use HttpUrlConnection on the separate thread.

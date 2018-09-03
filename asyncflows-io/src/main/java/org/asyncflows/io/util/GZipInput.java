@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 import java.util.zip.CRC32;
 import java.util.zip.Inflater;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 

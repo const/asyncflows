@@ -5,9 +5,9 @@ import org.asyncflows.core.Promise;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The context for binary generators. This helper class is used to generate structured binary output.

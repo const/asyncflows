@@ -11,23 +11,23 @@ import org.asyncflows.core.function.AsyncFunctionUtil;
 
 import java.util.concurrent.Executor;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.supplierToFunction;
 import static org.asyncflows.core.function.AsyncFunctionUtil.useFirstArg;
 import static org.asyncflows.core.function.AsyncFunctionUtil.useSecondArg;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The resource related utilities.
  */
-public final class ResourceUtil {
+public final class CoreFlowsResource {
     /**
      * The private constructor for utility class.
      */
-    private ResourceUtil() {
+    private CoreFlowsResource() {
     }
 
     /**

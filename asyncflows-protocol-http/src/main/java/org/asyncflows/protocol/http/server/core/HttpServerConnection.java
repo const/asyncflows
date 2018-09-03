@@ -2,7 +2,7 @@ package org.asyncflows.protocol.http.server.core;
 
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketOptions;
-import org.asyncflows.io.net.ssl.ASSLSocket;
+import org.asyncflows.io.net.tls.ATlsSocket;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.core.Promise;
@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLSession;
 import java.net.SocketAddress;
 
-import static org.asyncflows.core.AsyncControl.aNull;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aNull;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The wrapper for HTTP server connection.
@@ -131,8 +131,8 @@ class HttpServerConnection extends CloseableBase {
                 ).and(
                         socket::getOutput
                 ).and(() -> {
-                    if (socket instanceof ASSLSocket) {
-                        return ((ASSLSocket) socket).getSession();
+                    if (socket instanceof ATlsSocket) {
+                        return ((ATlsSocket) socket).getSession();
                     } else {
                         return aNull();
                     }
@@ -155,8 +155,8 @@ class HttpServerConnection extends CloseableBase {
                     return aVoid();
                 })
         ).andLast(() -> {
-            if (socket instanceof ASSLSocket) {
-                return ((ASSLSocket) socket).getSession().flatMap(value -> {
+            if (socket instanceof ATlsSocket) {
+                return ((ATlsSocket) socket).getSession().flatMap(value -> {
                     sslSession = value;
                     protocol = "https";
                     return aVoid();

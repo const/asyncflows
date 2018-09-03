@@ -3,8 +3,8 @@ package org.asyncflows.core.util;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
 
 /**
  * Asynchronous semaphore class.

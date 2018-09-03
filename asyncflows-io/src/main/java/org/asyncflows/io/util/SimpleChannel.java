@@ -11,9 +11,9 @@ import org.asyncflows.core.util.NeedsExport;
 
 import java.nio.Buffer;
 
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.ResourceUtil.closeResourceAction;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 
 /**
  * Simple channel over input and output. Closing channel closes both input and output.

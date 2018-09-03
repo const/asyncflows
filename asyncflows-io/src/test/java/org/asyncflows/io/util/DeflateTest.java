@@ -6,16 +6,16 @@ import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Random;
 
 import static org.asyncflows.core.AsyncContext.doAsyncThrowable;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
@@ -47,7 +47,7 @@ public class DeflateTest {
                                 final Promise<byte[]> digest = new Promise<byte[]>();
                                 final AOutput<ByteBuffer> stream = DigestingOutput.digestOutput(
                                         deflate, digest.resolver()).sha1();
-                                return ResourceUtil.aTryResource(stream).run(
+                                return CoreFlowsResource.aTryResource(stream).run(
                                         value -> value.write(ByteBuffer.wrap(data))
                                 ).thenPromise(digest);
                             })

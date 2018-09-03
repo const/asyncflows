@@ -9,9 +9,9 @@ import org.asyncflows.core.function.ASupplier;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqUntilValue;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 

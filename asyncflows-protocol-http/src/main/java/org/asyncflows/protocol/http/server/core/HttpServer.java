@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
-import static org.asyncflows.core.util.ResourceUtil.closeResourceAction;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 
 /**
  * The basic HTTP 1.1 server. Note, that it uses only the single normal request handler. Additional handlers might be

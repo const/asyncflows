@@ -4,8 +4,8 @@ package org.asyncflows.core.util;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * A Closeable instance above other closeable instance.
@@ -29,7 +29,7 @@ public abstract class ChainedClosable<T extends ACloseable> extends CloseableInv
 
     @Override
     protected Promise<Void> closeAction() {
-        return aSeq(this::beforeClose).finallyDo(ResourceUtil.closeResourceAction(wrapped));
+        return aSeq(this::beforeClose).finallyDo(CoreFlowsResource.closeResourceAction(wrapped));
     }
 
     /**

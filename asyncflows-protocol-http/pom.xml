@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>asyncflows-protocol-http</artifactId>
+    <name>AsyncFlows: Protocol support - HTTP</name>
 
     <dependencies>
         <dependency>

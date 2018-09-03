@@ -12,8 +12,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.Buffer;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The base class for blocking output adapters.

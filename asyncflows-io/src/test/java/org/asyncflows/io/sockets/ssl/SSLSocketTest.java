@@ -4,7 +4,7 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.selector.SelectorVatUtil;
-import org.asyncflows.io.net.ssl.SSLSocketFactory;
+import org.asyncflows.io.net.tls.TlsSocketFactory;
 import org.asyncflows.io.util.AbstractDigestingStream;
 import org.asyncflows.io.util.LimitedInput;
 import org.asyncflows.core.Promise;
@@ -21,10 +21,10 @@ import java.util.Random;
 import static org.asyncflows.io.net.SocketUtil.aTrySocket;
 import static org.asyncflows.io.util.DigestingInput.digestAndDiscardInput;
 import static org.asyncflows.io.util.DigestingOutput.digestOutput;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class SSLSocketTest {
     /**
-     * The smoke test for SSLSocket
+     * The smoke test for TlsSocket
      *
      * @throws Throwable in case of the problem
      */
@@ -43,7 +43,7 @@ public class SSLSocketTest {
         final Random rnd = new Random();
         final long length = rnd.nextInt(10240) + 1024;
         final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.runThrowable(rawSocketFactory -> { // NOPMD
-            SSLSocketFactory sslFactory = new SSLSocketFactory();
+            TlsSocketFactory sslFactory = new TlsSocketFactory();
             sslFactory.setSocketFactory(rawSocketFactory);
             sslFactory.setClientEngineFactory(value -> {
                 final InetSocketAddress inetSocketAddress = (InetSocketAddress) value;

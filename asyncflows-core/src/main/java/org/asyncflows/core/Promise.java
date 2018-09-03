@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.asyncflows.core.AsyncControl.aOutcome;
+import static org.asyncflows.core.CoreFlows.aOutcome;
 import static org.asyncflows.core.vats.Vats.defaultVat;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.toAsyncFunction;

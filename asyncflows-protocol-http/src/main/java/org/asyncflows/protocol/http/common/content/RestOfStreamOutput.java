@@ -6,7 +6,7 @@ import org.asyncflows.core.function.AResolver;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The output for the rest of the stream.

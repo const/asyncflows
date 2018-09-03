@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static org.asyncflows.core.AsyncControl.aNull;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aNull;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.util.ASubscription.exportSubscription;
 
 /**

@@ -11,8 +11,8 @@ import org.asyncflows.core.util.NeedsExport;
 
 import java.io.IOException;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * Selector based socket factory.

@@ -14,9 +14,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.zip.Inflater;
 
-import static org.asyncflows.core.AsyncControl.aMaybeEmpty;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * Inflate input. The input is able to use data from the underlying stream. If inflater fails, the buffer data should

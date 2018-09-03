@@ -4,19 +4,19 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Cell;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
-import static org.asyncflows.core.util.ResourceUtil.aTry;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 
 /**
  * The generic IO util class.
@@ -81,7 +81,7 @@ public class IOUtil<B extends Buffer, A> {
      * @param <C>     the channel type
      * @return the action
      */
-    public <C extends AChannel<B>> ResourceUtil.Try3<C, AInput<B>, AOutput<B>> tryChannel(final ASupplier<C> channel) {
+    public <C extends AChannel<B>> CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> tryChannel(final ASupplier<C> channel) {
         return aTry(channel).andChain(AChannel::getInput).andChainFirst(AChannel::getOutput);
 
     }
@@ -94,7 +94,7 @@ public class IOUtil<B extends Buffer, A> {
      * @param <C>     the channel type
      * @return the action
      */
-    public <C extends AChannel<B>> ResourceUtil.Try3<C, AInput<B>, AOutput<B>> tryChannel(final Promise<C> channel) {
+    public <C extends AChannel<B>> CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> tryChannel(final Promise<C> channel) {
         return tryChannel(promiseSupplier(channel));
     }
 
@@ -106,7 +106,7 @@ public class IOUtil<B extends Buffer, A> {
      * @param autoFlush if true, the stream is flushed after each write
      * @param buffer    the buffer to use (the buffer might have a data in it and the buffer is assumed to be in state
      *                  ready for the stream read operation). If operation fails, the state of buffer is undefined.
-     * @return the amount of bytes read then written (bytes arleady in the buffer are not counted)
+     * @return the amount of bytes read then written (bytes already in the buffer are not counted)
      */
     public final Promise<Long> copy(final AInput<B> input, final AOutput<B> output,
                                     final boolean autoFlush, final B buffer) {

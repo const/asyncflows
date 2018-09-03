@@ -8,13 +8,13 @@ import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The digesting output.
@@ -68,7 +68,7 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
     public static Promise<byte[]> generateDigested(final AOutput<ByteBuffer> output, final String algorithm,
                                                    final AFunction<AOutput<ByteBuffer>, Void> action) {
         final Promise<byte[]> result = new Promise<>();
-        return ResourceUtil.aTryResource(
+        return CoreFlowsResource.aTryResource(
                 digestOutput(output, result.resolver()).using(algorithm)
         ).run(
                 action

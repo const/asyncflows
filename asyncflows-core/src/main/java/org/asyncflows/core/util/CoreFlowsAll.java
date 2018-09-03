@@ -1,7 +1,7 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.AsyncContext;
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
@@ -21,17 +21,17 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.AsyncControl.aNow;
-import static org.asyncflows.core.AsyncControl.aResolver;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aResolver;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * Asynchronous control utilities.
  */
-public class AsyncAllControl {
+public class CoreFlowsAll {
     /**
      * The daemon thread runner.
      */
@@ -45,7 +45,7 @@ public class AsyncAllControl {
     /**
      * Private constructor for utility class.
      */
-    private AsyncAllControl() {
+    private CoreFlowsAll() {
     }
 
     /**
@@ -60,7 +60,7 @@ public class AsyncAllControl {
      * @return the builder for the all operator
      */
     public static <T> AllBuilder<T> aAll(final ASupplier<T> start) {
-        return aPar(start, AsyncControl::aNow);
+        return aPar(start, CoreFlows::aNow);
     }
 
     /**
@@ -153,7 +153,7 @@ public class AsyncAllControl {
      */
     public static <T, R, I, C> Promise<C> aAllForCollect(Iterator<T> iterator, AFunction<T, R> body,
                                                          Collector<R, I, C> collector) {
-        return aParForCollect(iterator, body, collector, AsyncControl::aNow);
+        return aParForCollect(iterator, body, collector, CoreFlows::aNow);
     }
 
 
@@ -227,7 +227,7 @@ public class AsyncAllControl {
                     }
                 } catch (Throwable t) {
                     final Promise<Void> previous = mergeNext;
-                    mergeNext = aNow(() -> merge.apply(AsyncControl.<R>aFailure(t), previous));
+                    mergeNext = aNow(() -> merge.apply(CoreFlows.<R>aFailure(t), previous));
                     break;
                 }
             }

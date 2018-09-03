@@ -1,6 +1,6 @@
 package org.asyncflows.core.streams;
 
-import org.asyncflows.core.AsyncControl;
+import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.RequestQueue;
 
@@ -53,6 +53,6 @@ public abstract class TransformSinkBase<N, T> extends ChainedSinkBase<T, ASink<N
      */
     @Override
     protected Promise<Void> beforeClose() {
-        return requests.run(AsyncControl::aVoid);
+        return requests.run(CoreFlows::aVoid);
     }
 }

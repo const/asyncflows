@@ -8,12 +8,12 @@ import org.asyncflows.io.adapters.Adapters;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * Utilities specific for binary IO.
@@ -200,7 +200,7 @@ public final class ByteIOUtil {
         final Promise<byte[]> promise = new Promise<>();
         final AResolver<byte[]> resolver = promise.resolver();
         final AOutput<ByteBuffer> output = Adapters.getByteArrayOutput(resolver);
-        return ResourceUtil.aTryResource(output).run(
+        return CoreFlowsResource.aTryResource(output).run(
                 value -> IOUtil.BYTE.copy(input, output, false, ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE))
         ).thenPromise(promise);
     }

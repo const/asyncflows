@@ -11,7 +11,7 @@ import org.asyncflows.core.util.CloseableBase;
 
 import java.nio.CharBuffer;
 
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
  * The input over character sequence.

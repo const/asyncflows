@@ -6,7 +6,7 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -15,7 +15,7 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 
 /**
@@ -117,7 +117,7 @@ public final class SocketUtil {
      * @param socket a socket
      * @return a try operation on the socket
      */
-    public static ResourceUtil.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
+    public static CoreFlowsResource.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
             final ASupplier<ASocket> socket) {
         return IOUtil.BYTE.tryChannel(socket);
     }
@@ -128,7 +128,7 @@ public final class SocketUtil {
      * @param socket a socket
      * @return a try operation on the socket
      */
-    public static ResourceUtil.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
+    public static CoreFlowsResource.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
             final Promise<ASocket> socket) {
         return aTrySocket(promiseSupplier(socket));
     }

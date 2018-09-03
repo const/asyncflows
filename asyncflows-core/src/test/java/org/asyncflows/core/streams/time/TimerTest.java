@@ -3,7 +3,7 @@ package org.asyncflows.core.streams.time;
 import org.asyncflows.core.data.Tuple3;
 import org.asyncflows.core.streams.StreamUtil;
 import org.asyncflows.core.time.Timer;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.streams.AsyncStreams.aForStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,7 +25,7 @@ public class TimerTest {
     @Test
     public void sleepTest() throws Throwable {
         final Tuple3<Long, Long, Long> r = doAsync(() ->
-                ResourceUtil.aTryResource(new Timer()).run(timer -> {
+                CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
                     return timer.sleep(20).flatMap(value -> {
                         long end = System.nanoTime();
@@ -38,7 +38,7 @@ public class TimerTest {
     @Test
     public void waitForTest() throws Throwable {
         final Tuple3<Long, Long, Long> r = doAsync(() ->
-                ResourceUtil.aTryResource(new Timer()).run(timer -> {
+                CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
                     return timer.waitFor(new Date(System.currentTimeMillis() + 100)).flatMap(
                             value -> {
@@ -53,7 +53,7 @@ public class TimerTest {
     public void fixedRate() throws Throwable {
         final long start = System.nanoTime();
         final List<Long> r = doAsync(() ->
-                ResourceUtil.aTryResource(new Timer()).run(timer ->
+                CoreFlowsResource.aTryResource(new Timer()).run(timer ->
                         timer.fixedRate(5, 5).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
         final long end = System.nanoTime();
         assertTrue(start + TimeUnit.MILLISECONDS.toNanos(25) <= end);
@@ -70,7 +70,7 @@ public class TimerTest {
     @Test
     public void fixedDelay() throws Throwable {
         final long start = System.nanoTime();
-        final List<Long> r = doAsync(() -> ResourceUtil.aTryResource(new Timer()).run(
+        final List<Long> r = doAsync(() -> CoreFlowsResource.aTryResource(new Timer()).run(
                 timer -> timer.fixedDelay(5, 5).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
         final long end = System.nanoTime();
         assertTrue(start + TimeUnit.MILLISECONDS.toNanos(25) <= end);

@@ -8,6 +8,7 @@
     <artifactId>asyncflows-build</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>AsyncFlows: Parent Project</name>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>

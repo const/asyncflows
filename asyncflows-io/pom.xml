@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>asyncflows-io</artifactId>
+    <name>AsyncFlows: IO</name>
 
     <dependencies>
         <dependency>

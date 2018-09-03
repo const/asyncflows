@@ -15,7 +15,7 @@ import static org.asyncflows.core.vats.Vats.defaultVat;
 /**
  * Basic asynchronous control constructs.
  */
-public class AsyncControl {
+public class CoreFlows {
     /**
      * The constant promise NULL.
      */

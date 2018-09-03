@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.Collectors;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqForCollect;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqForUnit;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForCollect;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForUnit;
 import static org.asyncflows.core.util.ControlUtils.rangeIterator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

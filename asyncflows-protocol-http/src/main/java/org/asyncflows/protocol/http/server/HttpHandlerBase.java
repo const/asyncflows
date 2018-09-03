@@ -3,7 +3,7 @@ package org.asyncflows.protocol.http.server;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.NeedsExport;
 
-import static org.asyncflows.core.AsyncControl.aLater;
+import static org.asyncflows.core.CoreFlows.aLater;
 
 /**
  * The base class for HTTP handler.

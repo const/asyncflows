@@ -14,7 +14,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.ResourceUtil;
+import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,13 +22,13 @@ import java.nio.CharBuffer;
 import java.util.Random;
 import java.util.function.Consumer;
 
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeq;
-import static org.asyncflows.core.util.AsyncSeqControl.aSeqWhile;
-import static org.asyncflows.core.util.ResourceUtil.closeResourceAction;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 
 /**
  * The implementation of web socket output message stream.
@@ -141,14 +141,14 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
             case BINARY:
                 return send(message.getBinary());
             case BINARY_STREAM:
-                return ResourceUtil.aTryResource(message.getBinaryStream())
+                return CoreFlowsResource.aTryResource(message.getBinaryStream())
                         .andOther(startBinary(message.getLength()))
                         .run((value1, value2) ->
                                 IOUtil.BYTE.copy(value1, value2, false, IOUtil.BYTE.writeBuffer()).toVoid());
             case TEXT:
                 return send(message.getText());
             case TEXT_STREAM:
-                return ResourceUtil.aTryResource(message.getTextStream())
+                return CoreFlowsResource.aTryResource(message.getTextStream())
                         .andOther(startText(message.getLength()))
                         .run((value1, value2) ->
                                 IOUtil.CHAR.copy(value1, value2, false, IOUtil.CHAR.writeBuffer()).toVoid());

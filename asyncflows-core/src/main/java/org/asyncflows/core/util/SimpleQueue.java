@@ -7,8 +7,8 @@ import org.asyncflows.core.function.AResolver;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
 /**

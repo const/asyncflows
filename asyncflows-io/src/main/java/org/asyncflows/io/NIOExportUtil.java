@@ -7,8 +7,8 @@ import org.asyncflows.core.vats.Vats;
 import java.nio.Buffer;
 import java.util.concurrent.Executor;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.util.ResourceUtil.closeResource;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 
 /**
  * The export utilities.

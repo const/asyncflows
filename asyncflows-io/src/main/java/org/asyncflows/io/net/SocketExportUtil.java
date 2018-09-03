@@ -8,8 +8,8 @@ import org.asyncflows.core.vats.Vat;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.util.ResourceUtil.closeResource;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 
 /**
  * Export utilities for the socket.
