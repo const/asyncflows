@@ -1,0 +1,141 @@
+package org.asyncflows.core;
+
+import org.asyncflows.core.function.AResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * The outcome type.
+ *
+ * @param <T> the value type
+ */
+public abstract class Outcome<T> {
+    private static final Logger LOG = LoggerFactory.getLogger(Outcome.class);
+
+    /**
+     * Upcast outcome value to a weaker type.
+     *
+     * @param input the input outcome
+     * @param <O>   the output type
+     * @param <I>   the input type
+     * @return Upcasted the outcome
+     */
+    @SuppressWarnings("unchecked")
+    public static <O, I extends O> Outcome<O> upcast(final Outcome<I> input) {
+        return (Outcome<O>) input;
+    }
+
+    /**
+     * Create success outcome.
+     *
+     * @param value the value
+     * @param <A>   the value type
+     * @return the success outcome
+     */
+    public static <A> Outcome<A> success(final A value) {
+        return new Success<>(value);
+    }
+
+    /**
+     * Create failure outcome.
+     *
+     * @param failure the value
+     * @param <A>     the value type
+     * @return the failure outcome
+     */
+    public static <A> Outcome<A> failure(final Throwable failure) {
+        return new Failure<>(failure);
+    }
+
+    /**
+     * Create outcome basing on BiConsumer arguments.
+     *
+     * @param value   the value
+     * @param failure the failure
+     * @param <A>     the value type
+     * @return the outcome
+     */
+    public static <A> Outcome<A> of(A value, Throwable failure) {
+        if (failure != null) {
+            return failure(failure);
+        } else {
+            return success(value);
+        }
+    }
+
+    /**
+     * Notify listener.
+     *
+     * @param <T>      the outcome
+     * @param listener the listener
+     * @param outcome  the outcome
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> void notifyResolver(AResolver<? super T> listener, Outcome<T> outcome) {
+        try {
+            if (outcome == null) {
+                listener.resolve(Outcome.failure(new NullPointerException("Outcome must not be null")));
+            } else {
+                listener.resolve((Outcome)outcome);
+            }
+        } catch (Throwable ex) {
+            LOG.error("Failed to notify listener", ex);
+        }
+    }
+
+    /**
+     * Notify listener.
+     *
+     * @param <T>      the outcome
+     * @param listener the listener
+     * @param value  the outcome
+     */
+    public static <T> void notifySuccess(AResolver<T> listener, T value) {
+        notifyResolver(listener, Outcome.success(value));
+    }
+
+    /**
+     * Notify listener.
+     *
+     * @param <T>      the outcome
+     * @param listener the listener
+     * @param problem the outcome failure
+     */
+    public static <T> void notifyFailure(AResolver<T> listener, Throwable problem) {
+        notifyResolver(listener, Outcome.failure(problem));
+    }
+
+    /**
+     * Force the value to appear.
+     *
+     * @return the value if it is success outcome
+     * @throws Throwable if it is a failure outcome
+     */
+    public abstract T force() throws Throwable;
+
+    /**
+     * Get value for the outcome if it is a success outcome.
+     *
+     * @return the current value
+     * @throws IllegalStateException if no value is available
+     */
+    public abstract T value();
+
+    /**
+     * Get value for the outcome if it is a failure outcome.
+     *
+     * @return the failure
+     * @throws IllegalStateException if this outcome is a failure outcome
+     */
+    public abstract Throwable failure();
+
+    /**
+     * @return true if this is a success outcome
+     */
+    public abstract boolean isSuccess();
+
+    /**
+     * @return true if this is a failure outcome
+     */
+    public abstract boolean isFailure();
+}

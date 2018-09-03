@@ -1,53 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.sf.asyncobjects</groupId>
-    <artifactId>asyncobjects</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <groupId>org.asyncflows</groupId>
+    <artifactId>asyncflows-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>AsyncObjects Framework</name>
-    <description>The AsyncObjects framework simplifies writing asynchronous event-driven dataflow-based applications in
-        Java, Groovy, and Scala. It mainly builds upon ideas and syntax of E programming language. However, it also
-        draws ideas from other programming languages like Occam and frameworks like SEDA and Akka as well. In addition
-        to core library that supports common asynchronous communication patterns. The framework provides a wrapper for
-        NIO-based sockets that simplify creation of network applications that support a high number of concurrent
-        connections.
-    </description>
-
-    <developers>
-        <developer>
-            <id>const</id>
-            <name>Constantine Plotnikov</name>
-            <email>constantine.plotnikov@gmail.com</email>
-            <timezone>+4</timezone>
-        </developer>
-    </developers>
-
-    <issueManagement>
-        <system>Sourceforge.net Tracker</system>
-        <url>https://sourceforge.net/tracker/?group_id=170750</url>
-    </issueManagement>
-
+    <properties>
+        <slf4j.version>1.7.25</slf4j.version>
+        <junit.version>5.1.0</junit.version>
+        <logback.version>1.2.3</logback.version>
+        <commons-io.verions>2.6</commons-io.verions>
+    </properties>
 
     <modules>
-        <module>asyncobjects-core</module>
-        <module>asyncobjects-junit</module>
-        <module>asyncobjects-nio</module>
-        <module>asyncobjects-groovy</module>
-        <module>asyncobjects-scala</module>
-        <module>asyncobjects-protocol</module>
-        <module>asyncobjects-protocol-http</module>
-        <module>asyncobjects-protocol-websocket</module>
-        <!--
-        <module>asyncobjects-awt</module>
-        <module>asyncobjects-socks</module>
-        <module>asyncobjects-ssh</module>
-        <module>asyncobjects-jee</module>
-        <module>asyncobjects-net-sample</module>
-        -->
+        <module>asyncflows-core</module>
+        <module>asyncflows-io</module>
+        <module>asyncflows-protocol</module>
+        <module>asyncflows-protocol-http</module>
+        <module>asyncflows-protocol-websocket</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.verions}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-io</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-protocol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-protocol-http</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-protocol-websocket</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.19.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.junit.platform</groupId>
+                            <artifactId>junit-platform-surefire-provider</artifactId>
+                            <version>1.1.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.junit.jupiter</groupId>
+                            <artifactId>junit-jupiter-engine</artifactId>
+                            <version>5.1.0</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+
+        </pluginManagement>
+    </build>
 </project>
