@@ -1,4 +1,4 @@
-package org.asyncflows.io.net.ssl;
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.net.ADatagramSocket;
@@ -13,12 +13,10 @@ import org.asyncflows.core.function.AFunction;
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
 
-import static org.asyncflows.core.AsyncControl.aValue;
-
 /**
- * The SSL socket factory.
+ * The TLS socket factory.
  */
-public class SSLSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class TlsSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
     /**
      * The factory for server SSL engine.
      */
@@ -34,14 +32,14 @@ public class SSLSocketFactory implements ASocketFactory, NeedsExport<ASocketFact
 
     @Override
     public Promise<ASocket> makeSocket() {
-        return getSocketFactory().makeSocket().flatMap(
-                value -> aValue((ASocket) new SSLSocket(value, getClientEngineFactory()).export()));
+        return getSocketFactory().makeSocket().map(
+                value -> new TlsSocket(value, getClientEngineFactory()).export());
     }
 
     @Override
     public Promise<AServerSocket> makeServerSocket() {
-        return getSocketFactory().makeServerSocket().flatMap(
-                value -> aValue(new SSLServerSocket(value, getServerEngineFactory()).export()));
+        return getSocketFactory().makeServerSocket().map(
+                value -> new TlsServerSocket(value, getServerEngineFactory()).export());
     }
 
     @Override

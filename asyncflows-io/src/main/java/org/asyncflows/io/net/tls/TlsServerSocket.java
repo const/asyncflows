@@ -1,4 +1,4 @@
-package org.asyncflows.io.net.ssl;
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
@@ -13,12 +13,12 @@ import org.asyncflows.core.util.NeedsExport;
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
 
-import static org.asyncflows.core.AsyncControl.aValue;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
- * The server socket for SSL.
+ * The server socket for TLS.
  */
-public class SSLServerSocket extends ChainedClosable<AServerSocket>
+public class TlsServerSocket extends ChainedClosable<AServerSocket>
         implements AServerSocket, NeedsExport<AServerSocket> {
     /**
      * The engine factory.
@@ -35,7 +35,7 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
      * @param wrapped       the underlying object
      * @param engineFactory the factory for the SSL engine
      */
-    public SSLServerSocket(final AServerSocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
+    public TlsServerSocket(final AServerSocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
         super(wrapped);
         this.engineFactory = engineFactory;
     }
@@ -75,7 +75,7 @@ public class SSLServerSocket extends ChainedClosable<AServerSocket>
     @Override
     public Promise<ASocket> accept() {
         return wrapped.accept().flatMap(socket -> engineFactory.apply(localAddress).flatMap(engine -> {
-            final SSLSocket sslSocket = new SSLSocket(socket, engineFactory);
+            final TlsSocket sslSocket = new TlsSocket(socket, engineFactory);
             return sslSocket.init(engine).thenValue((ASocket) sslSocket.export());
         }));
     }

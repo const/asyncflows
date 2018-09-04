@@ -1,4 +1,4 @@
-package org.asyncflows.io.sockets.ssl;
+package org.asyncflows.io.net.tls;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -15,7 +15,7 @@ import java.security.cert.CertificateException;
 /**
  * The test configuration data used for SSL
  */
-public class SSLTestData {
+public class TlsTestData {
     /**
      * The client context for the SSL
      */
@@ -35,7 +35,7 @@ public class SSLTestData {
      * @throws UnrecoverableKeyException if there is a problem
      * @throws KeyManagementException    if there is a problem
      */
-    public SSLTestData() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
+    public TlsTestData() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
         final char[] passphrase = "passphrase".toCharArray();
         final KeyStore ksTrust = getKeyStore(passphrase, "data/trust.jks");
         final KeyStore ksClient = getKeyStore(passphrase, "data/client.jks");
@@ -69,22 +69,22 @@ public class SSLTestData {
      */
     private KeyStore getKeyStore(final char[] passphrase, final String name) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         final KeyStore ks = KeyStore.getInstance("JKS");
-        try (InputStream stream = SSLTestData.class.getResourceAsStream(
-                "/org/asyncflows/io/sockets/ssl/" + name)) {
+        try (InputStream stream = TlsTestData.class.getResourceAsStream(
+                "/org/asyncflows/io/net/sockets/tls/" + name)) {
             ks.load(stream, passphrase);
         }
         return ks;
     }
 
     /**
-     * @return the client context for SSL
+     * @return the client context for TLS
      */
     public SSLContext getSslClientContext() {
         return sslClientContext;
     }
 
     /**
-     * @return the server context for SSL
+     * @return the server context for TLS
      */
     public SSLContext getSslServerContext() {
         return sslServerContext;

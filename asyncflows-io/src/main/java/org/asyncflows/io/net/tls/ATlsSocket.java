@@ -1,4 +1,4 @@
-package org.asyncflows.io.net.ssl;
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.core.Promise;
@@ -8,7 +8,7 @@ import javax.net.ssl.SSLSession;
 /**
  * SSL socket interface.
  */
-public interface ASSLSocket extends ASocket {
+public interface ATlsSocket extends ASocket {
     /**
      * Starts a handshake if it is not in progress. If handshake is in progress, just returns a promise that resolves
      * when handshake is finished.

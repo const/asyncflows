@@ -1,4 +1,4 @@
-package org.asyncflows.io.net.ssl; // NOPMD
+package org.asyncflows.io.net.tls; // NOPMD
 
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AInput;
@@ -19,23 +19,23 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.asyncflows.core.AsyncContext.aDaemonRun;
-import static org.asyncflows.core.AsyncControl.aFailure;
-import static org.asyncflows.core.AsyncControl.aFalse;
-import static org.asyncflows.core.AsyncControl.aMaybeValue;
-import static org.asyncflows.core.AsyncControl.aTrue;
-import static org.asyncflows.core.AsyncControl.aValue;
-import static org.asyncflows.core.AsyncControl.aVoid;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
-import static org.asyncflows.core.util.AsyncAllControl.aAll;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 
 /**
  * Implementation of channel semantics over {@link SSLEngine}.
  *
  * @param <T> the wrapped channel type
  */
-public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<T> implements AChannel<ByteBuffer> {
+public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<T> implements AChannel<ByteBuffer> {
     // TODO consider ByteGeneratorContext, ByteParserContext
     /**
      * The always empty buffer.
@@ -86,7 +86,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
      *
      * @param wrapped the underlying object
      */
-    protected SSLChannel(final T wrapped) {
+    protected TlsChannel(final T wrapped) {
         super(wrapped);
     }
 
@@ -137,7 +137,7 @@ public class SSLChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
     }
 
     /**
-     * Initialize SSLChannel with input and output streams.
+     * Initialize TlsChannel with input and output streams.
      *
      * @param initEngine the configured {@link SSLEngine}
      * @return the promise that resolves when initialization finishes

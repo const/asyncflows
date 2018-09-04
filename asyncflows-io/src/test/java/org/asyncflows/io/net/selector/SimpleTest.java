@@ -1,4 +1,4 @@
-package org.asyncflows.io.sockets.selector;
+package org.asyncflows.io.net.selector;
 
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;

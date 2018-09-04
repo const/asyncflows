@@ -1,4 +1,4 @@
-package org.asyncflows.io.net.ssl;
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
@@ -14,13 +14,13 @@ import javax.net.ssl.SSLSession;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.AsyncControl.aLater;
-import static org.asyncflows.core.util.ResourceUtil.closeResource;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 
 /**
  * The SSL socket.
  */
-public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, NeedsExport<ASSLSocket> {
+public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsExport<ATlsSocket> {
     /**
      * The engine factory.
      */
@@ -32,7 +32,7 @@ public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, NeedsE
      * @param wrapped       the underlying object
      * @param engineFactory the {@link SSLEngine} factory.
      */
-    public SSLSocket(final ASocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
+    public TlsSocket(final ASocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
         super(wrapped);
         this.engineFactory = engineFactory;
     }
@@ -66,9 +66,9 @@ public class SSLSocket extends SSLChannel<ASocket> implements ASSLSocket, NeedsE
     }
 
     @Override
-    public ASSLSocket export(final Vat vat) {
-        final ASSLSocket socket = this;
-        return new ASSLSocket() {
+    public ATlsSocket export(final Vat vat) {
+        final ATlsSocket socket = this;
+        return new ATlsSocket() {
             @Override
             public Promise<Void> handshake() {
                 return aLater(socket::handshake, vat);

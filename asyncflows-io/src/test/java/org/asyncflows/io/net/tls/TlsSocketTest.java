@@ -1,10 +1,9 @@
-package org.asyncflows.io.sockets.ssl;
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.selector.SelectorVatUtil;
-import org.asyncflows.io.net.tls.TlsSocketFactory;
 import org.asyncflows.io.util.AbstractDigestingStream;
 import org.asyncflows.io.util.LimitedInput;
 import org.asyncflows.core.Promise;
@@ -29,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * The test for SSL socket
+ * The test for TLS socket
  */
-public class SSLSocketTest {
+public class TlsSocketTest {
     /**
      * The smoke test for TlsSocket
      *
@@ -39,26 +38,26 @@ public class SSLSocketTest {
      */
     @Test
     public void smokeTest() throws Throwable { // NOPMD
-        final SSLTestData sslTestData = new SSLTestData();
+        final TlsTestData tlsTestData = new TlsTestData();
         final Random rnd = new Random();
         final long length = rnd.nextInt(10240) + 1024;
         final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.runThrowable(rawSocketFactory -> { // NOPMD
-            TlsSocketFactory sslFactory = new TlsSocketFactory();
-            sslFactory.setSocketFactory(rawSocketFactory);
-            sslFactory.setClientEngineFactory(value -> {
+            TlsSocketFactory tlsFactory = new TlsSocketFactory();
+            tlsFactory.setSocketFactory(rawSocketFactory);
+            tlsFactory.setClientEngineFactory(value -> {
                 final InetSocketAddress inetSocketAddress = (InetSocketAddress) value;
-                SSLEngine rc = sslTestData.getSslClientContext().createSSLEngine(inetSocketAddress.getHostName(),
+                SSLEngine rc = tlsTestData.getSslClientContext().createSSLEngine(inetSocketAddress.getHostName(),
                         inetSocketAddress.getPort());
                 rc.setUseClientMode(true);
                 return aValue(rc);
             });
-            sslFactory.setServerEngineFactory(value -> {
-                final SSLEngine rc = sslTestData.getSslServerContext().createSSLEngine();
+            tlsFactory.setServerEngineFactory(value -> {
+                final SSLEngine rc = tlsTestData.getSslServerContext().createSSLEngine();
                 rc.setUseClientMode(false);
                 return aValue(rc);
             });
 
-            final ASocketFactory socketFactory = sslFactory.export();
+            final ASocketFactory socketFactory = tlsFactory.export();
             return aTry(socketFactory.makeServerSocket()).run(
                     serverSocket -> serverSocket.bind(new InetSocketAddress(0)).flatMap(
                             socketAddress -> aAll(
