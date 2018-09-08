@@ -5,7 +5,6 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.blocking.BlockingSocketUtil;
-import org.asyncflows.io.net.selector.SelectorVatUtil;
 import org.asyncflows.io.util.ByteIOUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AFunction;

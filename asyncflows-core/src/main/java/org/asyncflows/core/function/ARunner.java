@@ -13,5 +13,5 @@ public interface ARunner {
      * @param <T>    the type of action
      * @return the promise for action
      */
-    <T> Promise<T> start(ASupplier<T> action);
+    <T> Promise<T> run(ASupplier<T> action);
 }

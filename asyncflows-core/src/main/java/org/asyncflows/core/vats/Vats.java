@@ -2,6 +2,7 @@ package org.asyncflows.core.vats;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,12 +32,17 @@ public final class Vats {
     }
 
     /**
-     * The daemon vat.
-     *
-     * @return the vat
+     * @return the new daemon vat
      */
     public static ExecutorVat daemonVat() {
         return new ExecutorVat(DAEMON_EXECUTOR, Integer.MAX_VALUE);
+    }
+
+    /**
+     * @return a new vat over forkjoin pool.
+     */
+    public static ExecutorVat forkJoinVat() {
+        return new ExecutorVat(ForkJoinPool.commonPool());
     }
 
     /**

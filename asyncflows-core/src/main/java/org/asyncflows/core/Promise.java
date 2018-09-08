@@ -13,9 +13,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.asyncflows.core.CoreFlows.aOutcome;
-import static org.asyncflows.core.vats.Vats.defaultVat;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.toAsyncFunction;
+import static org.asyncflows.core.vats.Vats.defaultVat;
 
 /**
  * Promise class, it is different from future that it is final, does not support
@@ -80,6 +80,20 @@ public final class Promise<T> {
             }
         }
         Outcome.notifyResolver(listener, o);
+        return this;
+    }
+
+    /**
+     * There are rare cases when control construct does not care about listener anymore,
+     * so it is better to forget anyway in order to reduce memory usage..
+     *
+     * @param listener the listener
+     * @return this promise
+     */
+    public Promise<T> forget(AResolver<? super T> listener) {
+        synchronized (lock) {
+            listeners.remove(listener);
+        }
         return this;
     }
 

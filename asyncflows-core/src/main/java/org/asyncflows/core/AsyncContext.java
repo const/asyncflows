@@ -1,12 +1,14 @@
 package org.asyncflows.core;
 
+import org.asyncflows.core.function.ARunner;
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.SingleThreadVat;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
-import org.asyncflows.core.function.ARunner;
-import org.asyncflows.core.function.ASupplier;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -61,7 +63,7 @@ public class AsyncContext {
             final Vat vat = Vats.defaultVat();
             return function.apply(new ARunner() {
                 @Override
-                public <T> Promise<T> start(ASupplier<T> a) {
+                public <T> Promise<T> run(ASupplier<T> a) {
                     return aLater(a, vat);
                 }
             }, vat);
@@ -94,16 +96,46 @@ public class AsyncContext {
      * components.
      *
      * @param action the action to execute (the action will not have a vat context)
+     * @param <T>      the type
      * @return promise that resolves to the result of the execution
      */
     public static <T> Promise<T> aDaemonGet(final Supplier<T> action) {
-        return aResolver(resolver -> Vats.DAEMON_EXECUTOR.execute(() -> {
-            try {
-                Outcome.notifySuccess(resolver, action.get());
-            } catch (Throwable t) {
-                Outcome.notifyFailure(resolver, t);
-            }
-        }));
+        return aExecutorGet(action, Vats.DAEMON_EXECUTOR);
     }
+
+    /**
+     * Get value using executor.
+     *
+     * @param action   the action
+     * @param executor the executor
+     * @param <T>      the type
+     * @return the value
+     */
+    public static <T> Promise<T> aExecutorGet(Supplier<T> action, ExecutorService executor) {
+        return aResolver(resolver -> {
+            executor.execute(() -> {
+                try {
+                    Outcome.notifySuccess(resolver, action.get());
+                } catch (Throwable t) {
+                    Outcome.notifyFailure(resolver, t);
+                }
+            });
+        });
+    }
+
+    /**
+     * Run action on the ForkJoin executor and resolve promise when that action finishes.
+     * This method is used when it is required to execute a single action on other thread
+     * context w/o creating explicit vat. Usually it is used when interacting with non-asynchronous
+     * components.
+     *
+     * @param action the action to execute (the action will not have a vat context)
+     * @param <T>      the type
+     * @return promise that resolves to the result of the execution
+     */
+    public static <T> Promise<T> aForkJoinGet(final Supplier<T> action) {
+        return aExecutorGet(action, ForkJoinPool.commonPool());
+    }
+
 
 }

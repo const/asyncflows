@@ -11,6 +11,9 @@
     <name>AsyncFlows: Parent Project</name>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
         <junit.version>5.1.0</junit.version>
         <logback.version>1.2.3</logback.version>
@@ -72,6 +75,11 @@
                 <groupId>org.asyncflows</groupId>
                 <artifactId>asyncflows-protocol-websocket</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

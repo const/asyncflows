@@ -2,14 +2,40 @@ AsyncFlows Framework 0.1.0
 --------------------------
 
 The framework support easy and modular construction of asynchronous processes from simpler constructs.
-The framework is mostly targeted to IO-bound processes and it is not intended for IO bound processes.
+The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
+
+# Project information
+## Licensing
+
+The framework is licensed under copyleft [MIT license](LICENSE.txt). This could change if the project
+is migrated to other project groups (Apache, Eclipse, or something else). There is currently no legal
+framework to accept project contributions in form of the code. However, bug reporting, experimental
+forking, and other feedback is welcome. The project might migrate to some project group to solve this
+problem.
+
+Currently project is considered in the Alpha phase and there could be backward incompatible changes
+even for minor versions.
+
+## Code Samples
+
+The code samples in this guide are usually taken from unit tests of the framework. So they are directly
+executable. If copied in own code, one usually need to resolve some static imports that are used by DSL.
+
+Syntax highlighting for samples is disabled for now because of the bug in IDEA 
+[RUBY-18425](https://youtrack.jetbrains.com/issue/RUBY-18425).
+
+## Distribution
+
+The project is currently available only on [github](https://github.com/const/asyncflows). 
+There is no builds in maven central.
 
 # Framework Foundations
 
 The concept described in this section are foundations of the framework.
 While they are foundation, the user of the framework rarely interacts 
 with them directly, so do not assume that code samples here are anything
-like what you would see in application 
+like what you would see in application. Like with real building,
+foundations are mostly stay hidden from the sight. 
 
 ## Vats
 
@@ -62,13 +88,13 @@ It is rarely needed to use vat directly. The typical cases are:
 * Application setup
 * Library or framework code
 
-### Default Execution Context 
+### Default Vat
 
 When an asynchronous context is needed, but it is not clear whether the current thread has one,
 It is possible to use `Vat.defaultVat()` method, that return current vat, if it is present, 
 or new daemon vat if it is not present. Differently from JDK, the default is a daemon vat instead 
 for ForkJoin pool, because the framework is oriented on interaction with external services 
-(that could block threads in some cases) rather than for CPU computations.
+(that could block threads in some cases) rather than for CPU-bound computations.
 
 ## Promise
 
@@ -106,11 +132,18 @@ These functions are executed immediately, if result is available and with defaul
 
 The lambdas passed to these methods are executed in default execution context.
 
-# Asynchronous Operators
+# Structured Asynchronous Programming
+
+The core concept of the framework is asynchronous operation. *Asynchronous operation* is a sequence 
+of logically grouped execution of the  
 
 Asynchronous operators are static methods that usually return `Promise` and start with prefix `a` 
 (for example `aValue`). The operations are supposed to be imported using static import to form a DSL
 in the programming language.
+
+The structured programming constructs are inspired by combining ideas from two sources:
+* [E programming language](http://www.e-elang.org)
+* [Occam programming language](https://en.wikipedia.org/wiki/Occam_(programming_language))
 
 ## Asynchronous Functions
 
@@ -350,7 +383,146 @@ But is possible to customize execution by providing an implementation of ARunner
 
 This is applicable to all other `aAll` operators. 
 
-# Asynchronous Components
+## Alternative Processing
+
+The alternative processing is done using `aAny` operator. This operator starts all branches on the current
+turn and waits for for the first branch to complete with error or success. The `aAny` operator is intended 
+for error handling and querying alternative sources of information.
+
+```$java
+        int value = doAsync(() ->
+                aAny(
+                        () -> aLater(() -> aValue(1))
+                ).orLast(
+                        () -> aValue(2)
+                )
+        );
+        assertEquals(2, value);
+        try {
+            doAsync(() ->
+                    aAny(
+                            () -> aLater(() -> aValue(1))
+                    ).orLast(
+                            () -> aFailure(new RuntimeException())
+                    )
+            );
+            fail("Unreachable");
+        } catch (AsyncExecutionException ex) {
+            assertEquals(RuntimeException.class, ex.getCause().getClass());
+        }
+```
+ 
+ 
+There is also execution mode that the `aAny` operator tries to wait for successful result if possible.
+
+```$java
+        int value = doAsync(() ->
+                aAny(true,
+                        () -> aLater(() -> aValue(1))
+                ).orLast(
+                        () -> aFailure(new RuntimeException())
+                )
+        );
+        assertEquals(1, value);
+```
+
+The other feature of aAny operator is handling of the branches that did not reach output of `aAny` operator.
+This is important when the `aAny` operator opens resources that are required to be closed. Or when exceptions
+from failed branches need to be logged.
+
+The sample below demonstrates usage of `suppressed(...)` and `suppressedFailure(...)` that could be used to
+receive the abandoned results.  
+
+```$java
+        Tuple3<Integer, Throwable, Integer> t = doAsync(
+                () -> {
+                    Promise<Throwable> failure = new Promise<>();
+                    Promise<Integer> suppressed = new Promise<>();
+                    return aAll(
+                            () -> aAny(true,
+                                    () -> aLater(() -> aValue(1))
+                            ).or(
+                                    () -> aValue(2)
+                            ).or(
+                                    () -> aFailure(new RuntimeException())
+                            ).suppressed(v -> {
+                                notifySuccess(suppressed.resolver(), v);
+                            }).suppressedFailureLast(ex -> {
+                                notifySuccess(failure.resolver(), ex);
+                            })
+                    ).and(
+                            () -> failure
+                    ).andLast(
+                            () -> suppressed
+                    );
+                }
+        );
+        assertEquals(2, t.getValue1().intValue());
+        assertEquals(RuntimeException.class, t.getValue2().getClass());
+        assertEquals(1, t.getValue3().intValue());
+
+```
+
+### Fail-fast
+
+The `FailFast` utility class is an application of the `aAny` operator.
+
+In some cases it is needed to fail the entire process if some operation has failed.
+For example, if one asynchronous operation has already failed, the related operations
+need also fail.
+
+For that purpose, framework contains FailFast utility class. The class monitor results
+of operations.
+
+Sometimes, an operation returns the resource that require cleanup (for example open connection).
+In that case ignoring resource is not a valid option. For that purpose there is cleanup operation.
+
+Let's consider a case when we have some consumer and some provider of values. For that purpose,
+we will use queue components, that will be explained later in that guide. We will assume that provider
+fail, so consumer might fail to receive expected value that would terminate processing. In that case,
+we would like to consumer to fail as well. For example:
+
+```$java
+        ArrayList<Integer> list = new ArrayList<>();
+        doAsync(() -> {
+            SimpleQueue<Integer> queue = new SimpleQueue<>();
+            FailFast failFast = new FailFast();
+            return aAll(
+                    // () -> aSeqWhile(() -> queue.take().map(t -> {
+                    () -> aSeqWhile(() -> failFast.run(queue::take).map(t -> {
+                        if (t == null) {
+                            return false;
+                        } else {
+                            list.add(t);
+                            return true;
+                        }
+                    }))
+            ).andLast(
+                    () -> aSeq(
+                            () -> queue.put(1)
+                    ).thenDo(
+                            () -> queue.put(2)
+                    ).thenDo(
+                            // pause
+                            () -> aSeqForUnit(rangeIterator(1, 10), t -> aLater(() -> aTrue()))
+                    ).thenDoLast(
+                            () -> failFast.run(() -> aFailure(new RuntimeException()))
+                    )
+            ).mapOutcome(o -> {
+                assertTrue(o.isFailure());
+                assertEquals(RuntimeException.class, o.failure().getClass());
+                return true;
+            });
+        });
+        assertEquals(Arrays.asList(1, 2), list);
+```
+If we do queue reading like in commented out line, the test will hang up, because the consumer will never
+receive the value, because supplier failed. But in uncommented line, we wrap call to `queue.take()` into
+fail-fast runner. This allows us to fail all executions of fail-fast that are active or will be active.
+Inside the call of `failFast.run(...)` there is any operator against common promise, if any of the 
+`failFast.run(...)` fails, that promise fails as well. Otherwise it stays in unresolved state.
+
+# Object-Oriented Programming
 
 As we have seen in previous section, the framework support rich set of asynchronous operators that
 support functional and structured asynchronous programming. And the framework also supports creation 
@@ -431,6 +603,24 @@ of the vat and it should be generally exported. The basic exporter is ObjectExpo
 optimized exporters now. The current implementation uses reflection, but runtime code generation is planned for
 future. The method export, exports class to runtime.
 
+The exporter could be written manually, and would look like this:
+
+```$java
+    public static <T> ATestQueue<T> exportTestQueue(final ATestQueue<T> service, final Vat vat) {
+        return new ATestQueue<T>() {
+            @Override
+            public Promise<T> take() {
+                return aLater(() -> service.take(), vat);
+            }
+
+            @Override
+            public void put(T element) {
+                aSend(() -> put(element), vat);
+            }
+        };
+    }
+``` 
+
 Let's test this method:
 
 ```$java
@@ -446,6 +636,42 @@ Let's test this method:
         });
         assertEquals((11 * 10) / 2, rc);
 ```
+## Garbage Collection Consideration
+
+The framework objects are generally garbage collected by Java. There is no need to perform explicit cleanup
+for them, if they do not hold any sensitive resources like IO streams.
+
+The object is prevented from garbage collection in the following cases:
+* There is a direct reference to object or its proxy
+* There is an event on the queue that references the object
+* There is listener registered to some uncompleted promise, that is held by external listener.
+  This usually means that there is some asynchronous operation is in progress.
+  
+Generally, the rules for garbage collection are the same as for normal Java code. But we also need
+to consider promise chains as call stack. So references held by promises should be considered as
+stack references to objects.
+
+The vat object is shared between many AsyncFlows objects and asynchronous operators. The Vat might 
+need to be stopped. But this usually apply to Vats that occupy thread like `SelectorVat` or `SingleThreadVat`.
+Even for these vats starting/stopping is handled by the utility methods `doAsync(...)` 
+and `SelectorVatUtil.run(...)`.
+
+## Concurrency Considerations
+
+It is assumed that asynchronous operations do not invoke blocking functionality. So many simultaneous asynchronous
+operations will safely take their turns on the single queue. However, it is not always so as some operations
+require calls of non-asynchronous API or to perform CPU-intensive operations.
+
+CPU-bound operations should be generally delegated to the ForkJoin pool (`aForkJoinGet(...)`). 
+IO-bound synchronous operations should be delegated to daemon thread pool (`aDaemonGet(...)`). 
+If you are in doubt, just send it to daemon pool. There are helps that start operations on 
+corresponding pools using vats. These operations do not establish asynchronous context
+on corresponding pools, so they are quite lightweight and suitable to invocation of some 
+synchronous method.
+
+If asynchronous context need to be established, it is better to use `aLater(..., Vats.daemonVat())`
+or `aLater(..., Vats.forkJoinVat())`. These operations will create a new vats that runs over corresponding
+pools. 
 
 ## Request Queue
 
@@ -574,7 +800,6 @@ Let's see how it works in test:
         assertSame(null, t);
         assertEquals(Arrays.asList(-1, 1, -2, -3,  2, 3), result);
 ```  
-
 
 # Library
 
@@ -735,7 +960,221 @@ to nest `aTry` operators, so previously opened resources are accessible in lexic
 
 ## IO Library
 
+### Core IO
 
+The IO library is also built upon lean interfaces and different operations built upon it.
+The following are core interfaces of the library:
+
+```$java
+public interface AInput<B extends Buffer> extends ACloseable {
+    Promise<Integer> read(B buffer);
+}
+public interface AOutput<B extends Buffer> extends ACloseable {
+    Promise<Void> write(B buffer);
+    Promise<Void> flush();
+}
+public interface AChannel<B extends Buffer> extends ACloseable {
+    Promise<AInput<B>> getInput();
+    Promise<AOutput<B>> getOutput();
+}
+```
+
+As you could see, these interfaces are suitable for both character IO and 
+byte IO. Some operations that work with these interfaces are 
+[generic](asyncflows-io/src/main/java/org/asyncflows/io/IOUtil.java).
+
+The following functionality is supported out of the box:
+* Character encoding([DecoderInput](asyncflows-io/src/main/java/org/asyncflows/io/text/DecoderInput.java)) 
+   / decoding([EncoderOutput](asyncflows-io/src/main/java/org/asyncflows/io/text/EncoderOutput.java)) 
+* Digesting ([DigestingInput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java) and
+  [DigestingOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java))
+* GZip ([GZipInput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java) and
+  [GZipOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java))
+* Deflate ([DeflateOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DeflateOutput.java))) 
+  and Inflate ([InflateInput](asyncflows-io/src/main/java/org/asyncflows/io/util/InflateInput.java)))
+* Utility streams
+* Synchronous stream [adapters](asyncflows-io/src/main/java/org/asyncflows/io/adapters).
+
+### Network Library
+
+There are two implementations of socket library based on traditional blocking sockets and selector library.
+The later an implementation based on asynchronous sockets is planned.
+
+Implementation based on traditional blocking sockets API sometimes hangs on Windows, so it is not recommended to use
+if runtime also supports selector sockets. This implementation is left only backward compatibility with non-complete 
+Java runtimes. 
+
+The sockets are just byte channels with few additional operators, and they support the same operations.
+But there are few additional operations.
+
+```$java
+public interface ASocket extends AChannel<ByteBuffer> {
+    Promise<Void> setOptions(SocketOptions options);
+    Promise<Void> connect(SocketAddress address);
+    Promise<SocketAddress> getRemoteAddress();
+    Promise<SocketAddress> getLocalAddress();
+}
+public interface AServerSocket extends ACloseable {
+    Promise<SocketAddress> bind(SocketAddress address, int backlog);
+    Promise<SocketAddress> bind(SocketAddress address);
+    Promise<Void> setDefaultOptions(SocketOptions options);
+    Promise<SocketAddress> getLocalSocketAddress();
+    Promise<ASocket> accept();
+}
+public interface ASocketFactory {
+    Promise<ASocket> makeSocket();
+    Promise<AServerSocket> makeServerSocket();
+    Promise<ADatagramSocket> makeDatagramSocket();
+}
+public interface ADatagramSocket extends ACloseable {
+    Promise<Void> setOptions(SocketOptions options);
+    Promise<Void> connect(SocketAddress address);
+    Promise<Void> disconnect();
+    Promise<SocketAddress> getRemoteAddress();
+    Promise<SocketAddress> getLocalAddress();
+    Promise<SocketAddress> bind(SocketAddress address);
+    Promise<Void> send(ByteBuffer buffer);
+    Promise<Void> send(SocketAddress address, ByteBuffer buffer);
+    Promise<SocketAddress> receive(ByteBuffer buffer);
+}
+``` 
+
+### TLS support
+
+TLS implementation relies on Java SSLEngine for asynchronous processing, so it follows all restrictions
+enforced by it. Note, SSL protocols are not not supported by Java's SSLEngine anymore, so the framework
+stick with TLS name.
+
+The TLS implementation is just a ASocketFactory that wraps other socket factory. 
+
+
+### HTTP 1.1 support
+
+The framework provides experimental support for HTTP 1.1 protocol on client and server side.
+The code is currently more like low-level protocol implementation rather than ready to use
+application server. The neither side is finished, but it could be experimented with. 
+HTTPS is not implemented at the moment.
+
+See [unit test](asyncflows-protocol-http/src/test/java/org/asyncflows/protocol/http/core)
+for sample code.
+
+
+### Back pressure
+
+Many asynchronous libraries have a back pressure problem. When one source of data provides more 
+data than consumer might consume. Some frameworks did not had a solution for the problem 
+(like Netty before 4.0), some introduce unnatural solutions like disabling/enabling reading
+(like Vert.x and modern Netty), some hide it inside framework (like Akka), or provide a separate
+event listeners for channels (like Apache HttpCore Async 5.x). 
+
+However, there is no such problem with synchronous io in Java, as streams block if nothing 
+could be written to it:
+
+```$java
+long lenght = 0;
+byte[] b = new byte[4096]
+while(true)  {
+   int c = in.read(b)
+   if(c < 0) {
+      break;
+   }
+   lenght += c;
+   out.write(b, 0, c);
+}
+return lengh;
+```
+That is practically all. Back pressure propagates naturally via blocking. No more data will be read,
+if write is not complete. If there is error, it will be propagated to caller.
+
+The framework provides practically the same approach. There is no explicit backpressure control. 
+The output stream is accepting request, and return to caller when it is finished processing it, 
+including sending data to downstream.
+
+```$java
+    public final Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int bufferSize) {
+        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+        final long[] result = new long[1];
+        return aSeqWhile(
+                () -> input.read(buffer).flatMap(value -> {
+                    if (isEof(value)) {
+                        return aFalse();
+                    } else {
+                        result[0] += +value;
+                        buffer.flip();
+                        return output.write(buffer).thenFlatGet(() -> {
+                            buffer.compact();
+                            return aTrue();
+                        });
+                    }
+                })
+        ).thenGet(() -> result[0]);
+    }
+```
+
+There are more code as asynchronous operations need to be handled and working with buffers is more complex 
+than with arrays, but still it is very similar to what is written for synchronous streams.
+
+Such way of handling back pressure does not necessary limit parallelism. It is possible to use features of the
+framework to ensure that reads and writes are done in parallel when it makes sense.
+
+```$java
+    public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int buffers, int bufferSize) {
+        final SimpleQueue<ByteBuffer> readQueue = new SimpleQueue<>();
+        final SimpleQueue<ByteBuffer> writeQueue = new SimpleQueue<>();
+        final FailFast failFast = failFast();
+        for (int i = 0; i < buffers; i++) {
+            readQueue.put(ByteBuffer.allocate(bufferSize));
+        }
+        final long[] result = new long[1];
+        return aAll(
+                () -> aSeqWhile(
+                        () -> failFast.run(readQueue::take).flatMap(
+                                b -> failFast.run(() -> input.read(b)).flatMap(c -> {
+                            if (isEof(c)) {
+                                writeQueue.put(null);
+                                return aFalse();
+                            } else {
+                                result[0] += c;
+                                writeQueue.put(b);
+                                return aTrue();
+                            }
+                        }))
+                )
+        ).and(
+                () -> aSeqWhile(
+                        () -> failFast.run(writeQueue::take).flatMap(b -> {
+                            if(b == null) {
+                                return aFalse();
+                            } else {
+                                b.flip();
+                                return failFast.run(() -> output.write(b)).thenGet(() -> {
+                                    b.compact();
+                                    readQueue.put(b);
+                                    return true;
+                                });
+                            }
+                        })
+                )
+        ).map((a, b) -> aValue(result[0]));
+    }
+```
+In the provided sample, the read operation uses buffers to read when available, and writes when buffer with 
+data is available. So if writes are slower or reads are slower, the algorithm will adapt to the speed. This
+algorithm makes sense with no more than four buffers, as one buffer is for reading, one for writing, and two
+are in flight over the queue.
+
+### Control flow inversion
+
+Most of asynchronous libraries require inversion of control flow. Most of asynchronous frameworks use
+concepts like decoders and encoders. These are two poor things that have to implement explicit tracking of the 
+current state of reading or writing. If there is a recursive state like xml or json, they have to 
+keep explicit stack of state.
+
+# Inter-Process Communications
+
+The AsyncFlows framework is intended to implement control flow inside the application. There is no special means 
+to organize intra-process communications. However, the libraries could be used to organize such communications. 
+For example, JAX-RS 2.0 supports asynchronous invocations on client and server.   
 
 # Java EE support
 
@@ -760,6 +1199,80 @@ Turn off security manager or add appropriate permissions for your application. A
 checks are not so valid in asynchronous context and they could be break important assumptions about security
 if Java EE components are called.
 
+The contextual security information like active user should be passed as parameters, and 
+it needs to be reestablished before invocation of Java EE functionality that requires it (for example 
+Hibernate audit support). 
+
+# Comparison with other frameworks
+
+## Actors (Akka)
+
+Comparing with Scala actors, there are the following key points of difference.
+
+1. In the AsyncFlows framework, component and event queue are separated and one queue could support many small components.
+Practically, there is at least one one asynchronous micro-component for each asynchronous operation. In Scala, there
+are only one asynchronous component for each event queue. This leads to problems with resource management as state of
+component need to be tracked.
+
+2. Event dispatch is done explicitly and each queue supports only closed set of events. There is no interfaces 
+for components and even returning result is different each time. (TypedActors try to solve problem of explicit dispatch, 
+but introduce own set of the problems due to blocking calls, and also still support only closed set of events).
+AsyncFlows support open set of events, as they translate to `Runnable` anyway. As many components could leave 
+
+3. Actors are heavy-weight as they are integrated with event queue. They also need to be deleted explicitly to free
+resources. By comparison, AsyncFlows do not manage components explicitly, as they could garbage collected normally.
+Some Vats needs to be managed explicitly, but these vats are usually used as application starting point in 
+the main thread. ExecutorVat does not need to be explicitly stopped (the underlying executor needs to be stopped, 
+but daemon executor creates and frees threads as needed and does not need to be stopped).
+
+4. As Akka Actors work with event queue directly, it is possible handle events not in the order they were sent to actor.
+AsyncFlows insists on handling events in the order they are received by a vat. Reordering of event
+handling still could be done by utility classes like RequestQueue.
+
+Generally, AsyncFlows support more flexible management of asynchronous components and their relationship 
+to event queues. Also AsyncFlows support running the entire network application in the single thread,
+while Akka requires multiple threads by design. 
+
+## CompletableFuture
+
+Java's CompletableFuture is similar to AsyncFlows Promise. CompletableFuture has a lot of utility methods that 
+implement much of functionality similar to provided by the AsyncFlows framework. However, AsyncObjects Framework
+shifts this functionality from Promise to operators that are built upon Promise (operation builders, static methods).
+The difference is small, but it greatly affects usability as AsyncFlows does not need a lot of methods since
+many method could be replaced by combination of existing method.
+
+There were actually experimental version of the framework that used CompletableFuture as foundation 
+instead of promise. However, this version proved to be less usable, as it is more complex to listen for events,
+for example it is not possible to just to listen to CompletableFuture w/o creating another completable future.
+Also the defaults for execution context are different. The framework defaults to the current Vat. 
+The CompletableFuture defaults to ForkJoin pool. This pool is generally not acceptable for IO operations,
+and IO could block it for indefinite time. Small errors could lead to application blocking. Practically all
+invocations on CompletableFuture required explicit specification of target vat.
+
+AsyncFlows also has a lot of utility methods, that do not make sense as CompletableFuture API. 
+For example, loops, request queues, fail-fast.
+
+Also, CompletableFuture does not have component model. It is just a single class w/o larger
+contexts. When and how asynchronous method is executed is left up to component designer.   
+ 
+## Netty
+
+The netty is organized as multi-stage event processing. It works very well when uniform processing is needed.
+The problem is that most of processing that is needed is non-uniform. There are generally recursive logical 
+asynchronous processes built upon event streams. Netty requires implementing such processes using 
+explicit stacks and other means.
+
+In contrast, AsyncFlows allows to freely use recursion when needed, just like in normal synchronous code.
+There is no need for inversion of control.
+
+Up to recent versions of Netty, the netty did not support back pressure regulation, and because of 
+event notification approach, there were no natural way to specify it. The current way is still 
+cumbersome.
+
+On other hand, netty contains implementation of many network protocols. And it makes sense to reuse
+these implementations from AsyncFlows. There is plan to create a library that access Netty channels
+from AsyncFlows framework.
+
 # Other Programming Languages
 
 The framework relies on Java 8 functional interfaces to create DSL. So if other language supports them 
@@ -767,10 +1280,123 @@ in reasonable way, it is possible to use this DSL language in similar way.
 
 ## Groovy
 
+Groovy since version 2.4 supports java functional interfaces using closure syntax. However, sometimes more
+type annotations are needed, to specify parameter types if type checking is wanted. The syntax actually looks
+more nice for groovy.  
+
+```$groovy
+        def t = doAsync {
+            def failure = new Promise<Throwable>();
+            def suppressed = new Promise<Integer>();
+            aAll {
+                aAny(true) {
+                    aLater { aValue(1) }
+                } or {
+                    aValue(2)
+                } or {
+                    aFailure(new RuntimeException())
+                } suppressed {
+                    notifySuccess(suppressed.resolver(), it)
+                } suppressedFailureLast {
+                    notifySuccess(failure.resolver(), it);
+                }
+            } and {
+                failure
+            } andLast {
+                suppressed
+            }
+        }
+        assertEquals(2, t.getValue1().intValue());
+        assertEquals(RuntimeException.class, t.getValue2().getClass());
+        assertEquals(1, t.getValue3().intValue());
+```
+
+There is much less visual noise in groovy version than in Java version of the same test.
+The Groovy is a good choice of using with the framework if there is no special concerns about
+performance.
+
+Note, Groovy currently implements lambdas using inner classes, so more classes are generated comparing 
+to Java 8 code. This might lead to higher application start time.  
+
 ## Kotlin
+
+The Kotlin language also has compact syntax that support DSL creation. It is also possible
+to write a compact code with much less visual noise in Kotlin as well.
+
+```$kotlin
+        val t = doAsync {
+            val failure = Promise<Throwable>()
+            val suppressed = Promise<Int>()
+            aAll {
+                aAny(true) {
+                    aLater { aValue(1) }
+                }.or {
+                    aFailure(RuntimeException())
+                }.or {
+                    aValue(2)
+                }.suppressed { v ->
+                    notifySuccess(suppressed.resolver(), v)
+                }.suppressedFailureLast { ex ->
+                    notifySuccess<Throwable>(failure.resolver(), ex)
+                }
+            }.and {
+                failure
+            }.andLast {
+                suppressed
+            }
+        }
+        assertEquals(2, t.value1)
+        assertEquals(RuntimeException::class.java, t.value2.javaClass)
+        assertEquals(1, t.value3)
+```
+
+So Kotlin is also good language to write structured asynchronous code if you project allows for it.
+It is very convenient for the application and test code, but for reusable code it needs to be considered 
+more carefully.
+
+Note, Kotlin currently implement lambdas using inner classes, so more classes are generated comparing 
+to Java 8 code. This might lead to higher application start time.  
 
 ## Scala
 
-The Scala is not directly supported as it wraps Java types. So for the Scala adapters needed and support for scala
-collections needs to be implemented. Some code could be executed directly, but it is less usable than in other
-languages. The future versions of the framework could provide Scala support after the framework stabilization.
+The Scala is not directly supported as it wraps Java types and this causes multiple problems 
+in different places. So for the Scala adapters needed and support for scala collections needs 
+to be implemented. Some code could be executed directly, but it is less usable than in other
+languages.
+
+Generally, the framework ideas are compatible with Scala, and few first research versions of 
+the framework were implemented in Scala. This Java version is based on ideas from Scala version. 
+And Java 8 finally allows more compact syntax to be used.
+
+The future versions of the framework might provide Scala support after the framework 
+stabilization. However, comparing to Kotlin and Groovy, there is not so big productivity
+increase and there even some additional complications cased by features of Scala language.
+So this feature has low priority. There is previous iteration of scala adapter at 
+[this link](https://github.com/const/asyncflows/tree/63586493fb9d5a63c0c335df63fa396d894b0a5b/asyncobjects-scala).
+
+In the old sample code, control flow looked like the following:
+
+```$scala
+    val list = new ListBuffer[Integer]
+    val rc: Int = doAsync {
+      aSeq {
+        list += 1
+        1
+      } map { value =>
+        list += value + 1
+        throw new IllegalStateException
+      } thenDo {
+        list += -1
+        aValue(-1)
+      } failed {
+        case value: IllegalStateException =>
+          list += 3
+          42
+      } finallyDo {
+        list += 4
+      }
+    }
+
+    assertEquals(42, rc)
+    assertEquals(List(1, 2, 3, 4), list)
+```

@@ -173,7 +173,7 @@ public final class CoreFlowsSeq {
                 });
             }
         });
-        return withDefaultContext((r, e) -> r.start(loop));
+        return withDefaultContext((r, e) -> r.run(loop));
     }
 
 
@@ -226,7 +226,7 @@ public final class CoreFlowsSeq {
          * @return finish the sequence
          */
         public Promise<T> finish() {
-            return runner.start(action);
+            return runner.run(action);
         }
 
         /**
@@ -331,7 +331,7 @@ public final class CoreFlowsSeq {
         @SuppressWarnings("unchecked")
         public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
             final Executor currentExecutor = this.executor;
-            return runner.start(() -> aNow(action).flatMapOutcome(o -> aNow(finallyAction).flatMapOutcome(o2 -> {
+            return runner.run(() -> aNow(action).flatMapOutcome(o -> aNow(finallyAction).flatMapOutcome(o2 -> {
                 if (o.isFailure()) {
                     if (o2.isFailure() && o2.failure() != o.failure()) {
                         o.failure().addSuppressed(o2.failure());

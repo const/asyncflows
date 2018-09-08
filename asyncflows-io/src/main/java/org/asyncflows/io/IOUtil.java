@@ -15,8 +15,8 @@ import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.core.util.CoreFlowsResource.aTry;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The generic IO util class.

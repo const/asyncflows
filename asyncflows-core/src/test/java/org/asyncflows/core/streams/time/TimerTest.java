@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TimerTest {
 
     @Test
-    public void sleepTest() throws Throwable {
+    public void sleepTest() {
         final Tuple3<Long, Long, Long> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
@@ -36,7 +36,7 @@ public class TimerTest {
     }
 
     @Test
-    public void waitForTest() throws Throwable {
+    public void waitForTest() {
         final Tuple3<Long, Long, Long> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
@@ -50,7 +50,7 @@ public class TimerTest {
     }
 
     @Test
-    public void fixedRate() throws Throwable {
+    public void fixedRate() {
         final long start = System.nanoTime();
         final List<Long> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer ->
@@ -68,7 +68,7 @@ public class TimerTest {
     }
 
     @Test
-    public void fixedDelay() throws Throwable {
+    public void fixedDelay() {
         final long start = System.nanoTime();
         final List<Long> r = doAsync(() -> CoreFlowsResource.aTryResource(new Timer()).run(
                 timer -> timer.fixedDelay(5, 5).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));

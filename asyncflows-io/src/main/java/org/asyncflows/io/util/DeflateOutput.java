@@ -1,12 +1,12 @@
 package org.asyncflows.io.util;
 
-import org.asyncflows.io.AOutput;
-import org.asyncflows.io.NIOExportUtil;
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.core.vats.Vat;
+import org.asyncflows.io.AOutput;
+import org.asyncflows.io.NIOExportUtil;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Deflater;
@@ -57,7 +57,6 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
      * true if header has been written.
      */
     private boolean headerWritten;
-    // TODO flush method
 
 
     /**
@@ -158,7 +157,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
                     handleWrittenData(data, offset, len);
                     return aFalse();
                 } else {
-                    return deflateAndWrite();
+                    return deflateAndWrite(Deflater.NO_FLUSH).thenValue(true);
                 }
             }).thenValue(true);
         }).listen(outcomeChecker());
@@ -167,11 +166,12 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
     /**
      * Deflate and write currently set input.
      *
-     * @return the promise for true
+     * @param flushMode the flush mode
+     * @return the true if data was written, false otherwise
      */
-    private Promise<Boolean> deflateAndWrite() {
+    private Promise<Boolean> deflateAndWrite(int flushMode) {
         final int count = deflater.deflate(compressed.array(),
-                compressed.arrayOffset() + compressed.position(), compressed.remaining());
+                compressed.arrayOffset() + compressed.position(), compressed.remaining(), flushMode);
         if (count > 0) {
             compressed.position(compressed.position() + count);
             compressed.flip();
@@ -184,7 +184,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
                 }
             }).listen(outcomeChecker());
         } else {
-            return aTrue();
+            return aFalse();
         }
     }
 
@@ -192,7 +192,9 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
     public Promise<Void> flush() {
         return writes.run(() -> {
             ensureValidAndOpen();
-            return output.flush().listen(outcomeChecker());
+            return aSeqWhile(
+                    () -> deflateAndWrite(Deflater.SYNC_FLUSH)
+            ).thenFlatGet(output::flush).listen(outcomeChecker());
         });
     }
 
@@ -213,7 +215,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
                     if (deflater.finished()) {
                         return aFalse();
                     } else {
-                        return deflateAndWrite();
+                        return deflateAndWrite(Deflater.NO_FLUSH);
                     }
                 });
             }).thenDoLast(() -> handleFinish(output, compressed));

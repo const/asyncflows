@@ -37,7 +37,7 @@ public class CoreFlowsAll {
      */
     private static final ARunner DAEMON_RUNNER = new ARunner() {
         @Override
-        public <A> Promise<A> start(ASupplier<A> t) {
+        public <A> Promise<A> run(ASupplier<A> t) {
             return aLater(t, Vats.daemonVat());
         }
     };
@@ -198,7 +198,7 @@ public class CoreFlowsAll {
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
                                                          Collector<R, I, C> collector, ARunner bodyRunner) {
-        return AsyncContext.withDefaultContext((runner, executor) -> runner.start(() -> aResolver(resolver -> {
+        return AsyncContext.withDefaultContext((runner, executor) -> runner.run(() -> aResolver(resolver -> {
             // TODO use more optimal strategies basing on java.util.stream.Collector.Characteristics
             final I accumulator = collector.supplier().get();
             final AFunction2<Promise<R>, Promise<Void>, Void> merge = (bodyPromise, cyclePromise) ->
@@ -221,7 +221,7 @@ public class CoreFlowsAll {
                 try {
                     if (iterator.hasNext()) {
                         T value = iterator.next();
-                        mergeNext = merge.apply(bodyRunner.start(() -> body.apply(value)), mergeNext);
+                        mergeNext = merge.apply(bodyRunner.run(() -> body.apply(value)), mergeNext);
                     } else {
                         break;
                     }
@@ -357,9 +357,9 @@ public class CoreFlowsAll {
              */
             public <R> Promise<R> map(AFunction2<T1, T2, R> function) {
                 AllContext ctx = this.context;
-                return ctx.getOperatorRunner().start(() -> {
-                    final Promise<T1> p1 = ctx.getBodyRunner().start(action1);
-                    final Promise<T2> p2 = ctx.getBodyRunner().start(action2);
+                return ctx.getOperatorRunner().run(() -> {
+                    final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
+                    final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     return aResolver(resolver -> {
                         p1.listenSync(r1 -> p2.listen(r2 -> {
                             if (notifyIfFailed(resolver, r1, r2)) {
@@ -462,10 +462,10 @@ public class CoreFlowsAll {
              */
             public <R> Promise<R> map(AFunction3<T1, T2, T3, R> function) {
                 AllContext ctx = this.context;
-                return ctx.getOperatorRunner().start(() -> {
-                    final Promise<T1> p1 = ctx.getBodyRunner().start(action1);
-                    final Promise<T2> p2 = ctx.getBodyRunner().start(action2);
-                    final Promise<T3> p3 = ctx.getBodyRunner().start(action3);
+                return ctx.getOperatorRunner().run(() -> {
+                    final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
+                    final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
+                    final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                     return aResolver(resolver -> {
                         p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listen(r3 -> {
                             if (notifyIfFailed(resolver, r1, r2, r3)) {
@@ -586,11 +586,11 @@ public class CoreFlowsAll {
          */
         public <R> Promise<R> map(AFunction4<T1, T2, T3, T4, R> function) {
             AllContext ctx = this.context;
-            return ctx.getOperatorRunner().start(() -> {
-                final Promise<T1> p1 = ctx.getBodyRunner().start(action1);
-                final Promise<T2> p2 = ctx.getBodyRunner().start(action2);
-                final Promise<T3> p3 = ctx.getBodyRunner().start(action3);
-                final Promise<T4> p4 = ctx.getBodyRunner().start(action4);
+            return ctx.getOperatorRunner().run(() -> {
+                final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
+                final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
+                final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
+                final Promise<T4> p4 = ctx.getBodyRunner().run(action4);
                 return aResolver(resolver -> {
                     p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listenSync(r3 -> p4.listen(r4 -> {
                         if (notifyIfFailed(resolver, r1, r2, r3, r4)) {

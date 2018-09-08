@@ -5,7 +5,7 @@ import io.netty.util.concurrent.Future;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 
-import static org.asyncflows.core.AsyncControl.aResolver;
+import static org.asyncflows.core.CoreFlows.aResolver;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
@@ -20,7 +20,8 @@ public final class AsyncNettyControl {
      * @param <T>     the type
      * @return asyncflows promise.
      */
-    <T> Promise<T> aNettyFuture(Future<T> promise) {
+    @SuppressWarnings("unchecked")
+    public static <T> Promise<T> aNettyFuture(Future<T> promise) {
         return aResolver(r -> {
             promise.addListener(future -> {
                 if (future.isSuccess()) {
@@ -39,7 +40,7 @@ public final class AsyncNettyControl {
      * @param <T>     the result type
      * @return the netty future
      */
-    <T> Future<T> toNettyFuture(Promise<T> promise) {
+    public static <T> Future<T> toNettyFuture(Promise<T> promise) {
         NettyVat vat = NettyVat.currentNettyVat();
         Outcome<T> outcome = promise.getOutcome();
         DefaultPromise<T> rc = new DefaultPromise<>(vat.getEventLoop());
