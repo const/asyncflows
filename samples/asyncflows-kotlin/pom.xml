@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>asyncflows-kotlin</artifactId>
+    <name>AsyncFlows: Samples - Kotlin</name>
 
     <properties>
         <kotlin.version>1.2.61</kotlin.version>

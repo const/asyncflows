@@ -25,7 +25,6 @@
         <module>asyncflows-io</module>
         <module>asyncflows-protocol</module>
         <module>asyncflows-protocol-http</module>
-        <module>asyncflows-protocol-websocket</module>
     </modules>
 
     <dependencyManagement>

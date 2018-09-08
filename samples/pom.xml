@@ -15,8 +15,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>asyncflows-netty</module>
         <module>asyncflows-groovy</module>
         <module>asyncflows-kotlin</module>
+        <module>asyncflows-netty</module>
+        <module>asyncflows-protocol-websocket</module>
     </modules>
 </project>
