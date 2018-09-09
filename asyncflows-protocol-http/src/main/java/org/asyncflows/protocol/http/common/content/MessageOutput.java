@@ -1,7 +1,7 @@
 package org.asyncflows.protocol.http.common.content;
 
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
@@ -82,6 +82,6 @@ public abstract class MessageOutput extends CloseableInvalidatingBase
 
     @Override
     public AOutput<ByteBuffer> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

@@ -4,7 +4,7 @@ import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -53,6 +53,6 @@ public class StringInput extends CloseableBase implements AInput<CharBuffer>, Ne
 
     @Override
     public AInput<CharBuffer> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

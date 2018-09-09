@@ -2,7 +2,7 @@ package org.asyncflows.protocol.http.common.content;
 
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.AResolver;
@@ -74,6 +74,6 @@ public abstract class MessageInput extends CloseableInvalidatingBase
 
     @Override
     public AInput<ByteBuffer> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

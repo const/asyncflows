@@ -71,42 +71,42 @@ public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsE
         return new ATlsSocket() {
             @Override
             public Promise<Void> handshake() {
-                return aLater(socket::handshake, vat);
+                return aLater(vat, socket::handshake);
             }
 
             @Override
             public Promise<SSLSession> getSession() {
-                return aLater(socket::getSession, vat);
+                return aLater(vat, socket::getSession);
             }
 
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(() -> socket.setOptions(options), vat);
+                return aLater(vat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(() -> socket.connect(address), vat);
+                return aLater(vat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(socket::getRemoteAddress, vat);
+                return aLater(vat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<SocketAddress> getLocalAddress() {
-                return aLater(socket::getRemoteAddress, vat);
+                return aLater(vat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<AInput<ByteBuffer>> getInput() {
-                return aLater(socket::getInput, vat);
+                return aLater(vat, socket::getInput);
             }
 
             @Override
             public Promise<AOutput<ByteBuffer>> getOutput() {
-                return aLater(socket::getOutput, vat);
+                return aLater(vat, socket::getOutput);
             }
 
             @Override

@@ -3,7 +3,7 @@ package org.asyncflows.io.text;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.ChainedClosable;
@@ -197,6 +197,6 @@ public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
 
     @Override
     public AOutput<CharBuffer> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

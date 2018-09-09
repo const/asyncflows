@@ -1,8 +1,8 @@
 package org.asyncflows.core.function;
 
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import static org.asyncflows.core.CoreFlows.aLater;
@@ -25,7 +25,7 @@ public class FunctionExporter {
     }
 
 
-    public static <T> AResolver<T> exportResolver(final AResolver<T> resolver, Executor vat) {
+    public static <T> AResolver<T> exportResolver(final AResolver<T> resolver, Vat vat) {
         return o -> vat.execute(() -> resolver.resolve(o));
     }
 
@@ -34,8 +34,8 @@ public class FunctionExporter {
     }
 
 
-    public static <T> ASupplier<T> exportSupplier(final ASupplier<T> supplier, Executor vat) {
-        return () -> aLater(supplier, vat);
+    public static <T> ASupplier<T> exportSupplier(final ASupplier<T> supplier, Vat vat) {
+        return () -> aLater(vat, supplier);
     }
     /**
      * Export consumer on the current vat.
@@ -45,7 +45,7 @@ public class FunctionExporter {
      * @param <T>      the event type
      * @return the exported consumer
      */
-    public static <T> Consumer<T> exportConsumer(final Consumer<T> listener, final Executor vat) {
-        return event -> aSend(() -> listener.accept(event), vat);
+    public static <T> Consumer<T> exportConsumer(final Consumer<T> listener, final Vat vat) {
+        return event -> aSend(vat, () -> listener.accept(event));
     }
 }

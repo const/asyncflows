@@ -5,7 +5,7 @@ import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.AResolver;
@@ -267,7 +267,7 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         if (input == null) {
             return aFailure(new IOException("Not connected yet"));
         }
-        return aValue(NIOExportUtil.export(Vat.current(), input));
+        return aValue(IOExportUtil.export(Vat.current(), input));
     }
 
     @Override
@@ -278,7 +278,7 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         if (output == null) {
             return aFailure(new IOException("Not connected yet"));
         }
-        return aValue(NIOExportUtil.export(Vat.current(), output));
+        return aValue(IOExportUtil.export(Vat.current(), output));
     }
 
     /**

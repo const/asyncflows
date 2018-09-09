@@ -5,7 +5,6 @@ import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 
 import java.nio.Buffer;
-import java.util.concurrent.Executor;
 
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
@@ -13,11 +12,11 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 /**
  * The export utilities.
  */
-public final class NIOExportUtil {
+public final class IOExportUtil {
     /**
      * Private constructor for utility class.
      */
-    private NIOExportUtil() {
+    private IOExportUtil() {
     }
 
     /**
@@ -28,16 +27,16 @@ public final class NIOExportUtil {
      * @param <B>     the buffer type
      * @return the exported channel
      */
-    public static <B extends Buffer> AChannel<B> export(final Executor vat, final AChannel<B> channel) {
+    public static <B extends Buffer> AChannel<B> export(final Vat vat, final AChannel<B> channel) {
         return new AChannel<B>() {
             @Override
             public Promise<AInput<B>> getInput() {
-                return aLater(channel::getInput, vat);
+                return aLater(vat, channel::getInput);
             }
 
             @Override
             public Promise<AOutput<B>> getOutput() {
-                return aLater(channel::getOutput, vat);
+                return aLater(vat, channel::getOutput);
             }
 
             @Override
@@ -55,7 +54,7 @@ public final class NIOExportUtil {
      * @param <B>   the buffer type
      * @return exported stream
      */
-    public static <B extends Buffer> AInput<B> export(final Executor vat, final AInput<B> input) {
+    public static <B extends Buffer> AInput<B> export(final Vat vat, final AInput<B> input) {
         return exportInput(input, vat, vat);
     }
 
@@ -82,12 +81,12 @@ public final class NIOExportUtil {
      * @param <B>      the stream.
      * @return the exported stream
      */
-    private static <B extends Buffer> AInput<B> exportInput(final AInput<B> input, final Executor readVat,
-                                                            final Executor closeVat) {
+    private static <B extends Buffer> AInput<B> exportInput(final AInput<B> input, final Vat readVat,
+                                                            final Vat closeVat) {
         return new AInput<B>() {
             @Override
             public Promise<Integer> read(final B buffer) {
-                return aLater(() -> input.read(buffer), readVat);
+                return aLater(readVat, () -> input.read(buffer));
             }
 
             @Override
@@ -142,12 +141,12 @@ public final class NIOExportUtil {
 
             @Override
             public Promise<Void> write(final B buffer) {
-                return aLater(() -> output.write(buffer), writeVat);
+                return aLater(writeVat, () -> output.write(buffer));
             }
 
             @Override
             public Promise<Void> flush() {
-                return aLater(output::flush, writeVat);
+                return aLater(writeVat, output::flush);
             }
         };
     }

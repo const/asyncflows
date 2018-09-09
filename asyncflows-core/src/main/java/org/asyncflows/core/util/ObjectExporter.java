@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
-import java.util.concurrent.Executor;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aLater;
@@ -129,7 +128,7 @@ public final class ObjectExporter {
          * @return the created proxy
          */
         @SuppressWarnings("unchecked")
-        public <T> T create(final Executor vat, final NeedsExport<T> object) {
+        public <T> T create(final Vat vat, final NeedsExport<T> object) {
             try {
                 return (T) constructor.newInstance(new Handler(this, vat, object));
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -154,7 +153,7 @@ public final class ObjectExporter {
         /**
          * The vat for the object.
          */
-        private final Executor vat;
+        private final Vat vat;
         /**
          * The wrapped object.
          */
@@ -167,7 +166,7 @@ public final class ObjectExporter {
          * @param vat     the context vat
          * @param object  the object to use
          */
-        private Handler(final Factory creator, final Executor vat, final Object object) {
+        private Handler(final Factory creator, final Vat vat, final Object object) {
             this.creator = creator;
             this.vat = vat;
             this.object = object;
@@ -178,7 +177,7 @@ public final class ObjectExporter {
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable { // NOPMD
             final Class<?> returnType = method.getReturnType();
             if (void.class == returnType) {
-                aSend(() -> {
+                aSend(vat, () -> {
                     try {
                         method.invoke(object, args);
                     } catch (IllegalAccessException e) {
@@ -190,10 +189,10 @@ public final class ObjectExporter {
                             LOG.error("Failed one-way method: " + method, e.getTargetException());
                         }
                     }
-                }, vat);
+                });
                 return null;
             } else if (Promise.class == returnType) {
-                return aLater(() -> {
+                return aLater(vat, () -> {
                     try {
                         return (Promise<Object>) method.invoke(object, args);
                     } catch (InvocationTargetException e) {
@@ -201,7 +200,7 @@ public final class ObjectExporter {
                     } catch (IllegalAccessException e) {
                         return aFailure(e);
                     }
-                }, vat);
+                });
             }
             final String name = method.getName();
             final Class<?>[] parameterTypes = method.getParameterTypes();

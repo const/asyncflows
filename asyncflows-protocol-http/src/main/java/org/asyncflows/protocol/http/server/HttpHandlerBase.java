@@ -12,6 +12,6 @@ public abstract class HttpHandlerBase implements AHttpHandler, NeedsExport<AHttp
 
     @Override
     public final AHttpHandler export(final Vat vat) {
-        return exchange -> aLater(() -> HttpHandlerBase.this.handle(exchange), vat);
+        return exchange -> aLater(vat, () -> HttpHandlerBase.this.handle(exchange));
     }
 }

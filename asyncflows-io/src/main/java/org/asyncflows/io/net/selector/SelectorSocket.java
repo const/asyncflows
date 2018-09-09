@@ -5,7 +5,7 @@ import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
@@ -255,7 +255,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
 
         @Override
         public AInput<ByteBuffer> export(final Vat vat) {
-            return NIOExportUtil.export(vat, this);
+            return IOExportUtil.export(vat, this);
         }
 
         @Override
@@ -354,7 +354,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
 
         @Override
         public AOutput<ByteBuffer> export(final Vat vat) {
-            return NIOExportUtil.export(vat, this);
+            return IOExportUtil.export(vat, this);
         }
 
         @Override

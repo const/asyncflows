@@ -1,7 +1,7 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -48,6 +48,6 @@ public class NulOutput<B extends Buffer> extends CloseableBase implements AOutpu
 
     @Override
     public AOutput<B> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

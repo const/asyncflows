@@ -45,27 +45,27 @@ public final class SocketExportUtil { // NOPMD
         return new AServerSocket() {
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address, final int backlog) {
-                return aLater(() -> serverSocket.bind(address, backlog), vat);
+                return aLater(vat, () -> serverSocket.bind(address, backlog));
             }
 
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address) {
-                return aLater(() -> serverSocket.bind(address), vat);
+                return aLater(vat, () -> serverSocket.bind(address));
             }
 
             @Override
             public Promise<Void> setDefaultOptions(final SocketOptions options) {
-                return aLater(() -> serverSocket.setDefaultOptions(options), vat);
+                return aLater(vat, () -> serverSocket.setDefaultOptions(options));
             }
 
             @Override
             public Promise<SocketAddress> getLocalSocketAddress() {
-                return aLater(serverSocket::getLocalSocketAddress, vat);
+                return aLater(vat, serverSocket::getLocalSocketAddress);
             }
 
             @Override
             public Promise<ASocket> accept() {
-                return aLater(serverSocket::accept, acceptVat);
+                return aLater(acceptVat, serverSocket::accept);
             }
 
             @Override
@@ -98,32 +98,32 @@ public final class SocketExportUtil { // NOPMD
         return new ASocket() {
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(() -> socket.setOptions(options), vat);
+                return aLater(vat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(() -> socket.connect(address), vat);
+                return aLater(vat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(socket::getRemoteAddress, vat);
+                return aLater(vat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<SocketAddress> getLocalAddress() {
-                return aLater(socket::getLocalAddress, vat);
+                return aLater(vat, socket::getLocalAddress);
             }
 
             @Override
             public Promise<AInput<ByteBuffer>> getInput() {
-                return aLater(socket::getInput, vat);
+                return aLater(vat, socket::getInput);
             }
 
             @Override
             public Promise<AOutput<ByteBuffer>> getOutput() {
-                return aLater(socket::getOutput, vat);
+                return aLater(vat, socket::getOutput);
             }
 
             @Override
@@ -144,17 +144,17 @@ public final class SocketExportUtil { // NOPMD
         return new ASocketFactory() {
             @Override
             public Promise<ASocket> makeSocket() {
-                return aLater(factory::makeSocket, vat);
+                return aLater(vat, factory::makeSocket);
             }
 
             @Override
             public Promise<AServerSocket> makeServerSocket() {
-                return aLater(factory::makeServerSocket, vat);
+                return aLater(vat, factory::makeServerSocket);
             }
 
             @Override
             public Promise<ADatagramSocket> makeDatagramSocket() {
-                return aLater(factory::makeDatagramSocket, vat);
+                return aLater(vat, factory::makeDatagramSocket);
             }
         };
     }
@@ -185,52 +185,52 @@ public final class SocketExportUtil { // NOPMD
         return new ADatagramSocket() {
             @Override
             public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(() -> socket.setOptions(options), controlVat);
+                return aLater(controlVat, () -> socket.setOptions(options));
             }
 
             @Override
             public Promise<Void> connect(final SocketAddress address) {
-                return aLater(() -> socket.connect(address), controlVat);
+                return aLater(controlVat, () -> socket.connect(address));
             }
 
             @Override
             public Promise<Void> disconnect() {
-                return aLater(socket::disconnect, controlVat);
+                return aLater(controlVat, socket::disconnect);
             }
 
             @Override
             public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(socket::getRemoteAddress, controlVat);
+                return aLater(controlVat, socket::getRemoteAddress);
             }
 
             @Override
             public Promise<SocketAddress> getLocalAddress() {
-                return aLater(socket::getLocalAddress, controlVat);
+                return aLater(controlVat, socket::getLocalAddress);
             }
 
             @Override
             public Promise<SocketAddress> bind(final SocketAddress address) {
-                return aLater(() -> socket.bind(address), controlVat);
+                return aLater(controlVat, () -> socket.bind(address));
             }
 
             @Override
             public Promise<Void> send(final ByteBuffer buffer) {
-                return aLater(() -> socket.send(buffer), sendVat);
+                return aLater(sendVat, () -> socket.send(buffer));
             }
 
             @Override
             public Promise<Void> send(final SocketAddress address, final ByteBuffer buffer) {
-                return aLater(() -> socket.send(address, buffer), sendVat);
+                return aLater(sendVat, () -> socket.send(address, buffer));
             }
 
             @Override
             public Promise<SocketAddress> receive(final ByteBuffer buffer) {
-                return aLater(() -> socket.receive(buffer), receiveVat);
+                return aLater(receiveVat, () -> socket.receive(buffer));
             }
 
             @Override
             public Promise<Void> close() {
-                return aLater(socket::close, controlVat);
+                return aLater(controlVat, socket::close);
             }
         };
     }

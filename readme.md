@@ -186,7 +186,7 @@ aFalse() // promise holding false
 aResolver(r -> r.accept(null, new NullPointerException())) // return promise, and to some things with resolver in body
 aNow(()->aValue(a * b)) // evaluate body and return promise (if body failed, return failed promise)
 aLater(()->aValue(a * b)) // evalute on later turn in default vat 
-aLater(()->aValue(a * b), vat) // evalute on later turn in the specified vat
+aLater(vat, ()->aValue(a * b)) // evalute on later turn in the specified vat
 aNever() // the process that never ends
 ```
 
@@ -610,12 +610,12 @@ The exporter could be written manually, and would look like this:
         return new ATestQueue<T>() {
             @Override
             public Promise<T> take() {
-                return aLater(() -> service.take(), vat);
+                return aLater(vat, () -> service.take());
             }
 
             @Override
             public void put(T element) {
-                aSend(() -> put(element), vat);
+                aSend(vat, () -> put(element));
             }
         };
     }
@@ -669,8 +669,8 @@ corresponding pools using vats. These operations do not establish asynchronous c
 on corresponding pools, so they are quite lightweight and suitable to invocation of some 
 synchronous method.
 
-If asynchronous context need to be established, it is better to use `aLater(..., Vats.daemonVat())`
-or `aLater(..., Vats.forkJoinVat())`. These operations will create a new vats that runs over corresponding
+If asynchronous context need to be established, it is better to use `aLater(Vats.daemonVat(), ...)`
+or `aLater(Vats.forkJoinVat(), ...)`. These operations will create a new vats that runs over corresponding
 pools. 
 
 ## Request Queue

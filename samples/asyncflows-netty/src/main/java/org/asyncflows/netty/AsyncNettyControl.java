@@ -44,13 +44,13 @@ public final class AsyncNettyControl {
         NettyVat vat = NettyVat.currentNettyVat();
         Outcome<T> outcome = promise.getOutcome();
         DefaultPromise<T> rc = new DefaultPromise<>(vat.getEventLoop());
-        promise.listen(o -> {
+        promise.listen(vat, o -> {
             if (o.isSuccess()) {
                 rc.setSuccess(o.value());
             } else {
                 rc.setFailure(o.failure());
             }
-        }, vat);
+        });
         return rc;
     }
 }

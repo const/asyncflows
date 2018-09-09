@@ -4,7 +4,7 @@ import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 
@@ -93,13 +93,13 @@ public abstract class BlockingInputAdapter<B extends Buffer, I extends Closeable
 
     @Override
     public final AInput<B> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 
     /**
      * @return the proxy for blocking stream
      */
     public final AInput<B> exportBlocking() {
-        return NIOExportUtil.exportBlocking(this);
+        return IOExportUtil.exportBlocking(this);
     }
 }

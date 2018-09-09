@@ -8,8 +8,7 @@ import org.asyncflows.core.function.AFunction2;
 import org.asyncflows.core.function.AFunction3;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
-
-import java.util.concurrent.Executor;
+import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aVoid;
@@ -87,8 +86,8 @@ public final class CoreFlowsResource {
      * @param stream the object to close
      * @return the promise that resolves when close is finished
      */
-    public static Promise<Void> closeResource(final Executor vat, final ACloseable stream) {
-        return aLater(closeResourceAction(stream), vat);
+    public static Promise<Void> closeResource(final Vat vat, final ACloseable stream) {
+        return aLater(vat, closeResourceAction(stream));
     }
 
     /**

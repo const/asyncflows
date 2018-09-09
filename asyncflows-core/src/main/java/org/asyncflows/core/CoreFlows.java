@@ -3,11 +3,11 @@ package org.asyncflows.core;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.vats.Vat;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import static org.asyncflows.core.vats.Vats.defaultVat;
@@ -157,8 +157,8 @@ public class CoreFlows {
         }
     }
 
-    public static void aSend(Runnable action, Executor executor) {
-        executor.execute(action);
+    public static void aSend(Vat vat, Runnable action) {
+        vat.execute(action);
     }
 
     public static void aSend(Runnable action) {
@@ -197,14 +197,15 @@ public class CoreFlows {
 
 
     /**
-     * Execute action later on specific executor.
+     * Execute action later on specific vat.
      *
      * @param action the action
+     * @param vat    the vat
      * @param <T>    the result type
      * @return the promise for result
      */
-    public static <T> Promise<T> aLater(ASupplier<T> action, Executor executor) {
-        return aResolver(r -> executor.execute(() -> {
+    public static <T> Promise<T> aLater(Vat vat, ASupplier<T> action) {
+        return aResolver(r -> vat.execute(() -> {
             aNow(action).listenSync(r);
         }));
     }
@@ -217,7 +218,7 @@ public class CoreFlows {
      * @return the promise for result
      */
     public static <T> Promise<T> aLater(ASupplier<T> action) {
-        return aLater(action, defaultVat());
+        return aLater(defaultVat(), action);
     }
 
     /**

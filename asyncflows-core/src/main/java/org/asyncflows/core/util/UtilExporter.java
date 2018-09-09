@@ -1,8 +1,7 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
-
-import java.util.concurrent.Executor;
+import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aSend;
@@ -24,27 +23,27 @@ final class UtilExporter {
      * @param semaphore the semaphore
      * @return the exported class
      */
-    static ASemaphore export(final Executor vat, final ASemaphore semaphore) {
+    static ASemaphore export(final Vat vat, final ASemaphore semaphore) {
         // TODO refactor all exports use actually inner classes with inheritance
         return new ASemaphore() {
             @Override
             public void release(final int permits) {
-                aSend(() -> semaphore.release(permits), vat);
+                aSend(vat, () -> semaphore.release(permits));
             }
 
             @Override
             public void release() {
-                aSend(semaphore::release, vat);
+                aSend(vat, semaphore::release);
             }
 
             @Override
             public Promise<Void> acquire() {
-                return aLater(semaphore::acquire, vat);
+                return aLater(vat, semaphore::acquire);
             }
 
             @Override
             public Promise<Void> acquire(final int permits) {
-                return aLater(() -> semaphore.acquire(permits), vat);
+                return aLater(vat, () -> semaphore.acquire(permits));
             }
         };
     }
@@ -57,16 +56,16 @@ final class UtilExporter {
      * @param <T>   the element type
      * @return the exported queue
      */
-    static <T> AQueue<T> export(final Executor vat, final AQueue<T> queue) {
+    static <T> AQueue<T> export(final Vat vat, final AQueue<T> queue) {
         return new AQueue<T>() {
             @Override
             public Promise<T> take() {
-                return aLater(queue::take, vat);
+                return aLater(vat, queue::take);
             }
 
             @Override
             public Promise<Void> put(final T element) {
-                return aLater(() -> queue.put(element), vat);
+                return aLater(vat, () -> queue.put(element));
             }
         };
     }

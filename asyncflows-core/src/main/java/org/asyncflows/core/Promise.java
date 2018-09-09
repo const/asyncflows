@@ -4,11 +4,11 @@ import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
+import org.asyncflows.core.vats.Vat;
 
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -103,17 +103,17 @@ public final class Promise<T> {
      * @param listener the listener.
      */
     public Promise<T> listen(AResolver<? super T> listener) {
-        return listen(listener, defaultVat());
+        return listen(defaultVat(), listener);
     }
 
     /**
      * Add asynchronous listener that uses specified executor. Returns this promise.
      *
+     * @param vat      the executor.
      * @param listener the listener.
-     * @param executor the executor.
      */
-    public Promise<T> listen(AResolver<? super T> listener, Executor executor) {
-        return listenSync(o -> executor.execute(() -> Outcome.notifyResolver(listener, o)));
+    public Promise<T> listen(Vat vat, AResolver<? super T> listener) {
+        return listenSync(o -> vat.execute(() -> Outcome.notifyResolver(listener, o)));
     }
 
     /**
@@ -165,23 +165,23 @@ public final class Promise<T> {
      * @return the result promise
      */
     public <R> Promise<R> flatMapOutcome(AFunction<Outcome<T>, R> mapper) {
-        return flatMapOutcome(mapper, defaultVat());
+        return flatMapOutcome(defaultVat(), mapper);
     }
 
     /**
      * Flat map outcome of promise.
      *
-     * @param mapper   the mapper
-     * @param executor the executor
-     * @param <R>      the result type
+     * @param <R>    the result type
+     * @param vat    the vat
+     * @param mapper the mapper
      * @return the result promise
      */
-    public <R> Promise<R> flatMapOutcome(AFunction<Outcome<T>, R> mapper, Executor executor) {
+    public <R> Promise<R> flatMapOutcome(Vat vat, AFunction<Outcome<T>, R> mapper) {
         Outcome<T> outcome = getOutcome();
         if (outcome == null) {
             Promise<R> promise = new Promise<>();
             AResolver<R> resolver = promise.resolver();
-            listen(o -> {
+            listen(vat, o -> {
                 try {
                     Promise<R> result = mapper.apply(o);
                     if (result == null) {
@@ -192,7 +192,7 @@ public final class Promise<T> {
                 } catch (Throwable e) {
                     Outcome.notifyFailure(resolver, e);
                 }
-            }, executor);
+            });
             return promise;
         } else {
             try {
@@ -227,21 +227,21 @@ public final class Promise<T> {
      * @return the promise for mapped result.
      */
     public <R> Promise<R> flatMap(final AFunction<T, R> mapper) {
-        return flatMap(mapper, defaultVat());
+        return flatMap(defaultVat(), mapper);
     }
 
 
     /**
      * Flat map successful outcome of promise. The failure is just passed through.
      *
-     * @param mapper   the mapper
-     * @param executor the executor
-     * @param <R>      the result type
+     * @param <R>    the result type
+     * @param vat    the vat
+     * @param mapper the mapper
      * @return the promise for mapped result.
      */
-    public <R> Promise<R> flatMap(final AFunction<T, R> mapper, final Executor executor) {
+    public <R> Promise<R> flatMap(final Vat vat, final AFunction<T, R> mapper) {
         return flatMapOutcome(
-                o -> o.isFailure() ? new Promise<>(Outcome.failure(o.failure())) : mapper.apply(o.value()), executor);
+                vat, o -> o.isFailure() ? new Promise<>(Outcome.failure(o.failure())) : mapper.apply(o.value()));
     }
 
     public Promise<T> mapFailure(final Function<Throwable, T> action) {
@@ -250,18 +250,18 @@ public final class Promise<T> {
 
 
     public Promise<T> flatMapFailure(final AFunction<Throwable, T> action) {
-        return flatMapFailure(action, defaultVat());
+        return flatMapFailure(defaultVat(), action);
     }
 
 
-    public Promise<T> flatMapFailure(final AFunction<Throwable, T> action, Executor executor) {
-        return flatMapOutcome(o -> {
+    public Promise<T> flatMapFailure(Vat vat, final AFunction<Throwable, T> action) {
+        return flatMapOutcome(vat, o -> {
             if (o.isFailure()) {
                 return action.apply(o.failure());
             } else {
                 return aOutcome(o);
             }
-        }, executor);
+        });
     }
 
     /**
@@ -294,19 +294,19 @@ public final class Promise<T> {
      * @return the promise that resolves when after current promise resolves and action is executed.
      */
     public <R> Promise<R> thenFlatGet(final ASupplier<R> supplier) {
-        return flatMap(t -> supplier.get(), defaultVat());
+        return flatMap(defaultVat(), t -> supplier.get());
     }
 
     /**
      * Get value after promise is finished.
      *
-     * @param supplier a suppler
-     * @param executor the executor
      * @param <R>      the result
+     * @param vat      the executor
+     * @param supplier a suppler
      * @return the promise that resolves when after current promise resolves and action is executed.
      */
-    public <R> Promise<R> thenFlatGet(final ASupplier<R> supplier, final Executor executor) {
-        return flatMap(AsyncFunctionUtil.supplierToFunction(supplier), executor);
+    public <R> Promise<R> thenFlatGet(final Vat vat, final ASupplier<R> supplier) {
+        return flatMap(vat, AsyncFunctionUtil.supplierToFunction(supplier));
     }
 
     /**
@@ -373,7 +373,7 @@ public final class Promise<T> {
         return mapOutcome(Function.identity());
     }
 
-    public <T> Promise<T> thenPromise(Promise<T> result) {
+    public <R> Promise<R> thenPromise(Promise<R> result) {
         return thenFlatGet(promiseSupplier(result));
     }
 }

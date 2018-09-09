@@ -11,12 +11,12 @@ public class TestQueueExporter {
         return new ATestQueue<T>() {
             @Override
             public Promise<T> take() {
-                return aLater(() -> service.take(), vat);
+                return aLater(vat, () -> service.take());
             }
 
             @Override
             public void put(T element) {
-                aSend(() -> put(element), vat);
+                aSend(vat, () -> put(element));
             }
         };
     }

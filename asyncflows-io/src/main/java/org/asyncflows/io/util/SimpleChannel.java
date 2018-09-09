@@ -3,7 +3,7 @@ package org.asyncflows.io.util;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -59,6 +59,6 @@ public class SimpleChannel<B extends Buffer> extends CloseableBase implements AC
 
     @Override
     public AChannel<B> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 }

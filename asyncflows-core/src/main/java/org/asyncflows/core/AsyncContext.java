@@ -6,7 +6,6 @@ import org.asyncflows.core.vats.SingleThreadVat;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,7 +54,7 @@ public class AsyncContext {
      * @param <R>      the runner
      * @return the result of action
      */
-    public static <R> R withDefaultContext(BiFunction<ARunner, Executor, R> function) {
+    public static <R> R withDefaultContext(BiFunction<ARunner, Vat, R> function) {
         final Vat current = Vat.currentOrNull();
         if (current != null) {
             return function.apply(CoreFlows::aNow, current);
@@ -64,7 +63,7 @@ public class AsyncContext {
             return function.apply(new ARunner() {
                 @Override
                 public <T> Promise<T> run(ASupplier<T> a) {
-                    return aLater(a, vat);
+                    return aLater(vat, a);
                 }
             }, vat);
         }

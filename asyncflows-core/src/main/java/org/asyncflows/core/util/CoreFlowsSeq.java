@@ -6,9 +6,9 @@ import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.vats.Vat;
 
 import java.util.Iterator;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
@@ -128,7 +128,7 @@ public final class CoreFlowsSeq {
      * @return the result type.
      */
     public static <T> SeqBuilder<T> aSeq(ASupplier<T> action) {
-        return withDefaultContext((runner, executor) -> new SeqBuilder<>(action, runner, executor));
+        return withDefaultContext((runner, vat) -> new SeqBuilder<>(action, runner, vat));
     }
 
     /**
@@ -189,9 +189,9 @@ public final class CoreFlowsSeq {
          */
         private final ASupplier<T> action;
         /**
-         * Executor used by sec builder.
+         * Vat used by sec builder.
          */
-        private final Executor executor;
+        private final Vat vat;
         /**
          * Runner.
          */
@@ -202,12 +202,12 @@ public final class CoreFlowsSeq {
          *
          * @param action   the action to start with
          * @param runner   the runner
-         * @param executor the executor
+         * @param vat the vat
          */
-        private SeqBuilder(final ASupplier<T> action, ARunner runner, Executor executor) {
+        private SeqBuilder(final ASupplier<T> action, ARunner runner, Vat vat) {
             this.action = action;
             this.runner = runner;
-            this.executor = executor;
+            this.vat = vat;
         }
 
         /**
@@ -237,12 +237,12 @@ public final class CoreFlowsSeq {
          * @return the sequence builder with next step
          */
         public <N> SeqBuilder<N> map(final AFunction<T, N> mapper) {
-            return new SeqBuilder<>(mapCallable(action, mapper), runner, executor);
+            return new SeqBuilder<>(mapCallable(action, mapper), runner, vat);
         }
 
         private <N> ASupplier<N> mapCallable(ASupplier<T> action, AFunction<T, N> mapper) {
-            final Executor vat = this.executor;
-            return () -> aNow(action).flatMap(mapper, vat);
+            final Vat vat = this.vat;
+            return () -> aNow(action).flatMap(vat, mapper);
         }
 
         /**
@@ -252,9 +252,9 @@ public final class CoreFlowsSeq {
          * @return the out
          */
         public SeqBuilder<T> listen(AResolver<T> listener) {
-            final Executor currentExecutor = executor;
+            final Vat currentVat = vat;
             final ASupplier<T> currentAction = this.action;
-            return new SeqBuilder<>(() -> aNow(currentAction).listen(listener, currentExecutor), runner, currentExecutor);
+            return new SeqBuilder<>(() -> aNow(currentAction).listen(currentVat, listener), runner, currentVat);
         }
 
         /**
@@ -297,15 +297,15 @@ public final class CoreFlowsSeq {
          * @return the builder
          */
         public SeqBuilder<T> failed(final AFunction<Throwable, T> catcher) {
-            final Executor currentExecutor = executor;
+            final Vat currentVat = vat;
             final ASupplier<T> currentAction = this.action;
-            return new SeqBuilder<>(() -> aNow(currentAction).flatMapOutcome(o -> {
+            return new SeqBuilder<>(() -> aNow(currentAction).flatMapOutcome(currentVat, o -> {
                 if (o.isSuccess()) {
                     return aOutcome(o);
                 } else {
                     return catcher.apply(o.failure());
                 }
-            }, currentExecutor), runner, currentExecutor);
+            }), runner, currentVat);
         }
 
 
@@ -330,8 +330,8 @@ public final class CoreFlowsSeq {
          */
         @SuppressWarnings("unchecked")
         public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
-            final Executor currentExecutor = this.executor;
-            return runner.run(() -> aNow(action).flatMapOutcome(o -> aNow(finallyAction).flatMapOutcome(o2 -> {
+            final Vat currentVat = this.vat;
+            return runner.run(() -> aNow(action).flatMapOutcome(currentVat, o -> aNow(finallyAction).flatMapOutcome(currentVat, o2 -> {
                 if (o.isFailure()) {
                     if (o2.isFailure() && o2.failure() != o.failure()) {
                         o.failure().addSuppressed(o2.failure());
@@ -344,7 +344,7 @@ public final class CoreFlowsSeq {
                         return aValue(o.value());
                     }
                 }
-            }, currentExecutor), currentExecutor));
+            })));
         }
     }
 }

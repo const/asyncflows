@@ -70,7 +70,7 @@ public class TlsTestData {
     private KeyStore getKeyStore(final char[] passphrase, final String name) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         final KeyStore ks = KeyStore.getInstance("JKS");
         try (InputStream stream = TlsTestData.class.getResourceAsStream(
-                "/org/asyncflows/io/net/sockets/tls/" + name)) {
+                "/org/asyncflows/io/net/tls/" + name)) {
             ks.load(stream, passphrase);
         }
         return ks;

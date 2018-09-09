@@ -5,7 +5,7 @@ import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.ACloseable;
@@ -47,11 +47,11 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, NeedsExport<
     /**
      * The exported input.
      */
-    private final AInput<B> exportedInput = NIOExportUtil.export(Vat.current(), input);
+    private final AInput<B> exportedInput = IOExportUtil.export(Vat.current(), input);
     /**
      * The exported output.
      */
-    private final AOutput<B> exportedOutput = NIOExportUtil.export(Vat.current(), output);
+    private final AOutput<B> exportedOutput = IOExportUtil.export(Vat.current(), output);
 
     /**
      * The constructor.
@@ -113,7 +113,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, NeedsExport<
 
     @Override
     public AChannel<B> export(final Vat vat) {
-        return NIOExportUtil.export(vat, this);
+        return IOExportUtil.export(vat, this);
     }
 
     /**

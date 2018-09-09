@@ -3,7 +3,7 @@ package org.asyncflows.protocol.http.common.content; // NOPMD
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.NIOExportUtil;
+import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.io.util.DeflateOutput;
@@ -121,7 +121,7 @@ public final class ContentUtil {
      */
     private static AOutput<ByteBuffer> export(final Consumer<StreamFinishedEvent> listener,
                                               final AOutput<ByteBuffer> stream) {
-        return NIOExportUtil.export(defaultVat(), CountingOutput.countIfNeeded(stream, listener));
+        return IOExportUtil.export(defaultVat(), CountingOutput.countIfNeeded(stream, listener));
     }
 
 
@@ -317,7 +317,7 @@ public final class ContentUtil {
      */
     private static AInput<ByteBuffer> export(final Consumer<StreamFinishedEvent> listener,
                                              final AInput<ByteBuffer> stream) {
-        return NIOExportUtil.export(defaultVat(), CountingInput.countIfNeeded(stream, listener));
+        return IOExportUtil.export(defaultVat(), CountingInput.countIfNeeded(stream, listener));
     }
 
 

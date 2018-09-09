@@ -4,8 +4,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.util.CoreFlowsResource;
-
-import java.util.concurrent.Executor;
+import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aLater;
 
@@ -27,13 +26,13 @@ public final class StreamExportUtil {
      * @param <T>    the stream element type
      * @return the stream
      */
-    public static <T> AStream<T> export(final Executor vat, final AStream<T> stream) {
+    public static <T> AStream<T> export(final Vat vat, final AStream<T> stream) {
         return new AStream<T>() {
             private final ASupplier<Maybe<T>> nextElement = StreamUtil.producerFromStream(stream);
 
             @Override
             public Promise<Maybe<T>> next() {
-                return aLater(nextElement, vat);
+                return aLater(vat, nextElement);
             }
 
             @Override
@@ -51,21 +50,21 @@ public final class StreamExportUtil {
      * @param <T>  the element type
      * @return the exported sink
      */
-    public static <T> ASink<T> export(final Executor vat, final ASink<T> sink) {
+    public static <T> ASink<T> export(final Vat vat, final ASink<T> sink) {
         return new ASink<T>() {
             @Override
             public Promise<Void> put(final T value) {
-                return aLater(() -> sink.put(value), vat);
+                return aLater(vat, () -> sink.put(value));
             }
 
             @Override
             public Promise<Void> fail(final Throwable error) {
-                return aLater(() -> sink.fail(error), vat);
+                return aLater(vat, () -> sink.fail(error));
             }
 
             @Override
             public Promise<Void> finished() {
-                return aLater(sink::finished, vat);
+                return aLater(vat, sink::finished);
             }
 
             @Override

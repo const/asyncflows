@@ -29,7 +29,7 @@ public class HttpURLConnectionServerTest extends HttpServerTestBase { // NOPMD
 
     @Override
     protected Promise<Response> makeRequest(final HttpServerTestBase.Request request) {
-        return aLater(() -> {
+        return aLater(Vats.daemonVat(), () -> {
             final HttpURLConnection connection = (HttpURLConnection) request.getUri().toURL().openConnection();
             connection.setDoInput(true);
             if (request.getRequestContent() != null) {
@@ -59,7 +59,7 @@ public class HttpURLConnectionServerTest extends HttpServerTestBase { // NOPMD
             }
             return aValue(new Response(connection.getResponseCode(), connection.getResponseMessage(),
                     HttpHeaders.fromMap(connection.getHeaderFields()), responseBytes));
-        }, Vats.daemonVat()).listen(LogUtil.checkpoint(LOG, "Request Finished: "));
+        }).listen(LogUtil.checkpoint(LOG, "Request Finished: "));
     }
 
 

@@ -14,12 +14,12 @@ import org.asyncflows.core.function.AFunction4;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -44,7 +44,7 @@ public class CoreFlowsAll {
     private static final ARunner DAEMON_RUNNER = new ARunner() {
         @Override
         public <A> Promise<A> run(ASupplier<A> t) {
-            return aLater(t, Vats.daemonVat());
+            return aLater(Vats.daemonVat(), t);
         }
     };
 
@@ -83,8 +83,8 @@ public class CoreFlowsAll {
      * @return the builder for the all operator
      */
     public static <T> AllBuilder<T> aPar(final ASupplier<T> start, ARunner bodyRunner) {
-        return AsyncContext.withDefaultContext((runner, executor) ->
-                new AllBuilder<>(new AllContext(executor, runner, bodyRunner), start));
+        return AsyncContext.withDefaultContext((runner, vat) ->
+                new AllBuilder<>(new AllContext(vat, runner, bodyRunner), start));
     }
 
     /**
@@ -246,7 +246,7 @@ public class CoreFlowsAll {
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
                                                          Collector<R, I, C> collector, ARunner bodyRunner) {
-        return AsyncContext.withDefaultContext((runner, executor) -> runner.run(() -> aResolver(resolver -> {
+        return AsyncContext.withDefaultContext((runner, vat) -> runner.run(() -> aResolver(resolver -> {
             // TODO use more optimal strategies basing on java.util.stream.Collector.Characteristics
             final I accumulator = collector.supplier().get();
             final AFunction2<Promise<R>, Promise<Void>, Void> merge = (bodyPromise, cyclePromise) ->
@@ -409,12 +409,12 @@ public class CoreFlowsAll {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     return aResolver(resolver -> {
-                        p1.listenSync(r1 -> p2.listen(r2 -> {
+                        p1.listenSync(r1 -> p2.listen(ctx.getVat(), r2 -> {
                             if (notifyIfFailed(resolver, r1, r2)) {
                                 return;
                             }
                             aNow(() -> function.apply(r1.value(), r2.value())).listenSync(resolver);
-                        }, ctx.getExecutor()));
+                        }));
                     });
                 });
             }
@@ -515,12 +515,12 @@ public class CoreFlowsAll {
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                     return aResolver(resolver -> {
-                        p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listen(r3 -> {
+                        p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listen(ctx.getVat(), r3 -> {
                             if (notifyIfFailed(resolver, r1, r2, r3)) {
                                 return;
                             }
                             aNow(() -> function.apply(r1.value(), r2.value(), r3.value())).listenSync(resolver);
-                        }, ctx.getExecutor())));
+                        })));
                     });
                 });
             }
@@ -640,12 +640,12 @@ public class CoreFlowsAll {
                 final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                 final Promise<T4> p4 = ctx.getBodyRunner().run(action4);
                 return aResolver(resolver -> {
-                    p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listenSync(r3 -> p4.listen(r4 -> {
+                    p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listenSync(r3 -> p4.listen(ctx.getVat(), r4 -> {
                         if (notifyIfFailed(resolver, r1, r2, r3, r4)) {
                             return;
                         }
                         aNow(() -> function.apply(r1.value(), r2.value(), r3.value(), r4.value())).listenSync(resolver);
-                    }, ctx.getExecutor()))));
+                    }))));
                 });
             });
         }
@@ -692,9 +692,9 @@ public class CoreFlowsAll {
      */
     public static class AllContext {
         /**
-         * Executor.
+         * Vat.
          */
-        private final Executor executor;
+        private final Vat vat;
         /**
          * Operator runner.
          */
@@ -707,21 +707,21 @@ public class CoreFlowsAll {
         /**
          * Constructor.
          *
-         * @param executor       the executor.
+         * @param vat       the vat.
          * @param operatorRunner the operator runner
          * @param bodyRunner     the body runner
          */
-        public AllContext(Executor executor, ARunner operatorRunner, ARunner bodyRunner) {
-            this.executor = executor;
+        public AllContext(Vat vat, ARunner operatorRunner, ARunner bodyRunner) {
+            this.vat = vat;
             this.operatorRunner = operatorRunner;
             this.bodyRunner = bodyRunner;
         }
 
         /**
-         * @return the executor.
+         * @return the vat.
          */
-        public Executor getExecutor() {
-            return executor;
+        public Vat getVat() {
+            return vat;
         }
 
         /**

@@ -42,7 +42,7 @@ public class HttpClientServerTest extends HttpServerTestBase { // NOPMD
 
     @Override
     protected Promise<Response> makeRequest(final HttpServerTestBase.Request requestObject) {
-        return aLater(() -> {
+        return aLater(Vats.daemonVat(), () -> {
             final HttpRequestBase request;
             if (HttpMethodUtil.isGet(requestObject.getMethod())) {
                 request = new HttpGet(requestObject.getUri());
@@ -90,6 +90,6 @@ public class HttpClientServerTest extends HttpServerTestBase { // NOPMD
                             response.getStatusLine().getReasonPhrase(), responseHeaders, content));
                 }
             }
-        }, Vats.daemonVat()).listen(LogUtil.checkpoint(LOG, "Request Finished: "));
+        }).listen(LogUtil.checkpoint(LOG, "Request Finished: "));
     }
 }
