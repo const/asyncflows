@@ -32,7 +32,7 @@ public class DatagramSocketTest {
     @Ignore
     public void testSelector() throws Throwable {
         // FIXME test needs to be fixed to consider lost packets
-        final int count = SelectorVatUtil.runThrowable(createTestAction());
+        final int count = SelectorVatUtil.doAsyncIoThrowable(createTestAction());
         assertEquals(2, count);
     }
 

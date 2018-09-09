@@ -101,7 +101,7 @@ public abstract class HttpServerTestBase {
      * @return the action result
      */
     protected <T> T runAction(final AFunction2<ASocketFactory, SocketAddress, T> action) {
-        return SelectorVatUtil.run(
+        return SelectorVatUtil.doAsyncIo(
                 socketFactory -> createServer(socketFactory, handler(socketFactory)).flatMap(
                         value -> {
                             final HttpServer server = value.getValue1();

@@ -33,7 +33,7 @@ public final class SelectorVatUtil {
      * @return the action result
      * @throws Throwable if there is a problem with running action
      */
-    public static <T> T runThrowable(final AFunction<ASocketFactory, T> action) throws Throwable {
+    public static <T> T doAsyncIoThrowable(final AFunction<ASocketFactory, T> action) throws Throwable {
         final Object stopKey = new Object();
         final SelectorVat vat = new SelectorVat(stopKey);
         final Cell<Outcome<T>> value = new Cell<Outcome<T>>();
@@ -60,9 +60,9 @@ public final class SelectorVatUtil {
      * @param <T>    the result type
      * @return the action result
      */
-    public static <T> T run(final AFunction<ASocketFactory, T> action) {
+    public static <T> T doAsyncIo(final AFunction<ASocketFactory, T> action) {
         try {
-            return runThrowable(action);
+            return doAsyncIoThrowable(action);
         } catch (Error | RuntimeException t) { // NOPMD
             throw t;
         } catch (Throwable t) {

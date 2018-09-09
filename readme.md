@@ -1039,14 +1039,44 @@ public interface ADatagramSocket extends ACloseable {
 }
 ``` 
 
+These interfaces could be used in the way similar to traditional synchronous code.
+See [echo server](asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoServerSample.java) 
+and [echo client](asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoClientSample.java) 
+as examples.
+
+
 ### TLS support
 
 TLS implementation relies on Java SSLEngine for asynchronous processing, so it follows all restrictions
 enforced by it. Note, SSL protocols are not not supported by Java's SSLEngine anymore, so the framework
 stick with TLS name.
 
-The TLS implementation is just a ASocketFactory that wraps other socket factory. 
+The TLS implementation is just a ASocketFactory that wraps other socket factory. Interfaces are the same 
+as for sockets with two additional operations on the socket:
 
+```$java
+public interface ATlsSocket extends ASocket {
+    Promise<Void> handshake();
+    Promise<SSLSession> getSession();
+}
+``` 
+First one allows initiating handshake, the second one allows accessing session and examining certificates.
+
+There are no TLS related parameters on TlsSocket factory, instead there are a factory methods for SSLEngine
+which allow configuring needed parameters for SSLEngine before using it in the processing:
+
+```$java
+public class TlsSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+    public void setServerEngineFactory(final AFunction<SocketAddress, SSLEngine> serverEngineFactory) {
+       ...
+    }
+    public void setClientEngineFactory(final AFunction<SocketAddress, SSLEngine> clientEngineFactory) {
+        ...
+    }
+}
+```
+These factories need to configure TLS parameters basing on SocketAddress. It is expected, that different
+TlsSocketFactory instances will be used for different security contexts. 
 
 ### HTTP 1.1 support
 

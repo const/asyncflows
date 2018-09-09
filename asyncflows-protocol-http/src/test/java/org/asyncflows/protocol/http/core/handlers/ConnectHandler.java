@@ -76,7 +76,7 @@ public class ConnectHandler extends HttpHandlerBase {
                     exchange.getExchangeScope().set(ExchangeFinishedEvent.REMOTE, uri.getAuthority());
                     return ResponseUtil.discardAndClose(exchange.getInput()).thenFlatGet(
                             closeResourceAction(exchange.getInput()));
-                }).thenDo(() -> IOUtil.BYTE.tryChannel(
+                }).thenDo(() -> IOUtil.BYTE.aTryChannel(
                         exchange.switchProtocol(HttpStatusUtil.OK, null, new HttpHeaders())).run(
                         (connection, input, output) -> aAll(
                                 copyAndClose(socket, connection,

@@ -7,7 +7,6 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.data.Tuple3;
 import org.asyncflows.core.data.Tuple4;
-import org.asyncflows.core.vats.Vats;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AFunction2;
 import org.asyncflows.core.function.AFunction3;
@@ -15,9 +14,16 @@ import org.asyncflows.core.function.AFunction4;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.vats.Vats;
 
+import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -156,6 +162,48 @@ public class CoreFlowsAll {
         return aParForCollect(iterator, body, collector, CoreFlows::aNow);
     }
 
+    /**
+     * Iterate using iterator.
+     *
+     * @param iterator  the iterator
+     * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param <T>       the element type
+     * @return the void promise
+     */
+    public static <T, R> Promise<Void> aAllForUnit(Iterator<T> iterator, AFunction<T, R> body) {
+        return aAllForCollect(iterator, body, collectVoid());
+    }
+
+    private static <T> Collector<T, Void, Void> collectVoid() {
+        return new Collector<T, Void, Void>() {
+            @Override
+            public Supplier<Void> supplier() {
+                return () -> null;
+            }
+
+            @Override
+            public BiConsumer<Void, T> accumulator() {
+                return (a, b) -> {
+                };
+            }
+
+            @Override
+            public BinaryOperator<Void> combiner() {
+                return (a, b) -> null;
+            }
+
+            @Override
+            public Function<Void, Void> finisher() {
+                return a -> null;
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return EnumSet.of(Characteristics.CONCURRENT, Characteristics.IDENTITY_FINISH, Characteristics.UNORDERED);
+            }
+        };
+    }
+
 
     /**
      * Iterate using iterable.
@@ -251,7 +299,7 @@ public class CoreFlowsAll {
                 if (result == null) {
                     result = outcome.failure();
                 } else {
-                    if(result != outcome.failure()) {
+                    if (result != outcome.failure()) {
                         result.addSuppressed(outcome.failure());
                     }
                 }

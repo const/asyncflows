@@ -1,6 +1,7 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
@@ -60,6 +61,17 @@ public final class Semaphore implements ASemaphore, NeedsExport<ASemaphore> {
                 return requests.suspendThenTrue();
             }
         });
+    }
+
+    /**
+     * Run action with single permit.
+     *
+     * @param supplier a supplier
+     * @param <T>      the action
+     * @return result of action
+     */
+    public <T> Promise<T> run(ASupplier<T> supplier) {
+        return acquire().thenFlatGet(supplier).listen(o -> release());
     }
 
     @Override

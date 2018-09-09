@@ -119,7 +119,7 @@ public final class SocketUtil {
      */
     public static CoreFlowsResource.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
             final ASupplier<ASocket> socket) {
-        return IOUtil.BYTE.tryChannel(socket);
+        return IOUtil.BYTE.aTryChannel(socket);
     }
 
     /**

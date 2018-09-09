@@ -4,7 +4,6 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.blocking.BlockingSocketUtil;
-import org.asyncflows.io.net.selector.SelectorVatUtil;
 import org.asyncflows.io.util.AbstractDigestingStream;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
@@ -33,7 +32,7 @@ public class SimpleTest {
     @Test
     public void testSelector() throws Throwable {
         final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
-                SelectorVatUtil.runThrowable(this::checkSocketFactory);
+                SelectorVatUtil.doAsyncIoThrowable(this::checkSocketFactory);
         assertEquals(result.getValue1(), result.getValue2().getValue3());
         assertArrayEquals(result.getValue2().getValue1(), result.getValue2().getValue2());
     }

@@ -1,8 +1,10 @@
-package org.asyncflows.io;
+package org.asyncflows.io.net.samples;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.FailFast;
 import org.asyncflows.core.util.SimpleQueue;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AOutput;
 
 import java.nio.ByteBuffer;
 

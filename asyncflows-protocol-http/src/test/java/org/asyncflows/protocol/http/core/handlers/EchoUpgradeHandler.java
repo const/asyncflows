@@ -48,7 +48,7 @@ public class EchoUpgradeHandler extends HttpHandlerBase {
         final HttpHeaders headers = new HttpHeaders();
         headers.setHeader(HttpHeadersUtil.UPGRADE_HEADER, protocol);
         headers.addHeader(HttpHeadersUtil.CONNECTION_HEADER, HttpHeadersUtil.UPGRADE_HEADER);
-        return IOUtil.BYTE.tryChannel(exchange.switchProtocol(HttpStatusUtil.SWITCHING_PROTOCOLS, null, headers)).run(
+        return IOUtil.BYTE.aTryChannel(exchange.switchProtocol(HttpStatusUtil.SWITCHING_PROTOCOLS, null, headers)).run(
                 (channel, input, output) -> IOUtil.BYTE.copy(input, output, false,
                         ByteBuffer.allocate(HttpLimits.DEFAULT_BUFFER_SIZE)).toVoid()
         );

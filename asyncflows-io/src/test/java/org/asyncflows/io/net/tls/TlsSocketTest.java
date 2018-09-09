@@ -41,7 +41,7 @@ public class TlsSocketTest {
         final TlsTestData tlsTestData = new TlsTestData();
         final Random rnd = new Random();
         final long length = rnd.nextInt(10240) + 1024;
-        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.runThrowable(rawSocketFactory -> { // NOPMD
+        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.doAsyncIoThrowable(rawSocketFactory -> { // NOPMD
             TlsSocketFactory tlsFactory = new TlsSocketFactory();
             tlsFactory.setSocketFactory(rawSocketFactory);
             tlsFactory.setClientEngineFactory(value -> {
