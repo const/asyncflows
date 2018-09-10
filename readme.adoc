@@ -1,8 +1,12 @@
 = AsyncFlows Framework 0.1.0
+
+:toc:
+:toc-placement!:
+
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
 
-:toc:
+toc::[]
 
 == Project information
 === Licensing
