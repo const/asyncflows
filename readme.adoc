@@ -29,6 +29,15 @@ executable. If copied in own code, one usually need to resolve some static impor
 The project is currently available only on https://github.com/const/asyncflows[github].
 There is no builds in maven central.
 
+=== History
+
+The project has started at 2007 on Java under name http://asyncobjects.sourceforge.net/[AsyncObjects].
+And there were many iterations trying to find suitable DSL syntax for Java. Then there were experimental
+project branches https://sourceforge.net/p/asyncobjects/asyncgroovy/ci/master/tree/[AsyncGroovy] and
+https://sourceforge.net/p/asyncobjects/asyncscala/ci/master/tree/[AsyncScala] that were attempts
+to build DSL using closures, the experience gathered resulted in the current project restart firstly
+using inner classes, and then using the Java 8 syntax.
+
 == Framework Foundations
 
 The concept described in this section are foundations of the framework.
@@ -175,7 +184,7 @@ The operation above creates `SingeThreadedVat`, run it on current thread, and th
 is done with success or failure. If it is done with success, operation exits with value, otherwise it throws
 `AsyncExecutionException`.
 
-=== Trivial
+=== Trivial Operations
 
 Trivial operations are just different way to construct promise. Generally, the code should not need to create
 promise directly, except for few DSL cases. Use promise construction operation instead. All these trivial
@@ -1005,7 +1014,7 @@ The following functionality is supported out of the box:
 ==== Network Library
 
 There are two implementations of socket library based on traditional blocking sockets and selector library.
-The later an implementation based on asynchronous sockets is planned.
+The later an implementation based on asynchronous sockets is planned to be tested.
 
 Implementation based on traditional blocking sockets API sometimes hangs on Windows, so it is not recommended to use
 if runtime also supports selector sockets. This implementation is left only backward compatibility with non-complete 
@@ -1095,8 +1104,9 @@ HTTPS is not implemented at the moment.
 See [unit test](asyncflows-protocol-http/src/test/java/org/asyncflows/protocol/http/core)
 for sample code.
 
+== How framework addresses the typical problems
 
-==== Back pressure
+=== Back pressure
 
 Many asynchronous libraries have a back pressure problem. When one source of data provides more 
 data than consumer might consume. Some frameworks did not had a solution for the problem 
@@ -1108,17 +1118,17 @@ However, there is no such problem with synchronous io in Java, as streams block 
 could be written to it:
 
 ```java
-long lenght = 0;
+long length = 0;
 byte[] b = new byte[4096]
 while(true)  {
    int c = in.read(b)
    if(c < 0) {
       break;
    }
-   lenght += c;
+   length += c;
    out.write(b, 0, c);
 }
-return lengh;
+return length;
 ```
 That is practically all. Back pressure propagates naturally via blocking. No more data will be read,
 if write is not complete. If there is error, it will be propagated to caller.
@@ -1200,24 +1210,83 @@ data is available. So if writes are slower or reads are slower, the algorithm wi
 algorithm makes sense with no more than four buffers, as one buffer is for reading, one for writing, and two
 are in flight over the queue.
 
-==== Control flow inversion
+=== Control flow inversion
 
 Most of asynchronous libraries require inversion of control flow. Most of asynchronous frameworks use
 concepts like decoders and encoders. These are two poor things that have to implement explicit tracking of the 
 current state of reading or writing. If there is a recursive state like xml or json, they have to 
 keep explicit stack of state.
 
+The biggest problem with such approach is that such code is not readable as state of the process does not
+match state of the code. This is exactly the same problem that is mentioned is the famous article
+Edsger W. Dijkstra "Go To Statement Considered Harmful". There is excellent analysis of that article that translates
+the article to more modern context: http://david.tribble.com/text/goto.html[David R. Tribble "Go To
+Statement Considered Harmful: A Retrospective"]. Control flow inversion causes the same problem as it
+it was described by Edsger W. Dijkstra:
+
+[quote, Edsger W. Dijkstra, Go To Statement Considered Harmful, 1968]
+""
+My second remark is that our intellectual powers are rather geared to master static relations and that
+our powers to visualize processes evolving in time are relatively poorly developed. For that reason
+we should do (as wise programmers aware of our limitations) our utmost to shorten the conceptual
+gap between the static program and the dynamic process, to make the correspondence between the program
+(spread out in text space) and the process (spread out in time) as trivial as possible.
+""
+
+It is very hard to understand what is happening in the process and to what states it could go by analysis
+of the code. It is much simpler when control flow is evident from the code structure. AsyncFlows library
+provide such flow.
+
+I would say that direct event sending to some queue or actor is similar to "go to" operator in programming
+languages. At least it has the same properties.
+
+[quote, Edsger W. Dijkstra, Go To Statement Considered Harmful, 1968]
+""
+The unbridled use of the go to statement has an immediate consequence that it becomes terribly hard to find
+a meaningful set of coordinates in which to describe the process progress. Usually, people take into account
+as well the values of some well chosen variables, but this is out of the question because it is relative to
+the progress that the meaning of these values is to be understood! With the go to statement one can, of course,
+still describe the progress uniquely by a counter counting the number of actions performed since program start
+(viz. a kind of normalized clock). The difficulty is that such a coordinate, although unique, is utterly
+unhelpful. In such a coordinate system it becomes an extremely complicated affair to define all those points
+of progress where, say, n equals the number of persons in the room minus one!
+""
+
+If we have event handlers, that are to keep own state, we also do no have a context, that helps us
+to understand context. We need to consider all events to be possible at every moment of time. The pain is real.
+For example of pain of Actor programming paradigm cased by event sending in Erlang context,
+one could watch the presentation https://www.infoq.com/presentations/Death-by-Accidental-Complexity[Death
+by Accidental Complexity]. While presentation is using Erlang sample, the problems described are common for many
+other technologies, particularly Actor-based.
+
+[quote, Ulf Wiger, Death by Accidental Complexity (slide Apparent Problems at 26:49)]
+""
+* The whole matrix needs to be revisited if messages/features are added or removed
+* What we do in each cell is by no means obvious - depends on history
+* What to do when unexpected message arrives in a transition state is practically never specified
+  (we must invent some reasonable response.)
+* Abstraction is broken, encapsulation is broken
+* Code reuse becomes practically impossible
+""
+
+The core of the problem is the same as what was described by Edsger W. Dijkstra for "go to": the code structure
+does not mach control flow structure, so we could not reason about application state by reading code. The solution
+to the problem is also the same: structured asynchronous programming. While Ulf Wiger identifies problem correctly
+in the presentation, the proposed solution looks like poor man semi-structured programming using event filtering.
+
+
 == Inter-Process Communications
 
 The AsyncFlows framework is intended to implement control flow inside the application. There is no special means 
 to organize intra-process communications. However, the libraries could be used to organize such communications. 
-For example, JAX-RS 2.0 supports asynchronous invocations on client and server.   
+For example, JAX-RS 2.0 supports asynchronous invocations on client and server. The provided HTTP library could
+be used as foundation of some generic, completely asynchronous REST API library.
 
-=== Java EE support
+== Java EE support
 
 TBD
 
-==== Spring Framework
+=== Spring Framework
 
 TBD
 
