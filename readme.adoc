@@ -1278,9 +1278,15 @@ in the presentation, the proposed solution looks like poor man semi-structured p
 == Inter-Process Communications
 
 The AsyncFlows framework is intended to implement control flow inside the application. There is no special means 
-to organize intra-process communications. However, the libraries could be used to organize such communications. 
+to organize inter-process communications. However, the libraries could be used to organize such communications.
 For example, JAX-RS 2.0 supports asynchronous invocations on client and server. The provided HTTP library could
 be used as foundation of some generic, completely asynchronous REST API library.
+
+The inter-process communication is currently focused for the language and application independent meta-protocols,
+where exact choices it depends on the context. Most popular now are HTTP based protocols, so additional transports
+like Web Sockets are also getting popular in some contexts. As for message formats, there is a wide range of them
+starting from XML and JSON to ASN.1 and protobuf. Prescribing a specific solution is not practical in the current
+situation.
 
 == Java EE support
 
