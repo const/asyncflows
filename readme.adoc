@@ -1,13 +1,13 @@
-AsyncFlows Framework 0.1.0
---------------------------
-
-The framework support easy and modular construction of asynchronous processes from simpler constructs.
+= AsyncFlows Framework 0.1.0
+The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
 
-# Project information
-## Licensing
+:toc:
 
-The framework is licensed under copyleft [MIT license](LICENSE.txt). This could change if the project
+== Project information
+=== Licensing
+
+The framework is licensed under copyleft link:LICENSE.txt[MIT license]. This could change if the project
 is migrated to other project groups (Apache, Eclipse, or something else). There is currently no legal
 framework to accept project contributions in form of the code. However, bug reporting, experimental
 forking, and other feedback is welcome. The project might migrate to some project group to solve this
@@ -16,20 +16,17 @@ problem.
 Currently project is considered in the Alpha phase and there could be backward incompatible changes
 even for minor versions.
 
-## Code Samples
+=== Code Samples
 
 The code samples in this guide are usually taken from unit tests of the framework. So they are directly
 executable. If copied in own code, one usually need to resolve some static imports that are used by DSL.
 
-Syntax highlighting for samples is disabled for now because of the bug in IDEA 
-[RUBY-18425](https://youtrack.jetbrains.com/issue/RUBY-18425).
+=== Distribution
 
-## Distribution
-
-The project is currently available only on [github](https://github.com/const/asyncflows). 
+The project is currently available only on https://github.com/const/asyncflows[github].
 There is no builds in maven central.
 
-# Framework Foundations
+== Framework Foundations
 
 The concept described in this section are foundations of the framework.
 While they are foundation, the user of the framework rarely interacts 
@@ -37,7 +34,7 @@ with them directly, so do not assume that code samples here are anything
 like what you would see in application. Like with real building,
 foundations are mostly stay hidden from the sight. 
 
-## Vats
+=== Vats
 
 A Vat is Executor that has the following guarantees:
 
@@ -48,7 +45,7 @@ A Vat is Executor that has the following guarantees:
 These guarantees allows avoiding a lot of concurrency issues and organize
 asynchronous processes a lot easier.
 
-The concept of the vat is taken from [E programming language](http://www.e-elang.org), from which 
+The concept of the vat is taken from http://www.e-elang.org[E programming language], from which
 many ideas were borrowed in this framework.
 
 While a vat is handling events, it specifies itself in thread context. So it is available with `Vat.current()`. 
@@ -58,6 +55,7 @@ is specified explicitly.
 The is a special cached thread pool with daemon threads that is used for daemon vats `Vats.daemonVat()`.
 
 There are following vats in the core library (there are also some vats in additional libraries):
+
 * `Vat` - abstract class for all vats
 * `AWTVat` - vat over AWT event queue
 * `BatchedVat` - abstract vat that executes event in batches
@@ -71,7 +69,7 @@ There are following vats in the core library (there are also some vats in additi
   and to start application on the main thread.
 
 For example, the vat could be used like the following, if more high-level constructs could not be used otherwise.  
-```$java
+```java
         final Cell<Vat> result = new Cell<>(); // create holder for value
         final SingleThreadVat vat = new SingleThreadVat(null); // create vat
         vat.execute(() -> { // schedule event
@@ -88,7 +86,7 @@ It is rarely needed to use vat directly. The typical cases are:
 * Application setup
 * Library or framework code
 
-### Default Vat
+==== Default Vat
 
 When an asynchronous context is needed, but it is not clear whether the current thread has one,
 It is possible to use `Vat.defaultVat()` method, that return current vat, if it is present, 
@@ -96,7 +94,7 @@ or new daemon vat if it is not present. Differently from JDK, the default is a d
 for ForkJoin pool, because the framework is oriented on interaction with external services 
 (that could block threads in some cases) rather than for CPU-bound computations.
 
-## Promise
+=== Promise
 
 `Promise` is similar in role to `CompletableFuture` that provides additional restrictions compared with 
 `CompletableFuture`. It does not support `get()` operation directly to discourage it, and it does not 
@@ -113,6 +111,7 @@ Linked with promise is `AResolver` interface, that could act as a listener to th
 outcome for `Promise`. Only other way to specify outcome for promise is to pass it to the constructor of promise.
 
 There are three versions of method that adds listener to promise:
+
 * `listenSync(AResolver)` - adds listener for `Promise` that is notified in the execution context 
   where promise is resolved. This method should be only used, if listener already has appropriate
   synchronizations or asynchronous event delivery implemented (for example, a resolver for other promise). 
@@ -121,6 +120,7 @@ There are three versions of method that adds listener to promise:
   where listener is registered.
   
 There are also some utility methods on the promise that help its usage and contain some optimizations.
+
 * `flatMap` - converts value when promise is successful with `AFunction` 
 * `flatMapOutcome` - converts outcome when promise is resolved with `AFunction` 
 * `map` - converts value when promise is successful with `Function`
@@ -132,20 +132,22 @@ These functions are executed immediately, if result is available and with defaul
 
 The lambdas passed to these methods are executed in default execution context.
 
-# Structured Asynchronous Programming
+== Structured Asynchronous Programming
 
 The core concept of the framework is asynchronous operation. *Asynchronous operation* is a sequence 
-of logically grouped execution of the  
+of logically grouped execution of the events in some events loops that that finish with
+some outcome (or just finish for one-way operations).
 
 Asynchronous operators are static methods that usually return `Promise` and start with prefix `a` 
 (for example `aValue`). The operations are supposed to be imported using static import to form a DSL
 in the programming language.
 
 The structured programming constructs are inspired by combining ideas from two sources:
-* [E programming language](http://www.e-elang.org)
-* [Occam programming language](https://en.wikipedia.org/wiki/Occam_(programming_language))
 
-## Asynchronous Functions
+* http://www.e-elang.org[E programming language]
+* https://en.wikipedia.org/wiki/Occam_(programming_language)[Occam programming language]
+
+=== Asynchronous Functions
 
 Most of operators expect lambdas are arguments. These function interfaces are located at package
 `org.asyncflows.core.function`. These functions return `Promise`.
@@ -156,27 +158,27 @@ Most of operators expect lambdas are arguments. These function interfaces are lo
 * `AFunction3` - the three argument function interface
 * `AFunction4` - the four argument function interface
 
-## Asynchronous Context
+=== Asynchronous Context
 
 While much of the framework functionality is able to work w/o current vat, it is best to provide a context
 vat. The most simple way to do so is using AsyncContext class to create temporary local context to implement
 some operation.
 
-```$java
+```java
 Integer i = doAsync(() -> aValue(42));
 assertEquals(42, i);
 ``` 
 The operation above creates `SingeThreadedVat`, run it on current thread, and then stops vat when `CompletableStage`
 is done with success or failure. If it is done with success, operation exits with value, otherwise it throws
-`AsycExecutionException`.  
+`AsyncExecutionException`.
 
-## Trivial
+=== Trivial
 
 Trivial operations are just different way to construct promise. Generally, the code should not need to create
 promise directly, except for few DSL cases. Use promise construction operation instead. All these trivial
 operations are implemented in `Promise` class as they are mostly factory methods for it.
 
-```$java
+```java
 aValue(42) // resolved promise that holds specified value
 aFailure(new NullPointerException) // failed promise
 aNull() // promise holding null
@@ -185,8 +187,8 @@ aTrue() // promise holding true
 aFalse() // promise holding false
 aResolver(r -> r.accept(null, new NullPointerException())) // return promise, and to some things with resolver in body
 aNow(()->aValue(a * b)) // evaluate body and return promise (if body failed, return failed promise)
-aLater(()->aValue(a * b)) // evalute on later turn in default vat 
-aLater(vat, ()->aValue(a * b)) // evalute on later turn in the specified vat
+aLater(()->aValue(a * b)) // evaluate on later turn in default vat
+aLater(vat, ()->aValue(a * b)) // evaluate on later turn in the specified vat
 aNever() // the process that never ends
 ```
 
@@ -194,11 +196,11 @@ Note, `aNow` looks like useless operation, but it is actually used quite often. 
 asynchronous operations, throwing an error is not acceptable behaviour because some listeners are not added
 and so on.
 
-## Sequential Processes
+=== Sequential Processes
 
 All sequential controls method now require that they should be running in the context of the vat.
 
-### aSeq Operator
+==== aSeq Operator
 
 The operator `aSeq` is basic way ot organize actions sequentially.
 This operator is basically builder for sequential action. The building process starts with the initial 
@@ -221,7 +223,7 @@ action provided as `ASupplier`. Then it is continued with the following methods:
 * `finish()` - finish building and start process. 
 
 The following test demonstrate its usage:
-```$java
+```java
         final ArrayList<Integer> list = new ArrayList<>();
         final int rc = doAsync(() ->
                 aSeq(() -> {
@@ -250,10 +252,10 @@ There are also the following suffixes possible:
 * `Last` - the function is combination of function w/o suffix, and `finish()` operation.    
 
 
-### Simple Loops
+==== Simple Loops
 
-The simplest loop is aSeqWhile. This loop is executed while its body returns true.
-```$java
+The simplest loop is `aSeqWhile`. This loop is executed while its body returns true.
+```java
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -266,12 +268,12 @@ The simplest loop is aSeqWhile. This loop is executed while its body returns tru
         assertEquals(10, rc);
 ```
 
-There is also `Maybe` type in the framework that represent the optional value. Differently from Java `Optional`,
+There is also the `Maybe` type in the framework that represent the optional value. Differently from Java `Optional`,
 the `Maybe` type could hold any value including null value. It also could be serialized, passed as parameter etc.
 
 It is possible to iterate until the value is available with this aSeqUntilValue loop.
 
-```$java
+```java
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -284,11 +286,11 @@ It is possible to iterate until the value is available with this aSeqUntilValue 
         assertEquals(10, rc);
 ```
 
-### Collections Loops
+==== Collections Loops
 
-It is possible to iterate over collections using iterator.
+It is possible to iterate over collections using iterator^
 
-```$java
+```java
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             return aSeqForUnit(Arrays.asList(0, 1, 2, 3, 4), value -> {
@@ -302,7 +304,7 @@ It is possible to iterate over collections using iterator.
 It is also possible to supply iteration values to collector, but in that case it is not possible
 to abort the loop:
 
-```$java
+```java
         final int rc = doAsync(() ->
                 aSeqForCollect(Stream.of(1, 2, 3, 4),
                         e -> aValue(e + 1),
@@ -314,19 +316,19 @@ to abort the loop:
 
 The more advanced collection processing could be done by the stream framework.
 
-## Simultaneous Processes
+=== Simultaneous Processes
 
 Sequential execution is not that interesting in asynchronous context. More interesting is case
 when asynchronous operations overlap. And it could happen in the context of the same event loop.
 AsyncFlows provides a number of methods to organize simultaneous asynchronous activity.
 
-### aAll Operator
+==== aAll Operator
 
 The simplest form is aAll operator. The operator starts all its branches on the current vat
 on the current turn and executes `map(...)` operation when all branches are finished. If some branch
 thrown exception, the operator throws an error, but it will still wait for all branches to complete.
 
-```$java
+```java
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aAll(
                         () -> aValue("The answer")
@@ -338,7 +340,7 @@ thrown exception, the operator throws an error, but it will still wait for all b
 
 It is possible to return tuple from all arguments directly using `Last` suffix on the last branch.
 
-```$java
+```java
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aAll(
                         () -> aValue("The answer")
@@ -348,11 +350,11 @@ It is possible to return tuple from all arguments directly using `Last` suffix o
         assertEquals(Tuple2.of("The answer", 42), rc);
 ```
 
-### Processing Collections
+==== Processing Collections
 
 Basic operation for iterating collection, streams, and iterators is `aAllForCollect` operators.
 
-```$java
+```java
         final int rc = doAsync(() ->
                 aAllForCollect(Stream.of(1, 2, 3, 4),
                         e -> aValue(e + 1),
@@ -365,13 +367,13 @@ using supplied collector.
 
 The more advanced collection processing could be done by the stream framework.
 
-### Parallel Processes
+==== Parallel Processes
 
 If `aAll` is replaced with `aPar` in the previous section, then we will get parallel operations 
 provided by the framework. By default, the each branch is executed on the own new daemon vat.
 But is possible to customize execution by providing an implementation of ARunner interface.
 
-```$java
+```java
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aPar(
                         () -> aValue("The answer")
@@ -383,13 +385,13 @@ But is possible to customize execution by providing an implementation of ARunner
 
 This is applicable to all other `aAll` operators. 
 
-## Alternative Processing
+=== Alternative Processing
 
 The alternative processing is done using `aAny` operator. This operator starts all branches on the current
 turn and waits for for the first branch to complete with error or success. The `aAny` operator is intended 
 for error handling and querying alternative sources of information.
 
-```$java
+```java
         int value = doAsync(() ->
                 aAny(
                         () -> aLater(() -> aValue(1))
@@ -415,7 +417,7 @@ for error handling and querying alternative sources of information.
  
 There is also execution mode that the `aAny` operator tries to wait for successful result if possible.
 
-```$java
+```java
         int value = doAsync(() ->
                 aAny(true,
                         () -> aLater(() -> aValue(1))
@@ -433,7 +435,7 @@ from failed branches need to be logged.
 The sample below demonstrates usage of `suppressed(...)` and `suppressedFailure(...)` that could be used to
 receive the abandoned results.  
 
-```$java
+```java
         Tuple3<Integer, Throwable, Integer> t = doAsync(
                 () -> {
                     Promise<Throwable> failure = new Promise<>();
@@ -463,7 +465,7 @@ receive the abandoned results.
 
 ```
 
-### Fail-fast
+==== Fail-fast
 
 The `FailFast` utility class is an application of the `aAny` operator.
 
@@ -482,7 +484,7 @@ we will use queue components, that will be explained later in that guide. We wil
 fail, so consumer might fail to receive expected value that would terminate processing. In that case,
 we would like to consumer to fail as well. For example:
 
-```$java
+```java
         ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
             SimpleQueue<Integer> queue = new SimpleQueue<>();
@@ -522,19 +524,19 @@ fail-fast runner. This allows us to fail all executions of fail-fast that are ac
 Inside the call of `failFast.run(...)` there is any operator against common promise, if any of the 
 `failFast.run(...)` fails, that promise fails as well. Otherwise it stays in unresolved state.
 
-# Object-Oriented Programming
+== Object-Oriented Programming
 
 As we have seen in previous section, the framework support rich set of asynchronous operators that
 support functional and structured asynchronous programming. And the framework also supports creation 
 of asynchronous components, so normal object-oriented programming could be used as well.
 
-## Classes and Interfaces
+=== Classes and Interfaces
 
 The asynchronous interface is normal Java interface that has methods that return Promise or void.
 The other types of methods could present on the interface, but they will not be supported by runtime
 and they will throw an exception. Lets consider a simple Queue interface:
 
-```$java
+```java
 public interface ATestQueue<T> {
     Promise<T> take();
     void put(T element);
@@ -547,7 +549,7 @@ And the method `take()` returns the `Promise` as it might need to wait until som
 is available. By convention, the interface names start with 'A' to indicate that is asynchronous 
 interface.    
 
-```$java
+```java
 public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
     private final Deque<T> elements = new LinkedList<>();
     private final Deque<AResolver<T>> resolvers = new LinkedList<>();
@@ -605,7 +607,7 @@ future. The method export, exports class to runtime.
 
 The exporter could be written manually, and would look like this:
 
-```$java
+```java
     public static <T> ATestQueue<T> exportTestQueue(final ATestQueue<T> service, final Vat vat) {
         return new ATestQueue<T>() {
             @Override
@@ -623,7 +625,7 @@ The exporter could be written manually, and would look like this:
 
 Let's test this method:
 
-```$java
+```java
         final int rc = doAsync(() -> {
             final ATestQueue<Integer> queue = new TestQueue<Integer>().export();
             return aAll(() -> aSeqForUnit(rangeIterator(0, 10), i -> {
@@ -636,12 +638,13 @@ Let's test this method:
         });
         assertEquals((11 * 10) / 2, rc);
 ```
-## Garbage Collection Consideration
+=== Garbage Collection Consideration
 
 The framework objects are generally garbage collected by Java. There is no need to perform explicit cleanup
 for them, if they do not hold any sensitive resources like IO streams.
 
 The object is prevented from garbage collection in the following cases:
+
 * There is a direct reference to object or its proxy
 * There is an event on the queue that references the object
 * There is listener registered to some uncompleted promise, that is held by external listener.
@@ -656,7 +659,7 @@ need to be stopped. But this usually apply to Vats that occupy thread like `Sele
 Even for these vats starting/stopping is handled by the utility methods `doAsync(...)` 
 and `SelectorVatUtil.run(...)`.
 
-## Concurrency Considerations
+=== Concurrency Considerations
 
 It is assumed that asynchronous operations do not invoke blocking functionality. So many simultaneous asynchronous
 operations will safely take their turns on the single queue. However, it is not always so as some operations
@@ -673,7 +676,7 @@ If asynchronous context need to be established, it is better to use `aLater(Vats
 or `aLater(Vats.forkJoinVat(), ...)`. These operations will create a new vats that runs over corresponding
 pools. 
 
-## Request Queue
+=== Request Queue
 
 In the queue sample, the asynchronous operations are written in the way, that no new problems will happen if 
 method will be called before some previous method finishes. In Java synchronous code this is usually handled
@@ -688,7 +691,7 @@ that are analogs of Java wait/notify.
 
 As example, lets consider `Semaphore` implementation similar to Java `Semaphore` class.
 
-```$java
+```java
 public interface ASemaphore {
     void release(int permits);
     void release();
@@ -699,7 +702,7 @@ public interface ASemaphore {
 
 The class in the library is implemented like the following:
 
-```$java
+```java
 public final class Semaphore implements ASemaphore, NeedsExport<ASemaphore> {
     private final RequestQueue requests = new RequestQueue();
     private int permits;
@@ -763,7 +766,7 @@ the resume operation is doing nothing.
 
 Let's see how it works in test:
 
-```$java
+```java
         final ArrayList<Integer> result = new ArrayList<>();
         final Void t = doAsync(() -> {
             final ASemaphore semaphore = new Semaphore(0).export();
@@ -801,18 +804,18 @@ Let's see how it works in test:
         assertEquals(Arrays.asList(-1, 1, -2, -3,  2, 3), result);
 ```  
 
-# Library
+== Library
 
-## Streams
+=== Streams
 
 Streams library is similar to Java stream library, but there are some key differences. The first obvious difference 
 is that asynchronous streams provide asynchronous stream access operations. The second difference is API design.
 
-### Pull Streams
+==== Pull Streams
 
 Asynchronous streams provide two lean interfaces and there is no intention to provide additional operations here.
 
-```$java
+```java
 public interface AStream<T> extends ACloseable {
     Promise<Maybe<T>> next();
 }
@@ -830,7 +833,7 @@ in `pull` mode. So all elements will be processed sequentially. The stream build
 like `map`, `filter`, `flatMap`, `leftFold`, and `collect`. These operations accept asynchronous operations instead of 
 synchronous ones.
 
-```$java
+```java
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .filter(i -> aBoolean(i % 2 == 0))
@@ -841,7 +844,7 @@ synchronous ones.
 ```
 Some methods also have `Sync` variant that accept Java functional interfaces.
 
-```$java
+```java
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .filterSync(i -> i % 2 == 0)
@@ -857,7 +860,7 @@ next records at advance up to specified limit. The example below specifies that 
 is prefetched. The sample is also shows usage of `process(...)` method that could be used to implement
 reusable parts of processing pipeline
 
-```$java
+```java
         final Function<StreamBuilder<Integer>, StreamBuilder<Integer>> delay =
                 s -> s.map(a -> aForRange(0, 10).toVoid().thenValue(a));
         List<Integer> result = new ArrayList<>();
@@ -881,7 +884,7 @@ reusable parts of processing pipeline
         assertEquals(Arrays.asList(0, 2, -0, 4, -2, 6, -4, 8, -6, -8), result);
 ```
 
-### 'All' Streams
+==== 'All' Streams
 
 The all stream process values in the same way, but the difference is that all steps between `.all()` call
 and final processing of values (or switch to `pull()`) are always processed, even in case of failures. This allows
@@ -892,7 +895,7 @@ Like for `aAll*` operators, the processing done is parallel for all elements. Ho
 amount of parallel processing using `.window(n)` call. In that case only several elements will be processed 
 at the same time. This might be useful if the task is taxing on resources.
 
-```$java
+```java
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .all(2)
@@ -907,14 +910,14 @@ Note, while each stage is parallel, the current implementation waits until previ
 to next stage before passing element to next stage. This might introduce delays to processing, 
 but maintain the same order as pull stream processing. More optimized solution might be developed later. 
 
-### Working with resources
+==== Working with resources
 
 Stream is closeable resource, and it is possible to work with stream and other closeable resources with
 `aTry` statement similar to Java language `try` statement. The try statement accepts resource references,
 promises for resource references, and actions that open resources. Then it closes resource after 
 it has been used. Let's define a simple resource.
 
-```$java
+```java
     public static class SampleResource implements ACloseable, NeedsExport<ACloseable> {
         private final Cell<Boolean> closed;
 
@@ -939,7 +942,7 @@ This resource just support close action. Also, to support work with resources th
 CloseableBase and ChainedCloseableBase that simplify creating resource wrappers. Now, we could try
 different options of working with resources:
 
-```$java
+```java
         final Cell<Boolean> r1 = new Cell<>(false);
         final Cell<Boolean> r2 = new Cell<>(false);
         final Cell<Boolean> r3 = new Cell<>(false);
@@ -958,14 +961,14 @@ different options of working with resources:
 Up to three resources could opened with one `aTry` operator. However, it is also possible
 to nest `aTry` operators, so previously opened resources are accessible in lexical scope.
 
-## IO Library
+=== IO Library
 
-### Core IO
+==== Core IO
 
 The IO library is also built upon lean interfaces and different operations built upon it.
 The following are core interfaces of the library:
 
-```$java
+```java
 public interface AInput<B extends Buffer> extends ACloseable {
     Promise<Integer> read(B buffer);
 }
@@ -984,18 +987,19 @@ byte IO. Some operations that work with these interfaces are
 [generic](asyncflows-io/src/main/java/org/asyncflows/io/IOUtil.java).
 
 The following functionality is supported out of the box:
-* Character encoding([DecoderInput](asyncflows-io/src/main/java/org/asyncflows/io/text/DecoderInput.java)) 
-   / decoding([EncoderOutput](asyncflows-io/src/main/java/org/asyncflows/io/text/EncoderOutput.java)) 
-* Digesting ([DigestingInput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java) and
-  [DigestingOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java))
-* GZip ([GZipInput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java) and
-  [GZipOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java))
-* Deflate ([DeflateOutput](asyncflows-io/src/main/java/org/asyncflows/io/util/DeflateOutput.java))) 
-  and Inflate ([InflateInput](asyncflows-io/src/main/java/org/asyncflows/io/util/InflateInput.java)))
-* Utility streams
-* Synchronous stream [adapters](asyncflows-io/src/main/java/org/asyncflows/io/adapters).
 
-### Network Library
+* Character encoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/DecoderInput.java[DecoderInput])
+   / decoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/EncoderOutput.java[EncoderOutput])
+* Digesting (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java[DigestingInput]) and
+  link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java[DigestingOutput])
+* GZip (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java[GZipInput]) and
+  link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java[GZipOutput]),
+  Deflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DeflateOutput.java[DeflateOutput]),
+  and Inflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/InflateInput.java[InflateInput])
+* Utility streams
+* Synchronous stream link:asyncflows-io/src/main/java/org/asyncflows/io/adapters[adapters].
+
+==== Network Library
 
 There are two implementations of socket library based on traditional blocking sockets and selector library.
 The later an implementation based on asynchronous sockets is planned.
@@ -1007,7 +1011,7 @@ Java runtimes.
 The sockets are just byte channels with few additional operators, and they support the same operations.
 But there are few additional operations.
 
-```$java
+```java
 public interface ASocket extends AChannel<ByteBuffer> {
     Promise<Void> setOptions(SocketOptions options);
     Promise<Void> connect(SocketAddress address);
@@ -1040,12 +1044,12 @@ public interface ADatagramSocket extends ACloseable {
 ``` 
 
 These interfaces could be used in the way similar to traditional synchronous code.
-See [echo server](asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoServerSample.java) 
-and [echo client](asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoClientSample.java) 
+See link:asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoServerSample.java[echo server]
+and link:asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoClientSample.java[echo client]
 as examples.
 
 
-### TLS support
+==== TLS support
 
 TLS implementation relies on Java SSLEngine for asynchronous processing, so it follows all restrictions
 enforced by it. Note, SSL protocols are not not supported by Java's SSLEngine anymore, so the framework
@@ -1054,7 +1058,7 @@ stick with TLS name.
 The TLS implementation is just a ASocketFactory that wraps other socket factory. Interfaces are the same 
 as for sockets with two additional operations on the socket:
 
-```$java
+```java
 public interface ATlsSocket extends ASocket {
     Promise<Void> handshake();
     Promise<SSLSession> getSession();
@@ -1065,7 +1069,7 @@ First one allows initiating handshake, the second one allows accessing session a
 There are no TLS related parameters on TlsSocket factory, instead there are a factory methods for SSLEngine
 which allow configuring needed parameters for SSLEngine before using it in the processing:
 
-```$java
+```java
 public class TlsSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
     public void setServerEngineFactory(final AFunction<SocketAddress, SSLEngine> serverEngineFactory) {
        ...
@@ -1078,7 +1082,7 @@ public class TlsSocketFactory implements ASocketFactory, NeedsExport<ASocketFact
 These factories need to configure TLS parameters basing on SocketAddress. It is expected, that different
 TlsSocketFactory instances will be used for different security contexts. 
 
-### HTTP 1.1 support
+==== HTTP 1.1 support
 
 The framework provides experimental support for HTTP 1.1 protocol on client and server side.
 The code is currently more like low-level protocol implementation rather than ready to use
@@ -1089,7 +1093,7 @@ See [unit test](asyncflows-protocol-http/src/test/java/org/asyncflows/protocol/h
 for sample code.
 
 
-### Back pressure
+==== Back pressure
 
 Many asynchronous libraries have a back pressure problem. When one source of data provides more 
 data than consumer might consume. Some frameworks did not had a solution for the problem 
@@ -1100,7 +1104,7 @@ event listeners for channels (like Apache HttpCore Async 5.x).
 However, there is no such problem with synchronous io in Java, as streams block if nothing 
 could be written to it:
 
-```$java
+```java
 long lenght = 0;
 byte[] b = new byte[4096]
 while(true)  {
@@ -1120,7 +1124,7 @@ The framework provides practically the same approach. There is no explicit backp
 The output stream is accepting request, and return to caller when it is finished processing it, 
 including sending data to downstream.
 
-```$java
+```java
     public final Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int bufferSize) {
         ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
         final long[] result = new long[1];
@@ -1147,7 +1151,7 @@ than with arrays, but still it is very similar to what is written for synchronou
 Such way of handling back pressure does not necessary limit parallelism. It is possible to use features of the
 framework to ensure that reads and writes are done in parallel when it makes sense.
 
-```$java
+```java
     public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int buffers, int bufferSize) {
         final SimpleQueue<ByteBuffer> readQueue = new SimpleQueue<>();
         final SimpleQueue<ByteBuffer> writeQueue = new SimpleQueue<>();
@@ -1193,36 +1197,36 @@ data is available. So if writes are slower or reads are slower, the algorithm wi
 algorithm makes sense with no more than four buffers, as one buffer is for reading, one for writing, and two
 are in flight over the queue.
 
-### Control flow inversion
+==== Control flow inversion
 
 Most of asynchronous libraries require inversion of control flow. Most of asynchronous frameworks use
 concepts like decoders and encoders. These are two poor things that have to implement explicit tracking of the 
 current state of reading or writing. If there is a recursive state like xml or json, they have to 
 keep explicit stack of state.
 
-# Inter-Process Communications
+== Inter-Process Communications
 
 The AsyncFlows framework is intended to implement control flow inside the application. There is no special means 
 to organize intra-process communications. However, the libraries could be used to organize such communications. 
 For example, JAX-RS 2.0 supports asynchronous invocations on client and server.   
 
-# Java EE support
+=== Java EE support
 
 TBD
 
-## Spring Framework
+==== Spring Framework
 
 TBD
 
-## Servlets
+=== Servlets
 
 TBD
 
-## JAX-RS
+=== JAX-RS
 
 TBD
 
-## Java EE Security Manager
+=== Java EE Security Manager
 
 The framework uses own thread pool and it could be incompatible with Java EE when security manager is enabled.
 Turn off security manager or add appropriate permissions for your application. Also, the contextual security
@@ -1233,9 +1237,9 @@ The contextual security information like active user should be passed as paramet
 it needs to be reestablished before invocation of Java EE functionality that requires it (for example 
 Hibernate audit support). 
 
-# Comparison with other frameworks
+== Comparison with other frameworks
 
-## Actors (Akka)
+=== Actors (Akka)
 
 Comparing with Scala actors, there are the following key points of difference.
 
@@ -1263,7 +1267,7 @@ Generally, AsyncFlows support more flexible management of asynchronous component
 to event queues. Also AsyncFlows support running the entire network application in the single thread,
 while Akka requires multiple threads by design. 
 
-## CompletableFuture
+=== CompletableFuture
 
 Java's CompletableFuture is similar to AsyncFlows Promise. CompletableFuture has a lot of utility methods that 
 implement much of functionality similar to provided by the AsyncFlows framework. However, AsyncObjects Framework
@@ -1285,7 +1289,7 @@ For example, loops, request queues, fail-fast.
 Also, CompletableFuture does not have component model. It is just a single class w/o larger
 contexts. When and how asynchronous method is executed is left up to component designer.   
  
-## Netty
+=== Netty
 
 The netty is organized as multi-stage event processing. It works very well when uniform processing is needed.
 The problem is that most of processing that is needed is non-uniform. There are generally recursive logical 
@@ -1303,18 +1307,18 @@ On other hand, netty contains implementation of many network protocols. And it m
 these implementations from AsyncFlows. There is plan to create a library that access Netty channels
 from AsyncFlows framework.
 
-# Other Programming Languages
+== Other Programming Languages
 
 The framework relies on Java 8 functional interfaces to create DSL. So if other language supports them 
 in reasonable way, it is possible to use this DSL language in similar way.
 
-## Groovy
+=== Groovy
 
 Groovy since version 2.4 supports java functional interfaces using closure syntax. However, sometimes more
 type annotations are needed, to specify parameter types if type checking is wanted. The syntax actually looks
 more nice for groovy.  
 
-```$groovy
+```groovy
         def t = doAsync {
             def failure = new Promise<Throwable>();
             def suppressed = new Promise<Integer>();
@@ -1348,12 +1352,12 @@ performance.
 Note, Groovy currently implements lambdas using inner classes, so more classes are generated comparing 
 to Java 8 code. This might lead to higher application start time.  
 
-## Kotlin
+=== Kotlin
 
 The Kotlin language also has compact syntax that support DSL creation. It is also possible
 to write a compact code with much less visual noise in Kotlin as well.
 
-```$kotlin
+```kotlin
         val t = doAsync {
             val failure = Promise<Throwable>()
             val suppressed = Promise<Int>()
@@ -1387,7 +1391,7 @@ more carefully.
 Note, Kotlin currently implement lambdas using inner classes, so more classes are generated comparing 
 to Java 8 code. This might lead to higher application start time.  
 
-## Scala
+=== Scala
 
 The Scala is not directly supported as it wraps Java types and this causes multiple problems 
 in different places. So for the Scala adapters needed and support for scala collections needs 
@@ -1402,11 +1406,11 @@ The future versions of the framework might provide Scala support after the frame
 stabilization. However, comparing to Kotlin and Groovy, there is not so big productivity
 increase and there even some additional complications cased by features of Scala language.
 So this feature has low priority. There is previous iteration of scala adapter at 
-[this link](https://github.com/const/asyncflows/tree/63586493fb9d5a63c0c335df63fa396d894b0a5b/asyncobjects-scala).
+https://github.com/const/asyncflows/tree/63586493fb9d5a63c0c335df63fa396d894b0a5b/asyncobjects-scala[this link].
 
 In the old sample code, control flow looked like the following:
 
-```$scala
+```scala
     val list = new ListBuffer[Integer]
     val rc: Int = doAsync {
       aSeq {
