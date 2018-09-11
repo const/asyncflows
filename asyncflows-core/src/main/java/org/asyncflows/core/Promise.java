@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2018 Konstantin Plotnikov
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.asyncflows.core;
 
 import org.asyncflows.core.function.AFunction;
@@ -68,6 +91,7 @@ public final class Promise<T> {
      * Add synchronous listener to promise.
      *
      * @param listener the listener.
+     * @return this promise
      */
     public Promise<T> listenSync(AResolver<? super T> listener) {
         final Outcome<T> o;
@@ -101,6 +125,7 @@ public final class Promise<T> {
      * Add asynchronous listener that uses default executor. Returns this promise.
      *
      * @param listener the listener.
+     * @return this promise
      */
     public Promise<T> listen(AResolver<? super T> listener) {
         return listen(defaultVat(), listener);
@@ -111,6 +136,7 @@ public final class Promise<T> {
      *
      * @param vat      the executor.
      * @param listener the listener.
+     * @return this promise
      */
     public Promise<T> listen(Vat vat, AResolver<? super T> listener) {
         return listenSync(o -> vat.execute(() -> Outcome.notifyResolver(listener, o)));
@@ -234,9 +260,9 @@ public final class Promise<T> {
     /**
      * Flat map successful outcome of promise. The failure is just passed through.
      *
-     * @param <R>    the result type
      * @param vat    the vat
      * @param mapper the mapper
+     * @param <R>    the result type
      * @return the promise for mapped result.
      */
     public <R> Promise<R> flatMap(final Vat vat, final AFunction<T, R> mapper) {
@@ -244,16 +270,34 @@ public final class Promise<T> {
                 vat, o -> o.isFailure() ? new Promise<>(Outcome.failure(o.failure())) : mapper.apply(o.value()));
     }
 
+    /**
+     * Map failure.
+     *
+     * @param action the synchronous action
+     * @return the promise for action result
+     */
     public Promise<T> mapFailure(final Function<Throwable, T> action) {
         return flatMapFailure(toAsyncFunction(action));
     }
 
-
+    /**
+     * Flat map failure.
+     *
+     * @param action the synchronous action
+     * @return the promise for action result
+     */
     public Promise<T> flatMapFailure(final AFunction<Throwable, T> action) {
         return flatMapFailure(defaultVat(), action);
     }
 
 
+    /**
+     * Flat map failure.
+     *
+     * @param vat    the vat
+     * @param action the synchronous action
+     * @return the promise for action result
+     */
     public Promise<T> flatMapFailure(Vat vat, final AFunction<Throwable, T> action) {
         return flatMapOutcome(vat, o -> {
             if (o.isFailure()) {
@@ -365,14 +409,28 @@ public final class Promise<T> {
         });
     }
 
+    /**
+     * @return true if promise is unresolved yet
+     */
     public boolean isUnresolved() {
         return getOutcome() == null;
     }
 
+    /**
+     * @return the promise that resolves to outcome of this promise.
+     */
     public Promise<Outcome<T>> toOutcomePromise() {
         return mapOutcome(Function.identity());
     }
 
+    /**
+     * Combine two promises.
+     *
+     * @param result the next promise
+     * @param <R>    the result type
+     * @return the promise that resolves when both this and next promise finishes. The operation fails
+     * if either promise fails.
+     */
     public <R> Promise<R> thenPromise(Promise<R> result) {
         return thenFlatGet(promiseSupplier(result));
     }

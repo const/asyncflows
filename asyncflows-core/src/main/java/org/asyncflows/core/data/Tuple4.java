@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2018 Konstantin Plotnikov
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.asyncflows.core.data;
 
 import java.util.Objects;
@@ -8,6 +31,7 @@ import java.util.Objects;
  * @param <T1> the type of the fist value
  * @param <T2> the type of the second value
  * @param <T3> the type of the third value
+ * @param <T4> the type of the forth value
  */
 public final class Tuple4<T1, T2, T3, T4> {
     /**
@@ -49,9 +73,11 @@ public final class Tuple4<T1, T2, T3, T4> {
      * @param value1 the first value
      * @param value2 the second value
      * @param value3 the third value
+     * @param value4 the forth value
      * @param <T1>   the first value type
      * @param <T2>   the second value type
      * @param <T3>   the third value type
+     * @param <T4> the type of the forth value
      * @return the tuple
      */
     public static <T1, T2, T3, T4> Tuple4<T1, T2, T3, T4> of(final T1 value1, final T2 value2, final T3 value3, final T4 value4) {
@@ -77,6 +103,13 @@ public final class Tuple4<T1, T2, T3, T4> {
      */
     public T3 getValue3() {
         return value3;
+    }
+
+    /**
+     * @return the 3rd value
+     */
+    public T4 getValue4() {
+        return value4;
     }
 
     @Override

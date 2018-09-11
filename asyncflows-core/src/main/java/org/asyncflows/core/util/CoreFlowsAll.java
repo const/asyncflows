@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2018 Konstantin Plotnikov
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.AsyncContext;
@@ -45,6 +68,37 @@ public class CoreFlowsAll {
         @Override
         public <A> Promise<A> run(ASupplier<A> t) {
             return aLater(Vats.daemonVat(), t);
+        }
+    };
+
+    /**
+     * The void collector
+     */
+    private static final Collector<Object, Void, Void> VOID_COLLECTOR = new Collector<Object, Void, Void>() {
+        @Override
+        public Supplier<Void> supplier() {
+            return () -> null;
+        }
+
+        @Override
+        public BiConsumer<Void, Object> accumulator() {
+            return (a, b) -> {
+            };
+        }
+
+        @Override
+        public BinaryOperator<Void> combiner() {
+            return (a, b) -> null;
+        }
+
+        @Override
+        public Function<Void, Void> finisher() {
+            return a -> null;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return EnumSet.of(Characteristics.CONCURRENT, Characteristics.IDENTITY_FINISH, Characteristics.UNORDERED);
         }
     };
 
@@ -111,6 +165,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
@@ -126,6 +183,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Iterable<T> iterable, AFunction<T, R> body,
@@ -140,6 +200,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Stream<T> stream, AFunction<T, R> body,
@@ -155,6 +218,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aAllForCollect(Iterator<T> iterator, AFunction<T, R> body,
@@ -165,43 +231,25 @@ public class CoreFlowsAll {
     /**
      * Iterate using iterator.
      *
-     * @param iterator  the iterator
-     * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
-     * @param <T>       the element type
+     * @param iterator the iterator
+     * @param body     the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param <T>      the element type
+     * @param <R>      the body result type
      * @return the void promise
      */
     public static <T, R> Promise<Void> aAllForUnit(Iterator<T> iterator, AFunction<T, R> body) {
         return aAllForCollect(iterator, body, collectVoid());
     }
 
+    /**
+     * Create special void collector
+     *
+     * @param <T> the argument type
+     * @return the collector
+     */
+    @SuppressWarnings("unchecked")
     private static <T> Collector<T, Void, Void> collectVoid() {
-        return new Collector<T, Void, Void>() {
-            @Override
-            public Supplier<Void> supplier() {
-                return () -> null;
-            }
-
-            @Override
-            public BiConsumer<Void, T> accumulator() {
-                return (a, b) -> {
-                };
-            }
-
-            @Override
-            public BinaryOperator<Void> combiner() {
-                return (a, b) -> null;
-            }
-
-            @Override
-            public Function<Void, Void> finisher() {
-                return a -> null;
-            }
-
-            @Override
-            public Set<Characteristics> characteristics() {
-                return EnumSet.of(Characteristics.CONCURRENT, Characteristics.IDENTITY_FINISH, Characteristics.UNORDERED);
-            }
-        };
+        return (Collector<T, Void, Void>) (Object) VOID_COLLECTOR;
     }
 
 
@@ -212,6 +260,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aAllForCollect(Iterable<T> iterable, AFunction<T, R> body,
@@ -226,6 +277,9 @@ public class CoreFlowsAll {
      * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector to gather results
      * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aAllForCollect(Stream<T> stream, AFunction<T, R> body,
@@ -242,6 +296,9 @@ public class CoreFlowsAll {
      * @param collector  the collector to gather results
      * @param bodyRunner the runner for body
      * @param <T>        the element type
+     * @param <R>        the body result type
+     * @param <I>        the collector intermediate type
+     * @param <C>        the final type
      * @return the void promise
      */
     public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
@@ -586,6 +643,7 @@ public class CoreFlowsAll {
      * @param <T1> the first type
      * @param <T2> the second type
      * @param <T3> the third type
+     * @param <T4> the forth type
      */
     public static final class AllBuilder4<T1, T2, T3, T4> {
         /**
@@ -707,7 +765,7 @@ public class CoreFlowsAll {
         /**
          * Constructor.
          *
-         * @param vat       the vat.
+         * @param vat            the vat.
          * @param operatorRunner the operator runner
          * @param bodyRunner     the body runner
          */

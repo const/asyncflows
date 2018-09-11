@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2018 Konstantin Plotnikov
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.asyncflows.core.streams;
 
 import org.asyncflows.core.Promise;
@@ -88,8 +111,9 @@ public abstract class StreamBuilder<T> {
 
     /**
      * Map using synchronous function.
+     *
      * @param mapper the mapper
-     * @param <N> the function
+     * @param <N>    the function
      * @return the next phase builder
      */
     public <N> StreamBuilder<N> mapSync(Function<T, N> mapper) {
@@ -185,7 +209,7 @@ public abstract class StreamBuilder<T> {
      * This method is intended for selection of common fragments of processing pipelines so it could be reused.
      *
      * @param action the action
-     * @param <R> the result type
+     * @param <R>    the result type
      * @return the result
      */
     public <R> R process(Function<StreamBuilder<T>, R> action) {
@@ -254,11 +278,12 @@ public abstract class StreamBuilder<T> {
     }
 
     /**
-     * Collecto using collector.
+     * Collect using collector.
+     *
      * @param collector the collector.
-     * @param <R> the result type
-     * @param <A> the collector accumulator type
-     * @return
+     * @param <R>       the result type
+     * @param <A>       the collector accumulator type
+     * @return the promise for collect operation
      */
     public <R, A> Promise<R> collect(Collector<T, A, R> collector) {
         return aNow(() -> {
@@ -271,6 +296,7 @@ public abstract class StreamBuilder<T> {
             }).map(a -> collector.finisher().apply(a));
         });
     }
+
     /**
      * Start building all stream with the specified window size.
      *
