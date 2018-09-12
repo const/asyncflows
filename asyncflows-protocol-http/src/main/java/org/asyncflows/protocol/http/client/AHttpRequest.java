@@ -23,13 +23,12 @@
 
 package org.asyncflows.protocol.http.client;
 
-import org.asyncflows.io.AOutput;
-import org.asyncflows.protocol.http.common.Scope;
-import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AResolver;
-import org.asyncflows.protocol.http.common.HttpScopeUtil;
+import org.asyncflows.io.AOutput;
+import org.asyncflows.protocol.http.common.Scope;
+import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 
 import java.net.SocketAddress;
 import java.net.URI;
@@ -38,7 +37,7 @@ import java.nio.ByteBuffer;
 /**
  * The HTTP request interface.
  *
- * @see HttpScopeUtil for addtional keys.
+ * @see org.asyncflows.protocol.http.common.HttpScopeUtil for addtional keys.
  */
 public interface AHttpRequest extends ACloseable {
     // TODO additional transfer encodings

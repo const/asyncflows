@@ -40,7 +40,7 @@ public final class Failure<T> extends Outcome<T> {
      * @param failure the failure
      */
     public Failure(final Throwable failure) {
-        this.failure = failure != null ? failure : new NullPointerException("failure is null");
+        this.failure = failure != null ? failure : new IllegalArgumentException("failure is null");
     }
 
     /**

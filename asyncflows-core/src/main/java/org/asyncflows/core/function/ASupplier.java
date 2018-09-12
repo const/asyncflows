@@ -25,7 +25,18 @@ package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
 
+/**
+ * Asynchronous supplier.
+ *
+ * @param <R> the result type
+ */
 @FunctionalInterface
-public interface ASupplier<T> {
-    Promise<T> get() throws Throwable;
+public interface ASupplier<R> {
+    /**
+     * Get result.
+     *
+     * @return the promise for result.
+     * @throws Throwable if any problem
+     */
+    Promise<R> get() throws Throwable;
 }

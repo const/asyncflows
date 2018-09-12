@@ -23,8 +23,6 @@
 
 package org.asyncflows.io.util; // NOPMD
 
-import org.asyncflows.io.binary.BinaryFormatException;
-import org.asyncflows.io.binary.BinaryReader;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ASupplier;
 
@@ -35,11 +33,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 
-import static org.asyncflows.io.binary.BinaryReader.readByte;
-import static org.asyncflows.io.binary.BinaryReader.readSequence;
-import static org.asyncflows.io.binary.BinaryReader.readUint16;
-import static org.asyncflows.io.binary.BinaryReader.readerField;
-import static org.asyncflows.io.binary.BinaryReader.withCRC32;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aValue;
@@ -83,7 +76,7 @@ public final class GZipHeader {
     /**
      * If FTEXT is set, the file is probably ASCII text.
      */
-    private static final byte FTEXT = 1;
+    public static final byte FTEXT = 1;
     /**
      * If FHCRC is set, a CRC16 for the gzip header is present,
      * immediately before the compressed data. The CRC16 consists
@@ -93,11 +86,11 @@ public final class GZipHeader {
      * 1.2.4, even though it was documented with a different
      * meaning in gzip 1.2.4.]
      */
-    private static final byte FHCRC = 2;
+    public static final byte FHCRC = 2;
     /**
      * If FEXTRA is set, optional extra fields are present.
      */
-    private static final byte FEXTRA = 4;
+    public static final byte FEXTRA = 4;
     /**
      * If FNAME is set, an original file name is present,
      * terminated by a zero byte.  The name must consist of ISO
@@ -105,7 +98,7 @@ public final class GZipHeader {
      * EBCDIC or any other character set for file names, the name
      * must be translated to the ISO LATIN-1 character set.
      */
-    private static final byte FNAME = 8;
+    public static final byte FNAME = 8;
     /**
      * If FCOMMENT is set, a zero-terminated file comment is
      * present.  This comment is not interpreted; it is only
@@ -113,15 +106,15 @@ public final class GZipHeader {
      * ISO 8859-1 (LATIN-1) characters.  Line breaks should be
      * denoted by a single line feed character (10 decimal).
      */
-    private static final byte FCOMMENT = 16;
+    public static final byte FCOMMENT = 16;
     /**
      * The mask for supported flags.
      */
-    private static final byte SUPPORTED_FLAGS = 0x1F;
+    public static final byte SUPPORTED_FLAGS = 0x1F;
     /**
      * The minimal size of GZip header.
      */
-    private static final int CORE_HEADER_SIZE = 9;
+    public static final int CORE_HEADER_SIZE = 9;
     /**
      * Extra fields.
      */
@@ -248,22 +241,6 @@ public final class GZipHeader {
         return aVoid();
     }
 
-    public static BinaryReader.ReaderAction<GZipHeader> readGZip() {
-        return withCRC32(readSequence(GZipHeader.class,
-                readerField(readUint16(), (z, magic) -> {
-                            if (magic != GZipHeader.ID) {
-                                throw new BinaryFormatException(String.format("Not a GZip format: %04x", magic));
-                            }
-                        }
-                )
-        ).then(
-                readerField(readByte(), GZipHeader::setCompressionMethod)
-        ).then(
-                readerField(readByte(), GZipHeader::setFlags)
-        ).end());
-    }
-
-
     /**
      * Write GZip header.
      *
@@ -376,7 +353,8 @@ public final class GZipHeader {
      */
     private static Promise<Void> writeStringZero(final ByteGeneratorContext context,
                                                  final CRC32 headerCRC, final String text) {
-        return writeLatin1(context, headerCRC, text, false).thenFlatGet(() -> context.ensureAvailable(1)).thenFlatGet(() -> {
+        return writeLatin1(context, headerCRC, text, false).thenFlatGet(
+                () -> context.ensureAvailable(1)).thenFlatGet(() -> {
             put(context, headerCRC, (byte) 0);
             return aVoid();
         });

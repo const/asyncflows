@@ -23,11 +23,11 @@
 
 package org.asyncflows.io.util;
 
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.IOUtil;
 import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.IOUtil;
 
 import java.nio.ByteBuffer;
 
@@ -75,7 +75,7 @@ public class ByteParserContext {
     public ByteParserContext(final AInput<ByteBuffer> input, final ByteBuffer buffer) {
         this.input = input;
         this.buffer = buffer;
-        if(!buffer.hasArray()) {
+        if (!buffer.hasArray()) {
             throw new IllegalArgumentException("Only array-backed buffers are supported for byte generator context.");
         }
     }
@@ -162,6 +162,9 @@ public class ByteParserContext {
         });
     }
 
+    /**
+     * @return remaining amount in the buffer
+     */
     public int remaining() {
         return buffer.remaining();
     }

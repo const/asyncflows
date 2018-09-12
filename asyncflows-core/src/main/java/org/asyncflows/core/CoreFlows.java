@@ -38,7 +38,7 @@ import static org.asyncflows.core.vats.Vats.defaultVat;
 /**
  * Basic asynchronous control constructs.
  */
-public class CoreFlows {
+public final class CoreFlows {
     /**
      * The constant promise NULL.
      */
@@ -55,6 +55,13 @@ public class CoreFlows {
      * Empty value.
      */
     private static final Promise<Maybe<Object>> EMPTY_VALUE = aValue(Maybe.empty());
+
+    /**
+     * Private constructor for utility class.
+     */
+    private CoreFlows() {
+        // do nothing
+    }
 
     /**
      * @return the promise for void value.
@@ -127,11 +134,18 @@ public class CoreFlows {
      * @param <T>   the type
      * @return a value
      */
-    public static <T> Promise<T> aValue(T value) {
+    public static <T> Promise<T> aValue(final T value) {
         return new Promise<>(Outcome.success(value));
     }
 
-    public static <T> Promise<T> aOutcome(Outcome<T> outcome) {
+    /**
+     * Get promise with specified outcome.
+     *
+     * @param outcome the outcome
+     * @param <T>     the type
+     * @return the promise
+     */
+    public static <T> Promise<T> aOutcome(final Outcome<T> outcome) {
         return new Promise<>(outcome);
     }
 
@@ -142,7 +156,7 @@ public class CoreFlows {
      * @param <T>       the expected type
      * @return the promise
      */
-    public static <T> Promise<T> aFailure(Throwable throwable) {
+    public static <T> Promise<T> aFailure(final Throwable throwable) {
         return new Promise<>(Outcome.failure(throwable));
     }
 
@@ -153,9 +167,9 @@ public class CoreFlows {
      * @param <T>            the result type.
      * @return the promise.
      */
-    public static <T> Promise<T> aResolver(Consumer<AResolver<T>> resolverAction) {
+    public static <T> Promise<T> aResolver(final Consumer<AResolver<T>> resolverAction) {
         final Promise<T> promise = new Promise<>();
-        AResolver<T> resolver = promise.resolver();
+        final AResolver<T> resolver = promise.resolver();
         try {
             resolverAction.accept(resolver);
         } catch (Throwable e) {
@@ -172,7 +186,7 @@ public class CoreFlows {
      * @param <T>    the result type.
      * @return the promise
      */
-    public static <T> Promise<T> aNow(ASupplier<T> action) {
+    public static <T> Promise<T> aNow(final ASupplier<T> action) {
         try {
             return action.get();
         } catch (Throwable throwable) {
@@ -180,29 +194,39 @@ public class CoreFlows {
         }
     }
 
-    public static void aSend(Vat vat, Runnable action) {
+    /**
+     * Send event to vat.
+     *
+     * @param vat    the vat
+     * @param action the action
+     */
+    public static void aSend(final Vat vat, final Runnable action) {
         vat.execute(action);
     }
 
-    public static void aSend(Runnable action) {
+    /**
+     * Send even to the default vat.
+     *
+     * @param action the action
+     */
+    public static void aSend(final Runnable action) {
         defaultVat().execute(action);
     }
 
     /**
-     * Convert generic completion stage to promise. It handles {@link Promise} and {@link CompletableFuture}
+     * Convert generic completion stage to promise. It handles {@link CompletableFuture}
      * in the optimized way.
      *
      * @param stage the stage
      * @param <T>   the result type
      * @return the result
      */
-    public static <T> Promise<T> aStageResult(CompletionStage<T> stage) {
+    public static <T> Promise<T> aStageResult(final CompletionStage<T> stage) {
         if (stage == null) {
-            return aFailure(new NullPointerException("Action should return non-null"));
-
+            return aFailure(new IllegalArgumentException("Action should return non-null"));
         }
         if (stage instanceof CompletableFuture) {
-            CompletableFuture<T> future = (CompletableFuture<T>) stage;
+            final CompletableFuture<T> future = (CompletableFuture<T>) stage;
             if (future.isDone()) {
                 try {
                     return aValue(future.get());
@@ -227,7 +251,7 @@ public class CoreFlows {
      * @param <T>    the result type
      * @return the promise for result
      */
-    public static <T> Promise<T> aLater(Vat vat, ASupplier<T> action) {
+    public static <T> Promise<T> aLater(final Vat vat, final ASupplier<T> action) {
         return aResolver(r -> vat.execute(() -> {
             aNow(action).listenSync(r);
         }));
@@ -240,7 +264,7 @@ public class CoreFlows {
      * @param <T>    the result type
      * @return the promise for result
      */
-    public static <T> Promise<T> aLater(ASupplier<T> action) {
+    public static <T> Promise<T> aLater(final ASupplier<T> action) {
         return aLater(defaultVat(), action);
     }
 
@@ -252,7 +276,7 @@ public class CoreFlows {
      * @return the promise
      */
     public static <T> Promise<T> aNever() {
-        Promise<T> promise = new Promise<>();
+        final Promise<T> promise = new Promise<>();
         promise.resolver();
         return promise;
     }

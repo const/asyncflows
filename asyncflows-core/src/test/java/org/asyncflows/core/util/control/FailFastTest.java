@@ -46,10 +46,10 @@ public class FailFastTest {
 
     @Test
     public void test() {
-        ArrayList<Integer> list = new ArrayList<>();
+        final ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
-            SimpleQueue<Integer> queue = new SimpleQueue<>();
-            FailFast failFast = new FailFast();
+            final SimpleQueue<Integer> queue = new SimpleQueue<>();
+            final FailFast failFast = new FailFast();
             return aAll(
                     // () -> aSeqWhile(() -> queue.take().map(t -> {
                     () -> aSeqWhile(() -> failFast.run(queue::take).map(t -> {

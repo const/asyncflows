@@ -39,11 +39,18 @@ import static org.asyncflows.core.CoreFlows.aNow;
 /**
  * The control flow for ANY.
  */
-public class CoreFlowsAny {
+public final class CoreFlowsAny {
     /**
      * The logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(CoreFlowsAny.class);
+
+    /**
+     * The private constructor for utility class.
+     */
+    private CoreFlowsAny() {
+        // do nothing
+    }
 
     /**
      * Start building Any block.
@@ -52,19 +59,20 @@ public class CoreFlowsAny {
      * @param <T>         the type
      * @return the builder
      */
-    public static <T> AnyBuilder<T> aAny(ASupplier<T> firstAction) {
+    public static <T> AnyBuilder<T> aAny(final ASupplier<T> firstAction) {
         return aAny(false, firstAction);
     }
 
     /**
-     * Start building any
+     * Start building any operator.
      *
-     * @param preferSuccess if success is preferred, the success result will return if available even if there were failures previously
+     * @param preferSuccess if success is preferred, the success result will return if available
+     *                      even if there were failures previously
      * @param firstAction   the first action for builder
      * @param <T>           the result.
      * @return the builder
      */
-    public static <T> AnyBuilder<T> aAny(boolean preferSuccess, ASupplier<T> firstAction) {
+    public static <T> AnyBuilder<T> aAny(final boolean preferSuccess, final ASupplier<T> firstAction) {
         return new AnyBuilder<T>(preferSuccess).or(firstAction);
     }
 
@@ -78,7 +86,7 @@ public class CoreFlowsAny {
         /**
          * If true, success results have higher priority than failure results.
          */
-        final boolean preferSuccess;
+        private final boolean preferSuccess;
         /**
          * The result promise.
          */
@@ -109,7 +117,7 @@ public class CoreFlowsAny {
          *
          * @param preferSuccess true if successful results are preferred.
          */
-        private AnyBuilder(final boolean preferSuccess) {
+        public AnyBuilder(final boolean preferSuccess) {
             Vat.current(); // ensure asynchronous context
             this.preferSuccess = preferSuccess;
         }
@@ -120,7 +128,7 @@ public class CoreFlowsAny {
          * @param action an action
          * @return this builder
          */
-        public AnyBuilder<T> or(ASupplier<T> action) {
+        public AnyBuilder<T> or(final ASupplier<T> action) {
             if (promise == null) {
                 throw new IllegalStateException("Action is already started");
             }
@@ -175,21 +183,21 @@ public class CoreFlowsAny {
          * @param action the action
          * @return the result promise
          */
-        public Promise<T> orLast(ASupplier<T> action) {
+        public Promise<T> orLast(final ASupplier<T> action) {
             return or(action).finish();
         }
 
         /**
          * Set suppressed result handler.
          *
-         * @param suppressedResultHandler the result handler
+         * @param handlerBody the result handler
          * @return this builder.
          */
-        public AnyBuilder<T> suppressed(Consumer<T> suppressedResultHandler) {
+        public AnyBuilder<T> suppressed(final Consumer<T> handlerBody) {
             if (this.suppressedResultHandler != null) {
                 throw new IllegalStateException("Handler is already set");
             }
-            this.suppressedResultHandler = suppressedResultHandler;
+            this.suppressedResultHandler = handlerBody;
             return this;
         }
 
@@ -197,35 +205,35 @@ public class CoreFlowsAny {
         /**
          * Set suppressed result handler and finish.
          *
-         * @param suppressedResultHandler the result handler
+         * @param handlerBody the result handler
          * @return this builder.
          */
-        public Promise<T> suppressedLast(Consumer<T> suppressedResultHandler) {
-            return suppressed(suppressedResultHandler).finish();
+        public Promise<T> suppressedLast(final Consumer<T> handlerBody) {
+            return suppressed(handlerBody).finish();
         }
 
         /**
          * Set suppressed failure handler.
          *
-         * @param suppressedFailureHandler the failure
+         * @param handlerBody the failure
          * @return the builder
          */
-        public AnyBuilder<T> suppressedFailure(Consumer<Throwable> suppressedFailureHandler) {
+        public AnyBuilder<T> suppressedFailure(final Consumer<Throwable> handlerBody) {
             if (this.suppressedFailureHandler != null) {
                 throw new IllegalStateException("Handler is already set");
             }
-            this.suppressedFailureHandler = suppressedFailureHandler;
+            this.suppressedFailureHandler = handlerBody;
             return this;
         }
 
         /**
          * Set suppressed failure handler and finish.
          *
-         * @param suppressedFailureHandler the failure
+         * @param handlerBody the failure
          * @return the builder
          */
-        public Promise<T> suppressedFailureLast(Consumer<Throwable> suppressedFailureHandler) {
-            return suppressedFailure(suppressedFailureHandler).finish();
+        public Promise<T> suppressedFailureLast(final Consumer<Throwable> handlerBody) {
+            return suppressedFailure(handlerBody).finish();
         }
 
         /**
@@ -237,7 +245,7 @@ public class CoreFlowsAny {
             if (count == 0) {
                 return aFailure(new IllegalStateException("At least one alternative needs to be supplied"));
             }
-            Promise<T> p = promise;
+            final Promise<T> p = promise;
             promise = null;
             return p;
         }

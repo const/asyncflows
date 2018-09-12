@@ -21,27 +21,29 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.binary;
+package org.asyncflows.io.codec;
 
-public class BinaryFormatException extends RuntimeException {
+import org.asyncflows.io.util.GZipHeader;
 
-    public BinaryFormatException() {
-        super();
-    }
+import static org.asyncflows.io.codec.BinaryReader.readByte;
+import static org.asyncflows.io.codec.BinaryReader.readSequence;
+import static org.asyncflows.io.codec.BinaryReader.readUint16;
+import static org.asyncflows.io.codec.BinaryReader.readerField;
+import static org.asyncflows.io.codec.BinaryReader.withCRC32;
 
-    public BinaryFormatException(String message) {
-        super(message);
-    }
-
-    public BinaryFormatException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public BinaryFormatException(Throwable cause) {
-        super(cause);
-    }
-
-    protected BinaryFormatException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+public class GzipHeaderUtil {
+    public static BinaryReader.ReaderAction<GZipHeader> readGZip() {
+        return withCRC32(readSequence(GZipHeader.class,
+                readerField(readUint16(), (z, magic) -> {
+                            if (magic != GZipHeader.ID) {
+                                throw new BinaryFormatException(String.format("Not a GZip format: %04x", magic));
+                            }
+                        }
+                )
+        ).then(
+                readerField(readByte(), GZipHeader::setCompressionMethod)
+        ).then(
+                readerField(readByte(), GZipHeader::setFlags)
+        ).end());
     }
 }

@@ -25,6 +25,7 @@ package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
+import org.asyncflows.core.vats.Vats;
 
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aSend;
@@ -32,7 +33,7 @@ import static org.asyncflows.core.CoreFlows.aSend;
 /**
  * Exports for utility classes.
  */
-final class UtilExporter {
+public final class UtilExporter {
     /**
      * A private constructor for utility class.
      */
@@ -46,7 +47,7 @@ final class UtilExporter {
      * @param semaphore the semaphore
      * @return the exported class
      */
-    static ASemaphore export(final Vat vat, final ASemaphore semaphore) {
+    public static ASemaphore export(final Vat vat, final ASemaphore semaphore) {
         // TODO refactor all exports use actually inner classes with inheritance
         return new ASemaphore() {
             @Override
@@ -79,7 +80,7 @@ final class UtilExporter {
      * @param <T>   the element type
      * @return the exported queue
      */
-    static <T> AQueue<T> export(final Vat vat, final AQueue<T> queue) {
+    public static <T> AQueue<T> export(final Vat vat, final AQueue<T> queue) {
         return new AQueue<T>() {
             @Override
             public Promise<T> take() {
@@ -93,4 +94,24 @@ final class UtilExporter {
         };
     }
 
+    /**
+     * Export subscription.
+     *
+     * @param vat          the vat
+     * @param subscription the subscription
+     * @return the exported
+     */
+    public static ASubscription exportSubscription(final Vat vat, final ASubscription subscription) {
+        return () -> aLater(vat, CoreFlowsResource.closeResourceAction(subscription));
+    }
+
+    /**
+     * Export subscription.
+     *
+     * @param subscription the subscription
+     * @return the export to the default vat
+     */
+    public static ASubscription exportSubscription(final ASubscription subscription) {
+        return exportSubscription(Vats.defaultVat(), subscription);
+    }
 }

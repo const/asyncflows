@@ -60,7 +60,7 @@ public final class Tuple4<T1, T2, T3, T4> {
      * @param value3 the 3rd value
      * @param value4 the 4th value
      */
-    public Tuple4(final T1 value1, final T2 value2, final T3 value3, T4 value4) {
+    public Tuple4(final T1 value1, final T2 value2, final T3 value3, final T4 value4) {
         this.value1 = value1;
         this.value2 = value2;
         this.value3 = value3;
@@ -77,10 +77,11 @@ public final class Tuple4<T1, T2, T3, T4> {
      * @param <T1>   the first value type
      * @param <T2>   the second value type
      * @param <T3>   the third value type
-     * @param <T4> the type of the forth value
+     * @param <T4>   the type of the forth value
      * @return the tuple
      */
-    public static <T1, T2, T3, T4> Tuple4<T1, T2, T3, T4> of(final T1 value1, final T2 value2, final T3 value3, final T4 value4) {
+    public static <T1, T2, T3, T4> Tuple4<T1, T2, T3, T4> of(final T1 value1, final T2 value2, final T3 value3,
+                                                             final T4 value4) {
         return new Tuple4<T1, T2, T3, T4>(value1, value2, value3, value4);
     }
 
@@ -113,14 +114,18 @@ public final class Tuple4<T1, T2, T3, T4> {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Tuple4<?, ?, ?, ?> tuple4 = (Tuple4<?, ?, ?, ?>) o;
-        return Objects.equals(value1, tuple4.value1) &&
-                Objects.equals(value2, tuple4.value2) &&
-                Objects.equals(value3, tuple4.value3) &&
-                Objects.equals(value4, tuple4.value4);
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final Tuple4<?, ?, ?, ?> tuple4 = (Tuple4<?, ?, ?, ?>) o;
+        return Objects.equals(value1, tuple4.value1)
+                && Objects.equals(value2, tuple4.value2)
+                && Objects.equals(value3, tuple4.value3)
+                && Objects.equals(value4, tuple4.value4);
     }
 
     @Override

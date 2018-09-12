@@ -1,6 +1,9 @@
 = AsyncFlows Framework 0.1.0
+Konstantin Plotnikov <constantine.plotnikov@gmail.com>
+0.1.0, 2018-09-11
 :toc:
 :toc-placement!:
+:snapshot-version: 0.1.0-SNAPSHOT
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
@@ -26,8 +29,9 @@ executable. If copied in own code, one usually need to resolve some static impor
 
 === Distribution
 
-The project is currently available only on https://github.com/const/asyncflows[github].
-There is no builds in maven central.
+The project source repository is currently available on https://github.com/const/asyncflows[github].
+
+Snapshot releases are available at repository https://oss.sonatype.org/content/groups/public[OSS Sonatype repository].
 
 === History
 
@@ -95,6 +99,7 @@ For example, the vat could be used like the following, if more high-level constr
 ```  
 
 It is rarely needed to use vat directly. The typical cases are:
+
 * Application setup
 * Library or framework code
 
@@ -535,6 +540,25 @@ receive the value, because supplier failed. But in uncommented line, we wrap cal
 fail-fast runner. This allows us to fail all executions of fail-fast that are active or will be active.
 Inside the call of `failFast.run(...)` there is any operator against common promise, if any of the 
 `failFast.run(...)` fails, that promise fails as well. Otherwise it stays in unresolved state.
+
+=== Safety frames
+
+The asynchronous operations generally do not own data and many changes could happen to data
+when there is simultaneous work on it.
+
+Generally, the code should be written that data invariant should be maintained while single
+closure is executed. Other closures represent code that might be executed after something
+has changed.
+
+If there is no explicit fork like (aPar, aSed/aLater to other vat, calls to components),
+the mutable data could be assumed to be safe to use from vat as vat context would not switch
+while operation is in progress. The thread might be different, but there will be appropriate
+synchronizations that will cause write/read barriers for new thread.
+
+If callback is passed to other Vat, it usually need to be exported in order to be
+executed in this Vat context with the same safety guarantees using
+link:asyncflows-core/src/main/java/org/asyncflows/core/function/FunctionExporter.java[FunctionExporter]
+or other way.
 
 == Object-Oriented Programming
 
@@ -1463,11 +1487,59 @@ to write a compact code with much less visual noise in Kotlin as well.
 ```
 
 So Kotlin is also good language to write structured asynchronous code if you project allows for it.
-It is very convenient for the application and test code, but for reusable code it needs to be considered 
-more carefully.
 
 Note, Kotlin currently implement lambdas using inner classes, so more classes are generated comparing 
-to Java 8 code. This might lead to higher application start time.  
+to Java 8 code. This might lead to higher application start time.
+
+==== Kotlin Coroutines
+
+The https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md[Kotlin Corountines]
+is an experimental feature similar to C# async support, and there are some similar problems and advantages.
+
+The extension is implemented as compiler extension with support library.
+
+1. There is no explicit safety frames. It is not clear from lexical scope what code
+   can execute w/o interleaving with other code. In AsyncFlows, safe frame boundaries
+   are more explicit.
+
+2. It is not always clear in what thread the code will be executed. In coroutines there is only one point
+   for specifying context `launch(context){...}`, but after that each component is on its own.
+   Controlling execution context looks like
+   https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md#continuation-interceptor[quite
+   complex]. Controlling and clear understanding of the execution context is important in the following aspects:
+** Some code requires specific execution context to be used (For example for using with NIO Selectors or AWT/Swing components)
+** Some code is either CPU-bound (so it should be go to ForkJoin), and some code is blocking
+   and IO-bound(so it should go to some unlimited thread pool). AsyncFlows solves it by the following means:
+*** The context normally is inherited from parent for asynchronous operation
+*** There are ways to change context explicitly (aSend, aLater, aPar)
+*** Each component has own context declaring during exporting, that is reestablished on each call.
+
+3. Coroutines provide very compact syntax for sequential operations, i.e. waiting and resuming
+   until some ready to continue. But coroutines provide little support from combining
+   simultaneous operations (`aAll*`, `aAny*`, `aPar*`). There is practically only fork operation.
+   partial support is provided by contextual await() operations. There is no
+   support yet for combining them in the code explicitly. The problem could be fixed by
+   providing a richer library with operators similar to AsyncFlows.
+
+4. Base concurrency abstractions looks like more more complex then in AsyncFlows.
+   Concurrency context combines continuation scheduling, context variables, and many
+   resume/suspend etc. Practically these are orthogonal aspects and they may be decoupled
+   and they are decoupled in AsyncFlows:
+   ** Scheduling actions: Vat
+   ** Resuming/Suspending: Promise
+   ** Contextual variables: Components and Asynchronous operations with lexical scope
+
+5. Context combinators could provide more interesting methods of integration with
+   legacy frameworks like Java EE. Some of these ideas could be also implemented
+   in AsyncFlows with minor refactoring the current Vat API.
+
+Also, coroutines are bound to Kotlin with compiler support. So it is hard to write library code
+that is intended to be used by other programming languages. AsyncFlows is designed as mostly
+language-agnostic, and if language provides a reasonable integration with JVM, it is likely
+that AsyncFlows could be used with it.
+
+Some library extension might be done in the future to integrate with Kotlin coroutines, so it might
+be possible to get advantages of both approaches.
 
 === Scala
 
@@ -1480,7 +1552,7 @@ Generally, the framework ideas are compatible with Scala, and few first research
 the framework were implemented in Scala. This Java version is based on ideas from Scala version. 
 And Java 8 finally allows more compact syntax to be used.
 
-The future versions of the framework might provide Scala support after the framework 
+The future versions of the framework might provide Scala support again after the framework
 stabilization. However, comparing to Kotlin and Groovy, there is not so big productivity
 increase and there even some additional complications cased by features of Scala language.
 So this feature has low priority. There is previous iteration of scala adapter at 

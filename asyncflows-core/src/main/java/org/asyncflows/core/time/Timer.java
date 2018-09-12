@@ -37,6 +37,7 @@ import org.asyncflows.core.util.SimpleQueue;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.CancellationException;
@@ -114,10 +115,10 @@ public class Timer implements ATimer {
     }
 
     @Override
-    public Promise<Long> waitFor(final Date time) {
+    public Promise<Long> waitFor(final Instant time) {
         final Promise<Long> rc = new Promise<>();
         final AResolver<Long> resolver = rc.resolver();
-        timer.schedule(getOneshotTask(resolver), time);
+        timer.schedule(getOneshotTask(resolver), Date.from(time));
         return rc;
     }
 
@@ -149,18 +150,18 @@ public class Timer implements ATimer {
     }
 
     @Override
-    public Promise<AStream<Long>> fixedRate(final Date firstTime, final long period) {
+    public Promise<AStream<Long>> fixedRate(final Instant firstTime, final long period) {
         final SimpleQueue<Outcome<Long>> queue = new SimpleQueue<>();
         final AResolver<Long> putResolver = FunctionExporter.exportResolver(queue::put);
         final FixedRateTask task = new FixedRateTask(putResolver);
         final AStream<Long> stream = new TimerStream(task, queue).export();
         task.reference = new PhantomStreamReference(stream, task, referenceQueue);
-        timer.scheduleAtFixedRate(task, firstTime, period);
+        timer.scheduleAtFixedRate(task, Date.from(firstTime), period);
         return aValue(stream);
     }
 
     @Override
-    public Promise<AStream<Long>> fixedDelay(final Date firstTime, final long delay) {
+    public Promise<AStream<Long>> fixedDelay(final Instant firstTime, final long delay) {
         return aValue(AsyncStreams.aForProducer(new ASupplier<Maybe<Long>>() {
             private boolean first = true;
 
@@ -179,12 +180,12 @@ public class Timer implements ATimer {
 
     @Override
     public Promise<AStream<Long>> fixedRate(final long initialDelay, final long period) {
-        return fixedRate(new Date(System.currentTimeMillis() + initialDelay), period);
+        return fixedRate(Instant.now().plusMillis(initialDelay), period);
     }
 
     @Override
     public Promise<AStream<Long>> fixedDelay(final long initialDelay, final long delay) {
-        return fixedDelay(new Date(System.currentTimeMillis() + initialDelay), delay);
+        return fixedDelay(Instant.now().plusMillis(initialDelay), delay);
     }
 
     @Override

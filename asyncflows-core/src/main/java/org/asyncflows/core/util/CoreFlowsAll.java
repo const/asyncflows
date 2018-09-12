@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.util;
+package org.asyncflows.core.util; // NOPMD
 
 import org.asyncflows.core.AsyncContext;
 import org.asyncflows.core.CoreFlows;
@@ -58,21 +58,21 @@ import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
- * Asynchronous control utilities.
+ * Asynchronous control utilities for "aAll*" and "aPar*" operators.
  */
-public class CoreFlowsAll {
+public final class CoreFlowsAll {
     /**
      * The daemon thread runner.
      */
     private static final ARunner DAEMON_RUNNER = new ARunner() {
         @Override
-        public <A> Promise<A> run(ASupplier<A> t) {
+        public <A> Promise<A> run(final ASupplier<A> t) {
             return aLater(Vats.daemonVat(), t);
         }
     };
 
     /**
-     * The void collector
+     * The void collector.
      */
     private static final Collector<Object, Void, Void> VOID_COLLECTOR = new Collector<Object, Void, Void>() {
         @Override
@@ -136,7 +136,7 @@ public class CoreFlowsAll {
      * @param <T>        the initial type
      * @return the builder for the all operator
      */
-    public static <T> AllBuilder<T> aPar(final ASupplier<T> start, ARunner bodyRunner) {
+    public static <T> AllBuilder<T> aPar(final ASupplier<T> start, final ARunner bodyRunner) {
         return AsyncContext.withDefaultContext((runner, vat) ->
                 new AllBuilder<>(new AllContext(vat, runner, bodyRunner), start));
     }
@@ -170,8 +170,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aParForCollect(final Iterator<T> iterator, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aParForCollect(iterator, body, collector, DAEMON_RUNNER);
     }
 
@@ -188,8 +188,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aParForCollect(Iterable<T> iterable, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aParForCollect(final Iterable<T> iterable, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aParForCollect(iterable.iterator(), body, collector);
     }
 
@@ -205,8 +205,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aParForCollect(Stream<T> stream, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aParForCollect(final Stream<T> stream, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aParForCollect(stream.iterator(), body, collector);
     }
 
@@ -223,8 +223,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aAllForCollect(Iterator<T> iterator, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aAllForCollect(final Iterator<T> iterator, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aParForCollect(iterator, body, collector, CoreFlows::aNow);
     }
 
@@ -237,12 +237,12 @@ public class CoreFlowsAll {
      * @param <R>      the body result type
      * @return the void promise
      */
-    public static <T, R> Promise<Void> aAllForUnit(Iterator<T> iterator, AFunction<T, R> body) {
+    public static <T, R> Promise<Void> aAllForUnit(final Iterator<T> iterator, final AFunction<T, R> body) {
         return aAllForCollect(iterator, body, collectVoid());
     }
 
     /**
-     * Create special void collector
+     * Create special void collector.
      *
      * @param <T> the argument type
      * @return the collector
@@ -265,8 +265,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aAllForCollect(Iterable<T> iterable, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aAllForCollect(final Iterable<T> iterable, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aAllForCollect(iterable.iterator(), body, collector);
     }
 
@@ -282,8 +282,8 @@ public class CoreFlowsAll {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aAllForCollect(Stream<T> stream, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aAllForCollect(final Stream<T> stream, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aAllForCollect(stream.iterator(), body, collector);
     }
 
@@ -301,8 +301,8 @@ public class CoreFlowsAll {
      * @param <C>        the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aParForCollect(Iterator<T> iterator, AFunction<T, R> body,
-                                                         Collector<R, I, C> collector, ARunner bodyRunner) {
+    public static <T, R, I, C> Promise<C> aParForCollect(final Iterator<T> iterator, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector, final ARunner bodyRunner) {
         return AsyncContext.withDefaultContext((runner, vat) -> runner.run(() -> aResolver(resolver -> {
             // TODO use more optimal strategies basing on java.util.stream.Collector.Characteristics
             final I accumulator = collector.supplier().get();
@@ -325,7 +325,7 @@ public class CoreFlowsAll {
             while (true) {
                 try {
                     if (iterator.hasNext()) {
-                        T value = iterator.next();
+                        final T value = iterator.next();
                         mergeNext = merge.apply(bodyRunner.run(() -> body.apply(value)), mergeNext);
                     } else {
                         break;
@@ -349,9 +349,9 @@ public class CoreFlowsAll {
      * @param <T>      the type
      * @return true if some failures are detected
      */
-    private static <T> boolean notifyIfFailed(AResolver<T> resolver, Outcome<?>... outcomes) {
+    private static <T> boolean notifyIfFailed(final AResolver<T> resolver, final Outcome<?>... outcomes) {
         Throwable result = null;
-        for (Outcome<?> outcome : outcomes) {
+        for (final Outcome<?> outcome : outcomes) {
             if (outcome.isFailure()) {
                 if (result == null) {
                     result = outcome.failure();
@@ -393,7 +393,7 @@ public class CoreFlowsAll {
          * @param context the context.
          * @param action  the first action
          */
-        private AllBuilder(AllContext context, final ASupplier<T1> action) {
+        private AllBuilder(final AllContext context, final ASupplier<T1> action) {
             this.context = context;
             this.action = action;
         }
@@ -460,8 +460,8 @@ public class CoreFlowsAll {
              * @param <R>      the result
              * @return the promise for result
              */
-            public <R> Promise<R> map(AFunction2<T1, T2, R> function) {
-                AllContext ctx = this.context;
+            public <R> Promise<R> map(final AFunction2<T1, T2, R> function) {
+                final AllContext ctx = this.context;
                 return ctx.getOperatorRunner().run(() -> {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
@@ -529,6 +529,9 @@ public class CoreFlowsAll {
          * @param <T3> the third type
          */
         public static final class AllBuilder3<T1, T2, T3> {
+            /**
+             * The context.
+             */
             private final AllContext context;
             /**
              * The first action.
@@ -551,7 +554,8 @@ public class CoreFlowsAll {
              * @param action2 the second action
              * @param action3 the third action
              */
-            private AllBuilder3(final AllContext context, final ASupplier<T1> action1, final ASupplier<T2> action2, final ASupplier<T3> action3) {
+            private AllBuilder3(final AllContext context, final ASupplier<T1> action1, final ASupplier<T2> action2,
+                                final ASupplier<T3> action3) {
                 this.context = context;
                 this.action1 = action1;
                 this.action2 = action2;
@@ -565,8 +569,8 @@ public class CoreFlowsAll {
              * @param <R>      the result
              * @return the promise for result
              */
-            public <R> Promise<R> map(AFunction3<T1, T2, T3, R> function) {
-                AllContext ctx = this.context;
+            public <R> Promise<R> map(final AFunction3<T1, T2, T3, R> function) {
+                final AllContext ctx = this.context;
                 return ctx.getOperatorRunner().run(() -> {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
@@ -674,8 +678,10 @@ public class CoreFlowsAll {
          * @param action1 the first action
          * @param action2 the second action
          * @param action3 the third action
+         * @param action4 the forth action
          */
-        private AllBuilder4(final AllContext context, final ASupplier<T1> action1, final ASupplier<T2> action2, final ASupplier<T3> action3, final ASupplier<T4> action4) {
+        private AllBuilder4(final AllContext context, final ASupplier<T1> action1, final ASupplier<T2> action2,
+                            final ASupplier<T3> action3, final ASupplier<T4> action4) {
             this.context = context;
             this.action1 = action1;
             this.action2 = action2;
@@ -690,8 +696,8 @@ public class CoreFlowsAll {
          * @param <R>      the result
          * @return the promise for result
          */
-        public <R> Promise<R> map(AFunction4<T1, T2, T3, T4, R> function) {
-            AllContext ctx = this.context;
+        public <R> Promise<R> map(final AFunction4<T1, T2, T3, T4, R> function) {
+            final AllContext ctx = this.context;
             return ctx.getOperatorRunner().run(() -> {
                 final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                 final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
@@ -769,7 +775,7 @@ public class CoreFlowsAll {
          * @param operatorRunner the operator runner
          * @param bodyRunner     the body runner
          */
-        public AllContext(Vat vat, ARunner operatorRunner, ARunner bodyRunner) {
+        public AllContext(final Vat vat, final ARunner operatorRunner, final ARunner bodyRunner) {
             this.vat = vat;
             this.operatorRunner = operatorRunner;
             this.bodyRunner = bodyRunner;

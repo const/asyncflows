@@ -25,6 +25,19 @@ package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
 
+/**
+ * The one argument function.
+ *
+ * @param <A> the first argument type
+ * @param <R> the result type
+ */
 public interface AFunction<A, R> {
-    Promise<R> apply(A argument) throws Throwable;
+    /**
+     * Invoke function.
+     *
+     * @param a the first argument
+     * @return the promise for result.
+     * @throws Throwable if any failure
+     */
+    Promise<R> apply(A a) throws Throwable;
 }

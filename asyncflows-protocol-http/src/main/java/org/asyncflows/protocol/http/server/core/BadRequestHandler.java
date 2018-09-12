@@ -23,14 +23,13 @@
 
 package org.asyncflows.protocol.http.server.core;
 
+import org.asyncflows.core.Promise;
 import org.asyncflows.protocol.http.HttpStatusException;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.XmlUtil;
 import org.asyncflows.protocol.http.server.HttpExchange;
 import org.asyncflows.protocol.http.server.HttpHandlerBase;
 import org.asyncflows.protocol.http.server.util.ResponseUtil;
-import org.asyncflows.core.Promise;
-import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +96,7 @@ public class BadRequestHandler extends HttpHandlerBase {
 
     /**
      * Set the template. The template must conform to the content type
-     * {@value HttpHeadersUtil#CONTENT_TYPE_HTML_UTF8}. It also has
+     * {@value org.asyncflows.protocol.http.common.headers.HttpHeadersUtil#CONTENT_TYPE_HTML_UTF8}. It also has
      * the following parameters.
      * <ol start="0">
      * <li>The status code (java.lang.Integer)</li>

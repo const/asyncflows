@@ -46,15 +46,18 @@ public abstract class Vat implements Executor {
     }
 
     /**
-     * @return the current vat
+     * @return the current vat or null
      */
     public static Vat currentOrNull() {
         return CURRENT.get();
     }
 
+    /**
+     * @return the current vat or fail if vat is not available.
+     */
     public static Vat current() {
-        Vat vat = currentOrNull();
-        if(vat == null) {
+        final Vat vat = currentOrNull();
+        if (vat == null) {
             throw new IllegalStateException("No vat is available");
         }
         return vat;

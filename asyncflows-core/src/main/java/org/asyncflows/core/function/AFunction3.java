@@ -25,6 +25,23 @@ package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
 
+/**
+ * The three argument function.
+ *
+ * @param <A> the first argument type
+ * @param <B> the second argument type
+ * @param <C> the third argument type
+ * @param <R> the result type
+ */
 public interface AFunction3<A, B, C, R> {
+    /**
+     * Invoke function.
+     *
+     * @param a the first argument
+     * @param b the second argument
+     * @param c the third argument
+     * @return the promise for result.
+     * @throws Throwable if any failure
+     */
     Promise<R> apply(A a, B b, C c) throws Throwable;
 }

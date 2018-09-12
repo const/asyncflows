@@ -72,7 +72,7 @@ public final class Vats {
      * @return the default executor
      */
     public static Vat defaultVat() {
-        Vat current = Vat.current();
+        final Vat current = Vat.currentOrNull();
         return current != null ? current : daemonVat();
     }
 }

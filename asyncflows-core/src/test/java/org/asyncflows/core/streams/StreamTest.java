@@ -61,7 +61,7 @@ public class StreamTest {
     public void seqForCollectStreamWindow() {
         final Function<StreamBuilder<Integer>, StreamBuilder<Integer>> delay =
                 s -> s.map(a -> aForRange(0, 10).toVoid().thenValue(a));
-        List<Integer> result = new ArrayList<>();
+        final List<Integer> result = new ArrayList<>();
         final int rc = doAsync(() ->
                 aForRange(0, 10)
                         .filter(i -> aBoolean(i % 2 == 0))

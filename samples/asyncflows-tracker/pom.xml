@@ -34,6 +34,9 @@
     </parent>
 
     <artifactId>asyncflows-tracker</artifactId>
+    <name>${groupId}:${artifactId}</name>
+    <description>The implementation of reactive programming pattern.</description>
+
     <dependencies>
         <dependency>
             <groupId>org.asyncflows</groupId>

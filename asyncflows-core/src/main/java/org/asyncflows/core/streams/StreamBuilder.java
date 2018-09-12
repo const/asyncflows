@@ -116,7 +116,7 @@ public abstract class StreamBuilder<T> {
      * @param <N>    the function
      * @return the next phase builder
      */
-    public <N> StreamBuilder<N> mapSync(Function<T, N> mapper) {
+    public <N> StreamBuilder<N> mapSync(final Function<T, N> mapper) {
         return map(t -> aValue(mapper.apply(t)));
     }
 
@@ -212,7 +212,7 @@ public abstract class StreamBuilder<T> {
      * @param <R>    the result type
      * @return the result
      */
-    public <R> R process(Function<StreamBuilder<T>, R> action) {
+    public <R> R process(final Function<StreamBuilder<T>, R> action) {
         return action.apply(this);
     }
 
@@ -285,11 +285,11 @@ public abstract class StreamBuilder<T> {
      * @param <A>       the collector accumulator type
      * @return the promise for collect operation
      */
-    public <R, A> Promise<R> collect(Collector<T, A, R> collector) {
+    public <R, A> Promise<R> collect(final Collector<T, A, R> collector) {
         return aNow(() -> {
             /// some more optimized versions are possible depending on collector properties.
             final BiConsumer<A, T> acceptor = collector.accumulator();
-            A accumulator = collector.supplier().get();
+            final A accumulator = collector.supplier().get();
             return leftFold(accumulator, (a, value) -> {
                 acceptor.accept(a, value);
                 return aValue(a);

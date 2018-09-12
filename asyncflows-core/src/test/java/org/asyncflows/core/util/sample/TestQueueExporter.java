@@ -29,7 +29,12 @@ import org.asyncflows.core.vats.Vat;
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aSend;
 
-public class TestQueueExporter {
+public final class TestQueueExporter {
+
+    private TestQueueExporter() {
+        // do nothing
+    }
+
     public static <T> ATestQueue<T> exportTestQueue(final ATestQueue<T> service, final Vat vat) {
         return new ATestQueue<T>() {
             @Override
@@ -38,7 +43,7 @@ public class TestQueueExporter {
             }
 
             @Override
-            public void put(T element) {
+            public void put(final T element) {
                 aSend(vat, () -> put(element));
             }
         };

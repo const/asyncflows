@@ -29,7 +29,7 @@ import org.asyncflows.core.time.Timer;
 import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +63,7 @@ public class TimerTest {
         final Tuple3<Long, Long, Long> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
-                    return timer.waitFor(new Date(System.currentTimeMillis() + 100)).flatMap(
+                    return timer.waitFor(Instant.now().plusMillis(100)).flatMap(
                             value -> {
                                 long end = System.nanoTime();
                                 return aValue(Tuple3.of(start, end, value));

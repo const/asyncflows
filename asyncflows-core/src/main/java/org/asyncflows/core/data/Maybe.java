@@ -102,16 +102,15 @@ public final class Maybe<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Maybe<?> maybe = (Maybe<?>) o;
-        return valuePresent == maybe.valuePresent &&
-                Objects.equals(value, maybe.value);
+        final Maybe<?> maybe = (Maybe<?>) o;
+        return valuePresent == maybe.valuePresent && Objects.equals(value, maybe.value);
     }
 
     @Override

@@ -192,7 +192,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
      * @param flushMode the flush mode
      * @return the true if data was written, false otherwise
      */
-    private Promise<Boolean> deflateAndWrite(int flushMode) {
+    private Promise<Boolean> deflateAndWrite(final int flushMode) {
         final int count = deflater.deflate(compressed.array(),
                 compressed.arrayOffset() + compressed.position(), compressed.remaining(), flushMode);
         if (count > 0) {

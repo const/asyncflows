@@ -105,7 +105,8 @@ public class IOUtil<B extends Buffer, A> {
      * @param <C>     the channel type
      * @return the action
      */
-    public static <B extends Buffer, C extends AChannel<B>> CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(final ASupplier<C> channel) {
+    public static <B extends Buffer, C extends AChannel<B>>
+    CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(final ASupplier<C> channel) {
         return aTry(channel).andChain(AChannel::getInput).andChainFirst(AChannel::getOutput);
 
     }
@@ -119,7 +120,8 @@ public class IOUtil<B extends Buffer, A> {
      * @param <C>     the channel type
      * @return the action
      */
-    public static <B extends Buffer, C extends AChannel<B>> CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(final Promise<C> channel) {
+    public static <B extends Buffer, C extends AChannel<B>>
+    CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(final Promise<C> channel) {
         return aTryChannel(promiseSupplier(channel));
     }
 
@@ -131,7 +133,8 @@ public class IOUtil<B extends Buffer, A> {
      * @param <C>     the channel type
      * @return the action
      */
-    public static <B extends Buffer, C extends AChannel<B>> CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(C channel) {
+    public static <B extends Buffer, C extends AChannel<B>>
+    CoreFlowsResource.Try3<C, AInput<B>, AOutput<B>> aTryChannel(final C channel) {
         return aTryChannel(aValue(channel));
     }
 

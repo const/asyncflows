@@ -29,6 +29,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -56,8 +57,26 @@ public class FailFast implements ARunner {
     }
 
     @Override
-    public <T> Promise<T> run(ASupplier<T> action) {
+    public <T> Promise<T> run(final ASupplier<T> action) {
         return run(action, null);
+    }
+
+    /**
+     * Fail with problem.
+     *
+     * @param problem the problem
+     */
+    public void fail(final Throwable problem) {
+        if (resolved.compareAndSet(false, true)) {
+            failPromise.resolver().resolve(Outcome.failure(problem));
+        }
+    }
+
+    /**
+     * Cancel the operation.
+     */
+    public void cancel() {
+        fail(new CancellationException());
     }
 
     /**
@@ -68,7 +87,7 @@ public class FailFast implements ARunner {
      * @param <T>     the result type
      * @return the promise
      */
-    public <T> Promise<T> run(ASupplier<T> action, Consumer<T> cleanup) {
+    public <T> Promise<T> run(final ASupplier<T> action, final Consumer<T> cleanup) {
         final Promise<T> localFailure = new Promise<>();
         final AResolver<Void> failureObserver = o -> {
             if (o.isFailure()) {
@@ -83,13 +102,11 @@ public class FailFast implements ARunner {
             // if there is already failure, just return a promise that will eventually fail
             return localFailure;
         }
-        CoreFlowsAny.AnyBuilder<T> builder = CoreFlowsAny.aAny(
+        final CoreFlowsAny.AnyBuilder<T> builder = CoreFlowsAny.aAny(
                 () -> aNow(action).listen(o -> {
                     failPromise.forget(failureObserver);
                     if (o.isFailure()) {
-                        if (resolved.compareAndSet(false, true)) {
-                            failPromise.resolver().resolve(Outcome.failure(o.failure()));
-                        }
+                        fail(o.failure());
                     }
                 })).or(promiseSupplier(localFailure));
         if (cleanup != null) {

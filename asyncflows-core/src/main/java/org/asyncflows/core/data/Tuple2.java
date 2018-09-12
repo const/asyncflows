@@ -80,21 +80,19 @@ public final class Tuple2<T1, T2> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Tuple2<?, ?> tuple2 = (Tuple2<?, ?>) o;
-        return Objects.equals(value1, tuple2.value1) &&
-                Objects.equals(value2, tuple2.value2);
+        final Tuple2<?, ?> tuple2 = (Tuple2<?, ?>) o;
+        return Objects.equals(value1, tuple2.value1) && Objects.equals(value2, tuple2.value2);
     }
 
     @Override
     public int hashCode() {
-
         return Objects.hash(value1, value2);
     }
 

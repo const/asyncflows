@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 import static org.asyncflows.core.CoreFlows.aNull;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.util.ASubscription.exportSubscription;
+import static org.asyncflows.core.util.UtilExporter.exportSubscription;
 
 /**
  * Base class for trackers.

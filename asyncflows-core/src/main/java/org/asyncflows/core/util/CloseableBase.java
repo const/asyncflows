@@ -39,6 +39,9 @@ public abstract class CloseableBase implements ACloseable {
      * The close promise.
      */
     private final Promise<Void> closePromise = new Promise<>();
+    /**
+     * True if closing is in progress.
+     */
     private boolean isClosing;
 
     /**

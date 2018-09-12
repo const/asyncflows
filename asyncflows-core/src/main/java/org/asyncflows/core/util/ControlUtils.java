@@ -27,17 +27,24 @@ import java.util.Iterator;
 import java.util.stream.IntStream;
 
 /**
- * The range iterator.
+ * The utility class for implementing control constructs.
  */
-public class ControlUtils {
+public final class ControlUtils {
+    /**
+     * The private constructor for utility class.
+     */
+    private ControlUtils() {
+        // do nothing
+    }
+
     /**
      * Create iterator for range of integers.
      *
-     * @param start the start
+     * @param start        the start
      * @param endExclusive the end
      * @return the range iterator.
      */
-    public static Iterator<Integer> rangeIterator(int start, int endExclusive) {
+    public static Iterator<Integer> rangeIterator(final int start, final int endExclusive) {
         return IntStream.range(start, endExclusive).boxed().iterator();
     }
 }

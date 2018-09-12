@@ -35,9 +35,9 @@ public class ExecutorVatTest {
 
     @Test
     public void daemonVatTest() throws InterruptedException {
-        Semaphore semaphore = new Semaphore(0);
-        AtomicReference<Thread> thread = new AtomicReference<>();
-        ExecutorVat vat = Vats.daemonVat(); // create vat
+        final Semaphore semaphore = new Semaphore(0);
+        final AtomicReference<Thread> thread = new AtomicReference<>();
+        final ExecutorVat vat = Vats.daemonVat(); // create vat
         vat.execute(() -> { // schedule a vat
             thread.set(Thread.currentThread()); // executes in other thread
             semaphore.release(); // release semaphore

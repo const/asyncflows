@@ -23,8 +23,8 @@
 
 package org.asyncflows.io.util;
 
-import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
+import org.asyncflows.io.AOutput;
 
 import java.nio.ByteBuffer;
 
@@ -63,7 +63,7 @@ public class ByteGeneratorContext {
     public ByteGeneratorContext(final AOutput<ByteBuffer> output, final ByteBuffer buffer) {
         this.output = output;
         this.buffer = buffer;
-        if(!buffer.hasArray()) {
+        if (!buffer.hasArray()) {
             throw new IllegalArgumentException("Only array-backed buffers are supported for byte generator context.");
         }
     }

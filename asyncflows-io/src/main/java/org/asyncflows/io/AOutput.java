@@ -25,7 +25,6 @@ package org.asyncflows.io;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.io.text.EncoderOutput;
 
 import java.nio.Buffer;
 
@@ -48,7 +47,7 @@ public interface AOutput<B extends Buffer> extends ACloseable {
     /**
      * Flush as much data from buffers as possible. Note that some data could remain in the buffers if it could
      * not be readily converted (for example, incomplete code points in internal character buffer for
-     * {@link EncoderOutput}).
+     * {@link org.asyncflows.io.text.EncoderOutput}).
      *
      * @return a promise that resolves when data finishes flushing
      */

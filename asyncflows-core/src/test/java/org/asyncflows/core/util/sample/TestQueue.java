@@ -43,7 +43,7 @@ public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
     private void invariantCheck() {
         // checks that queue invariant holds
         if(!elements.isEmpty() && !resolvers.isEmpty()) {
-            throw new RuntimeException("BUG: one of the collections should be empty");
+            throw new IllegalStateException("BUG: one of the collections should be empty");
         }
     }
 

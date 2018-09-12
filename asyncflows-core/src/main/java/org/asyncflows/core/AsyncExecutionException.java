@@ -23,17 +23,43 @@
 
 package org.asyncflows.core;
 
+/**
+ * The wrapper for exception.
+ */
 public class AsyncExecutionException extends RuntimeException {
 
-    public AsyncExecutionException(String message, Throwable cause) {
+    /**
+     * The constructor.
+     *
+     * @param message the message
+     * @param cause   the cause
+     */
+    public AsyncExecutionException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public AsyncExecutionException(Throwable cause) {
+    /**
+     * The constructor.
+     *
+     * @param cause the cause
+     */
+    public AsyncExecutionException(final Throwable cause) {
         super(cause);
     }
 
-    protected AsyncExecutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    /**
+     * The constructor.
+     *
+     * @param message            the detail message.
+     * @param cause              the cause.  (A {@code null} value is permitted,
+     *                           and indicates that the cause is nonexistent or unknown.)
+     * @param enableSuppression  whether or not suppression is enabled
+     *                           or disabled
+     * @param writableStackTrace whether or not the stack trace should
+     *                           be writable
+     */
+    protected AsyncExecutionException(final String message, final Throwable cause, final boolean enableSuppression,
+                                      final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

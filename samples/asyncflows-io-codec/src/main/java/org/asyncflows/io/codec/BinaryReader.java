@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.binary;
+package org.asyncflows.io.codec;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

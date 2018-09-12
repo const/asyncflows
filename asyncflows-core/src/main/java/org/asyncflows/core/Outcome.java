@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory;
  * @param <T> the value type
  */
 public abstract class Outcome<T> {
+    /**
+     * The logger.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(Outcome.class);
 
     /**
@@ -78,7 +81,7 @@ public abstract class Outcome<T> {
      * @param <A>     the value type
      * @return the outcome
      */
-    public static <A> Outcome<A> of(A value, Throwable failure) {
+    public static <A> Outcome<A> of(final A value, final Throwable failure) {
         if (failure != null) {
             return failure(failure);
         } else {
@@ -89,15 +92,15 @@ public abstract class Outcome<T> {
     /**
      * Notify listener.
      *
-     * @param <T>      the outcome
      * @param listener the listener
      * @param outcome  the outcome
+     * @param <T>      the outcome
      */
     @SuppressWarnings("unchecked")
-    public static <T> void notifyResolver(AResolver<? super T> listener, Outcome<T> outcome) {
+    public static <T> void notifyResolver(final AResolver<? super T> listener, final Outcome<T> outcome) {
         try {
             if (outcome == null) {
-                listener.resolve(Outcome.failure(new NullPointerException("Outcome must not be null")));
+                listener.resolve(Outcome.failure(new IllegalArgumentException("Outcome must not be null")));
             } else {
                 listener.resolve((Outcome) outcome);
             }
@@ -109,11 +112,11 @@ public abstract class Outcome<T> {
     /**
      * Notify listener.
      *
-     * @param <T>      the outcome
      * @param listener the listener
      * @param value    the outcome
+     * @param <T>      the outcome
      */
-    public static <T> void notifySuccess(AResolver<T> listener, T value) {
+    public static <T> void notifySuccess(final AResolver<T> listener, final T value) {
         notifyResolver(listener, Outcome.success(value));
     }
 
@@ -124,7 +127,7 @@ public abstract class Outcome<T> {
      * @param listener the listener
      * @param problem  the outcome failure
      */
-    public static <T> void notifyFailure(AResolver<T> listener, Throwable problem) {
+    public static <T> void notifyFailure(final AResolver<T> listener, final Throwable problem) {
         notifyResolver(listener, Outcome.failure(problem));
     }
 

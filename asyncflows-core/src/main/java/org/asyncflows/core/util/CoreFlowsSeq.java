@@ -74,14 +74,14 @@ public final class CoreFlowsSeq {
     }
 
     /**
-     * Iterate using iterator
+     * Iterate using iterator.
      *
      * @param iterator the iterator
      * @param body     the body that iterates over it. If body returns false, the cycle is aborted.
      * @param <T>      the element type
      * @return the void promise
      */
-    public static <T> Promise<Void> aSeqForUnit(Iterator<T> iterator, AFunction<T, Boolean> body) {
+    public static <T> Promise<Void> aSeqForUnit(final Iterator<T> iterator, final AFunction<T, Boolean> body) {
         return aSeqWhile(() -> {
             if (!iterator.hasNext()) {
                 return aFalse();
@@ -91,7 +91,15 @@ public final class CoreFlowsSeq {
         });
     }
 
-    public static <T> Promise<Void> aSeqForUnit(Stream<T> stream, final AFunction<T, Boolean> body) {
+    /**
+     * Iterate while stream is not finished or while body not return false.
+     *
+     * @param stream the stream
+     * @param body   the body
+     * @param <T>    the element type
+     * @return the promise for iteration finished
+     */
+    public static <T> Promise<Void> aSeqForUnit(final Stream<T> stream, final AFunction<T, Boolean> body) {
         return aSeqForUnit(stream.iterator(), body);
     }
 
@@ -108,8 +116,9 @@ public final class CoreFlowsSeq {
      * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aSeqForCollect(Iterator<T> iterator, AFunction<T, R> body, Collector<R, I, C> collector) {
-        I accumulator = collector.supplier().get();
+    public static <T, R, I, C> Promise<C> aSeqForCollect(final Iterator<T> iterator, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
+        final I accumulator = collector.supplier().get();
         return aSeqWhile(() -> {
             if (!iterator.hasNext()) {
                 return aFalse();
@@ -128,30 +137,32 @@ public final class CoreFlowsSeq {
      *
      * @param collection the collection
      * @param body       the body that iterates over it. If body returns false, the cycle is aborted.
-     * @param collector the collector
+     * @param collector  the collector
      * @param <T>        the element type
      * @param <R>        the body result type
      * @param <I>        the collector intermediate type
      * @param <C>        the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aSeqForCollect(Iterable<T> collection, AFunction<T, R> body, Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aSeqForCollect(final Iterable<T> collection, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aSeqForCollect(collection.iterator(), body, collector);
     }
 
     /**
-     * Iterate using iterator
+     * Iterate using stream.
      *
-     * @param stream the stream to use
-     * @param body   the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param stream    the stream to use
+     * @param body      the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector the collector
-     * @param <T>    the element type
-     * @param <R>    the body result type
-     * @param <I>    the collector intermediate type
-     * @param <C>    the final type
+     * @param <T>       the element type
+     * @param <R>       the body result type
+     * @param <I>       the collector intermediate type
+     * @param <C>       the final type
      * @return the void promise
      */
-    public static <T, R, I, C> Promise<C> aSeqForCollect(Stream<T> stream, AFunction<T, R> body, Collector<R, I, C> collector) {
+    public static <T, R, I, C> Promise<C> aSeqForCollect(final Stream<T> stream, final AFunction<T, R> body,
+                                                         final Collector<R, I, C> collector) {
         return aSeqForCollect(stream.iterator(), body, collector);
     }
 
@@ -162,7 +173,7 @@ public final class CoreFlowsSeq {
      * @param <T>    the initial type
      * @return the result type.
      */
-    public static <T> SeqBuilder<T> aSeq(ASupplier<T> action) {
+    public static <T> SeqBuilder<T> aSeq(final ASupplier<T> action) {
         return withDefaultContext((runner, vat) -> new SeqBuilder<>(action, runner, vat));
     }
 
@@ -172,7 +183,7 @@ public final class CoreFlowsSeq {
      * @param loopBody loop body.
      * @return the result.
      */
-    public static Promise<Void> aSeqWhile(ASupplier<Boolean> loopBody) {
+    public static Promise<Void> aSeqWhile(final ASupplier<Boolean> loopBody) {
         return aSeqUntilValue(() -> aNow(loopBody).flatMap(v -> v ? aMaybeEmpty() : aMaybeValue(null)));
     }
 
@@ -183,12 +194,12 @@ public final class CoreFlowsSeq {
      * @param <T>      the returned value.
      * @return the promise for value
      */
-    public static <T> Promise<T> aSeqUntilValue(ASupplier<Maybe<T>> loopBody) {
-        ASupplier<T> loop = () -> aResolver(new Consumer<AResolver<T>>() {
+    public static <T> Promise<T> aSeqUntilValue(final ASupplier<Maybe<T>> loopBody) {
+        final ASupplier<T> loop = () -> aResolver(new Consumer<AResolver<T>>() {
             private AResolver<T> resolver;
 
             @Override
-            public void accept(AResolver<T> resolver) {
+            public void accept(final AResolver<T> resolver) {
                 this.resolver = resolver;
                 iterate();
             }
@@ -239,7 +250,7 @@ public final class CoreFlowsSeq {
          * @param runner the runner
          * @param vat    the vat
          */
-        private SeqBuilder(final ASupplier<T> action, ARunner runner, Vat vat) {
+        private SeqBuilder(final ASupplier<T> action, final ARunner runner, final Vat vat) {
             this.action = action;
             this.runner = runner;
             this.vat = vat;
@@ -253,7 +264,7 @@ public final class CoreFlowsSeq {
          * @param <N>        the result type
          * @return the function that ignores argument
          */
-        private static <A, N> AFunction<A, N> toFunction(ASupplier<N> nextAction) {
+        private static <A, N> AFunction<A, N> toFunction(final ASupplier<N> nextAction) {
             return t -> nextAction.get();
         }
 
@@ -272,12 +283,20 @@ public final class CoreFlowsSeq {
          * @return the sequence builder with next step
          */
         public <N> SeqBuilder<N> map(final AFunction<T, N> mapper) {
-            return new SeqBuilder<>(mapCallable(action, mapper), runner, vat);
+            return new SeqBuilder<>(mapSupplier(action, mapper), runner, vat);
         }
 
-        private <N> ASupplier<N> mapCallable(ASupplier<T> action, AFunction<T, N> mapper) {
-            final Vat vat = this.vat;
-            return () -> aNow(action).flatMap(vat, mapper);
+        /**
+         * Map supplier.
+         *
+         * @param body   the action to map
+         * @param mapper the mapper
+         * @param <N>    the result type
+         * @return a suppler for result
+         */
+        private <N> ASupplier<N> mapSupplier(final ASupplier<T> body, final AFunction<T, N> mapper) {
+            final Vat contextVat = this.vat;
+            return () -> aNow(body).flatMap(contextVat, mapper);
         }
 
         /**
@@ -286,7 +305,7 @@ public final class CoreFlowsSeq {
          * @param listener the the listener to be notified
          * @return the out
          */
-        public SeqBuilder<T> listen(AResolver<T> listener) {
+        public SeqBuilder<T> listen(final AResolver<T> listener) {
             final Vat currentVat = vat;
             final ASupplier<T> currentAction = this.action;
             return new SeqBuilder<>(() -> aNow(currentAction).listen(currentVat, listener), runner, currentVat);
@@ -366,20 +385,21 @@ public final class CoreFlowsSeq {
         @SuppressWarnings("unchecked")
         public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
             final Vat currentVat = this.vat;
-            return runner.run(() -> aNow(action).flatMapOutcome(currentVat, o -> aNow(finallyAction).flatMapOutcome(currentVat, o2 -> {
-                if (o.isFailure()) {
-                    if (o2.isFailure() && o2.failure() != o.failure()) {
-                        o.failure().addSuppressed(o2.failure());
-                    }
-                    return aFailure(o.failure());
-                } else {
-                    if (o2.isFailure()) {
-                        return aFailure(o2.failure());
-                    } else {
-                        return aValue(o.value());
-                    }
-                }
-            })));
+            return runner.run(() -> aNow(action).flatMapOutcome(currentVat,
+                    o -> aNow(finallyAction).flatMapOutcome(currentVat, o2 -> {
+                        if (o.isFailure()) {
+                            if (o2.isFailure() && o2.failure() != o.failure()) {
+                                o.failure().addSuppressed(o2.failure());
+                            }
+                            return aFailure(o.failure());
+                        } else {
+                            if (o2.isFailure()) {
+                                return aFailure(o2.failure());
+                            } else {
+                                return aValue(o.value());
+                            }
+                        }
+                    })));
         }
     }
 }

@@ -30,6 +30,7 @@ import org.asyncflows.core.function.AsyncFunctionUtil;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -58,7 +59,7 @@ public final class Promise<T> {
     /**
      * The list of listeners.
      */
-    private LinkedList<AResolver<? super T>> listeners;
+    private List<AResolver<? super T>> listeners;
     /**
      * The outcome (null if not resolved).
      */
@@ -73,7 +74,7 @@ public final class Promise<T> {
      *
      * @param outcome the outcome
      */
-    public Promise(Outcome<T> outcome) {
+    public Promise(final Outcome<T> outcome) {
         Objects.requireNonNull(outcome);
         this.resolverAcquired = true;
         this.outcome = outcome;
@@ -93,7 +94,7 @@ public final class Promise<T> {
      * @param listener the listener.
      * @return this promise
      */
-    public Promise<T> listenSync(AResolver<? super T> listener) {
+    public Promise<T> listenSync(final AResolver<? super T> listener) {
         final Outcome<T> o;
         synchronized (lock) {
             if (outcome != null) {
@@ -114,7 +115,7 @@ public final class Promise<T> {
      * @param listener the listener
      * @return this promise
      */
-    public Promise<T> forget(AResolver<? super T> listener) {
+    public Promise<T> forget(final AResolver<? super T> listener) {
         synchronized (lock) {
             listeners.remove(listener);
         }
@@ -127,7 +128,7 @@ public final class Promise<T> {
      * @param listener the listener.
      * @return this promise
      */
-    public Promise<T> listen(AResolver<? super T> listener) {
+    public Promise<T> listen(final AResolver<? super T> listener) {
         return listen(defaultVat(), listener);
     }
 
@@ -138,7 +139,7 @@ public final class Promise<T> {
      * @param listener the listener.
      * @return this promise
      */
-    public Promise<T> listen(Vat vat, AResolver<? super T> listener) {
+    public Promise<T> listen(final Vat vat, final AResolver<? super T> listener) {
         return listenSync(o -> vat.execute(() -> Outcome.notifyResolver(listener, o)));
     }
 
@@ -154,8 +155,9 @@ public final class Promise<T> {
             }
             resolverAcquired = true;
             return o -> {
-                final LinkedList<AResolver<? super T>> l;
-                final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(new NullPointerException("Notified with null outcome"));
+                final List<AResolver<? super T>> l;
+                final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(
+                        new IllegalArgumentException("Notified with null outcome"));
                 synchronized (lock) {
                     if (outcome == null) {
                         l = listeners;
@@ -165,7 +167,7 @@ public final class Promise<T> {
                         return;
                     }
                 }
-                for (AResolver<? super T> resolver : l) {
+                for (final AResolver<? super T> resolver : l) {
                     Outcome.notifyResolver(resolver, o);
                 }
             };
@@ -179,7 +181,7 @@ public final class Promise<T> {
      * @param <R>      the result type
      * @return the result promise
      */
-    public <R> Promise<R> mapOutcome(Function<Outcome<T>, R> function) {
+    public <R> Promise<R> mapOutcome(final Function<Outcome<T>, R> function) {
         return flatMapOutcome(toAsyncFunction(function));
     }
 
@@ -190,7 +192,7 @@ public final class Promise<T> {
      * @param <R>    the result type
      * @return the result promise
      */
-    public <R> Promise<R> flatMapOutcome(AFunction<Outcome<T>, R> mapper) {
+    public <R> Promise<R> flatMapOutcome(final AFunction<Outcome<T>, R> mapper) {
         return flatMapOutcome(defaultVat(), mapper);
     }
 
@@ -202,16 +204,16 @@ public final class Promise<T> {
      * @param mapper the mapper
      * @return the result promise
      */
-    public <R> Promise<R> flatMapOutcome(Vat vat, AFunction<Outcome<T>, R> mapper) {
-        Outcome<T> outcome = getOutcome();
-        if (outcome == null) {
-            Promise<R> promise = new Promise<>();
-            AResolver<R> resolver = promise.resolver();
+    public <R> Promise<R> flatMapOutcome(final Vat vat, final AFunction<Outcome<T>, R> mapper) {
+        final Outcome<T> currentOutcome = getOutcome();
+        if (currentOutcome == null) {
+            final Promise<R> promise = new Promise<>();
+            final AResolver<R> resolver = promise.resolver();
             listen(vat, o -> {
                 try {
-                    Promise<R> result = mapper.apply(o);
+                    final Promise<R> result = mapper.apply(o);
                     if (result == null) {
-                        Outcome.notifyFailure(resolver, new NullPointerException("Body returned null"));
+                        Outcome.notifyFailure(resolver, new IllegalStateException("Body returned null"));
                     } else {
                         result.listenSync(resolver);
                     }
@@ -222,11 +224,11 @@ public final class Promise<T> {
             return promise;
         } else {
             try {
-                Promise<R> promise = mapper.apply(outcome);
+                final Promise<R> promise = mapper.apply(currentOutcome);
                 if (promise != null) {
                     return promise;
                 } else {
-                    return new Promise<>(Outcome.failure(new NullPointerException("Body returned null")));
+                    return new Promise<>(Outcome.failure(new IllegalStateException("Body returned null")));
                 }
             } catch (Throwable throwable) {
                 return new Promise<>(Outcome.failure(throwable));
@@ -298,7 +300,7 @@ public final class Promise<T> {
      * @param action the synchronous action
      * @return the promise for action result
      */
-    public Promise<T> flatMapFailure(Vat vat, final AFunction<Throwable, T> action) {
+    public Promise<T> flatMapFailure(final Vat vat, final AFunction<Throwable, T> action) {
         return flatMapOutcome(vat, o -> {
             if (o.isFailure()) {
                 return action.apply(o.failure());
@@ -396,12 +398,9 @@ public final class Promise<T> {
      * @param <R>     the result type
      * @return promise that fails after this promise resolves in some way.
      */
-    public <R> Promise<R> thenFailure(Throwable failure) {
+    public <R> Promise<R> thenFailure(final Throwable failure) {
+        final Throwable ex = failure != null ? failure : new IllegalArgumentException("Failure cannot be null");
         return flatMapOutcome(o -> {
-            Throwable ex = failure;
-            if (ex == null) {
-                ex = new NullPointerException("Failure cannot be null");
-            }
             if (o.isFailure()) {
                 ex.addSuppressed(o.failure());
             }
@@ -431,7 +430,7 @@ public final class Promise<T> {
      * @return the promise that resolves when both this and next promise finishes. The operation fails
      * if either promise fails.
      */
-    public <R> Promise<R> thenPromise(Promise<R> result) {
+    public <R> Promise<R> thenPromise(final Promise<R> result) {
         return thenFlatGet(promiseSupplier(result));
     }
 }

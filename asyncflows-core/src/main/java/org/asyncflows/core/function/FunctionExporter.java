@@ -31,7 +31,18 @@ import java.util.function.Consumer;
 import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aSend;
 
-public class FunctionExporter {
+/**
+ * Utilities to export functions.
+ */
+public final class FunctionExporter {
+
+    /**
+     * Private constructor for utility class.
+     */
+    private FunctionExporter() {
+        // do nothing
+    }
+
     /**
      * Export consumer on the current vat.
      *
@@ -40,26 +51,57 @@ public class FunctionExporter {
      * @return the exported listener
      */
     public static <T> Consumer<T> exportConsumer(final Consumer<T> listener) {
-        return exportConsumer(listener, Vats.defaultVat());
+        return exportConsumer(Vats.defaultVat(), listener);
     }
 
+    /**
+     * Export resolver to the default vat.
+     *
+     * @param resolver the resolver.
+     * @param <T>      the value type
+     * @return the wrapper resolver
+     */
     public static <T> AResolver<T> exportResolver(final AResolver<T> resolver) {
-        return exportResolver(resolver, Vats.defaultVat());
+        return exportResolver(Vats.defaultVat(), resolver);
     }
 
 
-    public static <T> AResolver<T> exportResolver(final AResolver<T> resolver, Vat vat) {
+    /**
+     * Export resolver.
+     *
+     * @param vat      the vat
+     * @param resolver the resolver.
+     * @param <T>      the value type
+     * @return the wrapper resolver
+     */
+    public static <T> AResolver<T> exportResolver(final Vat vat, final AResolver<T> resolver) {
         return o -> vat.execute(() -> resolver.resolve(o));
     }
 
+    /**
+     * Export supplier to the default vat.
+     *
+     * @param supplier the supplier
+     * @param <T>      the value type
+     * @return the exported function
+     */
     public static <T> ASupplier<T> exportSupplier(final ASupplier<T> supplier) {
-        return exportSupplier(supplier, Vats.defaultVat());
+        return exportSupplier(Vats.defaultVat(), supplier);
     }
 
 
-    public static <T> ASupplier<T> exportSupplier(final ASupplier<T> supplier, Vat vat) {
+    /**
+     * Export supplier.
+     *
+     * @param <T>      the result type
+     * @param vat      the vat
+     * @param supplier the supplier.
+     * @return the exported supplier
+     */
+    public static <T> ASupplier<T> exportSupplier(final Vat vat, final ASupplier<T> supplier) {
         return () -> aLater(vat, supplier);
     }
+
     /**
      * Export consumer on the current vat.
      *
@@ -68,7 +110,7 @@ public class FunctionExporter {
      * @param <T>      the event type
      * @return the exported consumer
      */
-    public static <T> Consumer<T> exportConsumer(final Consumer<T> listener, final Vat vat) {
+    public static <T> Consumer<T> exportConsumer(final Vat vat, final Consumer<T> listener) {
         return event -> aSend(vat, () -> listener.accept(event));
     }
 }

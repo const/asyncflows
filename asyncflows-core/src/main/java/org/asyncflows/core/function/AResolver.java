@@ -25,6 +25,16 @@ package org.asyncflows.core.function;
 
 import org.asyncflows.core.Outcome;
 
+/**
+ * The resolver or listener for outcome.
+ *
+ * @param <T> the result type
+ */
 public interface AResolver<T> {
+    /**
+     * Receive outcome.
+     *
+     * @param outcome the outcome
+     */
     void resolve(Outcome<T> outcome);
 }

@@ -47,8 +47,11 @@ import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.io.net.selector.SelectorVatUtil.doAsyncIo;
 
-public class EchoClientSample {
+public final class EchoClientSample {
     private static final Logger LOG = LoggerFactory.getLogger(EchoClientSample.class);
+
+    private EchoClientSample() {
+    }
 
     public static void main(String[] args) {
         final long start = System.currentTimeMillis();

@@ -24,10 +24,6 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.vats.Vats;
-
-import static org.asyncflows.core.CoreFlows.aLater;
 
 /**
  * Special variant of closeable that represents usage of some resource w/o direct access to it.
@@ -36,11 +32,4 @@ import static org.asyncflows.core.CoreFlows.aLater;
  */
 public interface ASubscription extends ACloseable {
 
-    static ASubscription exportSubscription(Vat vat, ASubscription subscription) {
-        return () -> aLater(CoreFlowsResource.closeResourceAction(subscription));
-    }
-
-    static ASubscription exportSubscription(ASubscription subscription) {
-        return exportSubscription(Vats.defaultVat(), subscription);
-    }
 }

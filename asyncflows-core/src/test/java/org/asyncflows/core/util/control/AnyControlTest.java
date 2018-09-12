@@ -42,7 +42,7 @@ public class AnyControlTest {
 
     @Test
     public void testFirstCome() {
-        int value = doAsync(() ->
+        final int value = doAsync(() ->
                 aAny(
                         () -> aLater(() -> aValue(1))
                 ).orLast(
@@ -71,10 +71,10 @@ public class AnyControlTest {
 
     @Test
     public void testSuppressed() {
-        Tuple3<Integer, Throwable, Integer> t = doAsync(
+        final Tuple3<Integer, Throwable, Integer> t = doAsync(
                 () -> {
-                    Promise<Throwable> failure = new Promise<>();
-                    Promise<Integer> suppressed = new Promise<>();
+                    final Promise<Throwable> failure = new Promise<>();
+                    final Promise<Integer> suppressed = new Promise<>();
                     return aAll(
                             () -> aAny(true,
                                     () -> aLater(() -> aValue(1))
@@ -101,7 +101,7 @@ public class AnyControlTest {
 
     @Test
     public void testPreferSuccess() {
-        int value = doAsync(() ->
+        final int value = doAsync(() ->
                 aAny(true,
                         () -> aLater(() -> aValue(1))
                 ).orLast(

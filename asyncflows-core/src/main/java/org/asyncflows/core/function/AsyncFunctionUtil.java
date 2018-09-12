@@ -34,46 +34,131 @@ import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
- *
+ * The utilities for teh functions.
  */
-public class AsyncFunctionUtil {
-    public static <A, R> AFunction<A, R> toAsyncFunction(Function<A, R> function) {
+public final class AsyncFunctionUtil {
+
+    /**
+     * Private constructor for utility class.
+     */
+    private AsyncFunctionUtil() {
+        // do nothing
+    }
+
+    /**
+     * The convert synchronous function to asynchronous..
+     *
+     * @param function the function
+     * @param <A>      the argument type
+     * @param <R>      the result type
+     * @return a supplier
+     */
+    public static <A, R> AFunction<A, R> toAsyncFunction(final Function<A, R> function) {
         return a -> aNow(() -> aValue(function.apply(a)));
     }
 
-    public static <R> ASupplier<R> constantSupplier(R value) {
+    /**
+     * The supplier for the constant.
+     *
+     * @param value the value
+     * @param <R>   the result type
+     * @return a supplier
+     */
+    public static <R> ASupplier<R> constantSupplier(final R value) {
         return () -> aValue(value);
     }
 
-    public static <R> ASupplier<R> promiseSupplier(Promise<R> value) {
-        return () -> value != null ? value : aFailure(new NullPointerException("Null is not allowed here"));
+    /**
+     * The supplier for the promise.
+     *
+     * @param value the value
+     * @param <R>   the result type
+     * @return a supplier
+     */
+    public static <R> ASupplier<R> promiseSupplier(final Promise<R> value) {
+        return () -> value != null ? value : aFailure(new IllegalArgumentException("Null is not allowed here"));
     }
 
-    public static <R> ASupplier<R> failureSupplier(Throwable failure) {
+    /**
+     * The supplier that always return failure.
+     *
+     * @param failure the failure
+     * @param <R>     the result type
+     * @return a supplier
+     */
+    public static <R> ASupplier<R> failureSupplier(final Throwable failure) {
         return () -> aFailure(failure);
     }
 
-    public static <A, R> AFunction<A, R> supplierToFunction(ASupplier<R> supplier) {
+    /**
+     * Convert supplier to function that ignores its argument.
+     *
+     * @param supplier teh supplier
+     * @param <A>      the argument type
+     * @param <R>      the result type
+     * @return the function
+     */
+    public static <A, R> AFunction<A, R> supplierToFunction(final ASupplier<R> supplier) {
         return t -> supplier.get();
     }
 
-    public static <A, B, C> AFunction2<A, B, C> useSecondArg(AFunction<B, C> function) {
+
+    /**
+     * Create binary function from unary function that uses the second argument of binary function.
+     *
+     * @param function the function
+     * @param <A>      the first argument type
+     * @param <B>      the second argument type
+     * @param <C>      the result type
+     * @return the binary function
+     */
+    public static <A, B, C> AFunction2<A, B, C> useSecondArg(final AFunction<B, C> function) {
         return (a, b) -> function.apply(b);
 
     }
 
-    public static <A, B, C> AFunction2<A, B, C> useFirstArg(AFunction<A, C> function) {
+    /**
+     * Create binary function from unary function that uses the first argument of binary function.
+     *
+     * @param function the function
+     * @param <A>      the first argument type
+     * @param <B>      the second argument type
+     * @param <C>      the result type
+     * @return the binary function
+     */
+    public static <A, B, C> AFunction2<A, B, C> useFirstArg(final AFunction<A, C> function) {
         return (a, b) -> function.apply(a);
     }
 
-    public static <T, N> Promise<N> evaluate(AFunction<T, N> mapper, T value) {
-        return aNow(() -> mapper.apply(value));
+    /**
+     * Invoke the function and always return promise, exceptions are not thrown.
+     *
+     * @param function the function
+     * @param value    the value
+     * @param <T>      the argument type
+     * @param <R>      the result type
+     * @return the invocation result
+     */
+    public static <T, R> Promise<R> evaluate(final AFunction<T, R> function, final T value) {
+        return aNow(() -> function.apply(value));
     }
 
-    public static ASupplier<Boolean> booleanSupplier(boolean value) {
+    /**
+     * Return the supplier depending on the flag.
+     *
+     * @param value the value
+     * @return the supplier
+     */
+    public static ASupplier<Boolean> booleanSupplier(final boolean value) {
         return value ? CoreFlows::aTrue : CoreFlows::aFalse;
     }
 
+    /**
+     * Mapper value to maybe for the specific type.
+     *
+     * @param <T> the type
+     * @return the mapper
+     */
     public static <T> AFunction<T, Maybe<T>> maybeMapper() {
         return CoreFlows::aMaybeValue;
     }

@@ -93,7 +93,7 @@ public final class Semaphore implements ASemaphore, NeedsExport<ASemaphore> {
      * @param <T>      the action
      * @return result of action
      */
-    public <T> Promise<T> run(ASupplier<T> supplier) {
+    public <T> Promise<T> run(final ASupplier<T> supplier) {
         return acquire().thenFlatGet(supplier).listen(o -> release());
     }
 

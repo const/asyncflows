@@ -27,13 +27,12 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.streams.AStream;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * The timer interface.
  */
 public interface ATimer extends ACloseable {
-    // todo replace date with Instant
     /**
      * Sleep for the specified time.
      *
@@ -48,7 +47,7 @@ public interface ATimer extends ACloseable {
      * @param time the time to wait for
      * @return promise for the time when sleep was scheduled to awake
      */
-    Promise<Long> waitFor(Date time);
+    Promise<Long> waitFor(Instant time);
 
     /**
      * Start fixed rate stream timer stream.
@@ -57,7 +56,7 @@ public interface ATimer extends ACloseable {
      * @param period    the period with which events happen
      * @return promise for stream, note the stream accumulate events if they were not asked for
      */
-    Promise<AStream<Long>> fixedRate(Date firstTime, long period);
+    Promise<AStream<Long>> fixedRate(Instant firstTime, long period);
 
     /**
      * Start delay rate stream timer stream. The each reading from stream is delayed
@@ -68,7 +67,7 @@ public interface ATimer extends ACloseable {
      * @param delay     the delay between events
      * @return promise for stream
      */
-    Promise<AStream<Long>> fixedDelay(Date firstTime, long delay);
+    Promise<AStream<Long>> fixedDelay(Instant firstTime, long delay);
 
     /**
      * Start fixed rate stream timer stream.

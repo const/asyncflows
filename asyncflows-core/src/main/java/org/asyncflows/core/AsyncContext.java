@@ -42,9 +42,23 @@ import static org.asyncflows.core.CoreFlows.aResolver;
 /**
  * Asynchronous context operations.
  */
-public class AsyncContext {
+public final class AsyncContext {
 
-    public static <T> Outcome<T> doAsyncOutcome(ASupplier<T> supplier) {
+    /**
+     * Private constructor for utility class.
+     */
+    private AsyncContext() {
+        // do nothing
+    }
+
+    /**
+     * Execute async operation inside temporary vat and return outcome.
+     *
+     * @param supplier the supplier
+     * @param <T>      the result type
+     * @return the outcome
+     */
+    public static <T> Outcome<T> doAsyncOutcome(final ASupplier<T> supplier) {
         final AtomicReference<Outcome<T>> outcome = new AtomicReference<>();
         final Object stopKey = new Object();
         final SingleThreadVat vat = new SingleThreadVat(stopKey);
@@ -56,8 +70,16 @@ public class AsyncContext {
         return outcome.get();
     }
 
-    public static <T> T doAsync(ASupplier<T> supplier) throws AsyncExecutionException {
-        Outcome<T> outcome = doAsyncOutcome(supplier);
+    /**
+     * Execute asynchronous action in temporary vat.
+     *
+     * @param supplier the supplier
+     * @param <T>      the result type
+     * @return the result value
+     * @throws AsyncExecutionException if there is any failure.
+     */
+    public static <T> T doAsync(final ASupplier<T> supplier) {
+        final Outcome<T> outcome = doAsyncOutcome(supplier);
         if (outcome.isSuccess()) {
             return outcome.value();
         } else {
@@ -65,7 +87,15 @@ public class AsyncContext {
         }
     }
 
-    public static <T> T doAsyncThrowable(ASupplier<T> supplier) throws Throwable {
+    /**
+     * Execute asynchronous action in temporary vat and throw whatever failure has came.
+     *
+     * @param supplier the action
+     * @param <T>      th result
+     * @return the result value
+     * @throws Throwable if there is any problem
+     */
+    public static <T> T doAsyncThrowable(final ASupplier<T> supplier) throws Throwable {
         return doAsyncOutcome(supplier).force();
     }
 
@@ -77,7 +107,7 @@ public class AsyncContext {
      * @param <R>      the runner
      * @return the result of action
      */
-    public static <R> R withDefaultContext(BiFunction<ARunner, Vat, R> function) {
+    public static <R> R withDefaultContext(final BiFunction<ARunner, Vat, R> function) {
         final Vat current = Vat.currentOrNull();
         if (current != null) {
             return function.apply(CoreFlows::aNow, current);
@@ -85,7 +115,7 @@ public class AsyncContext {
             final Vat vat = Vats.defaultVat();
             return function.apply(new ARunner() {
                 @Override
-                public <T> Promise<T> run(ASupplier<T> a) {
+                public <T> Promise<T> run(final ASupplier<T> a) {
                     return aLater(vat, a);
                 }
             }, vat);
@@ -133,7 +163,7 @@ public class AsyncContext {
      * @param <T>      the type
      * @return the value
      */
-    public static <T> Promise<T> aExecutorGet(Supplier<T> action, ExecutorService executor) {
+    public static <T> Promise<T> aExecutorGet(final Supplier<T> action, final ExecutorService executor) {
         return aResolver(resolver -> {
             executor.execute(() -> {
                 try {
@@ -158,6 +188,4 @@ public class AsyncContext {
     public static <T> Promise<T> aForkJoinGet(final Supplier<T> action) {
         return aExecutorGet(action, ForkJoinPool.commonPool());
     }
-
-
 }

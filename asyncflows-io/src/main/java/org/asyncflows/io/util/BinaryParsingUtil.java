@@ -29,14 +29,38 @@ import java.nio.ByteBuffer;
  * Utilities for parsing binary protocols.
  */
 public final class BinaryParsingUtil {
-    private static int B1_OFFSET = 8;
-    private static int B2_OFFSET = 16;
-    private static int B3_OFFSET = 24;
-    private static int B4_OFFSET = 32;
-    private static int B5_OFFSET = 40;
-    private static int B6_OFFSET = 48;
-    private static int B7_OFFSET = 56;
-    private static int BYTE_MASK = 0xFF;
+    /**
+     * The offset.
+     */
+    private static final int B1_OFFSET = 8;
+    /**
+     * The offset.
+     */
+    private static final int B2_OFFSET = 16;
+    /**
+     * The offset.
+     */
+    private static final int B3_OFFSET = 24;
+    /**
+     * The offset.
+     */
+    private static final int B4_OFFSET = 32;
+    /**
+     * The offset.
+     */
+    private static final int B5_OFFSET = 40;
+    /**
+     * The offset.
+     */
+    private static final int B6_OFFSET = 48;
+    /**
+     * The offset.
+     */
+    private static final int B7_OFFSET = 56;
+    /**
+     * The offset.
+     */
+    private static final int BYTE_MASK = 0xFF;
 
     /**
      * The private constructor.
@@ -45,14 +69,26 @@ public final class BinaryParsingUtil {
         // do nothing
     }
 
-    public static int getUInt16(ByteParserContext context) {
+    /**
+     * Get 16-bit unsigned integer.
+     *
+     * @param context the context
+     * @return the value
+     */
+    public static int getUInt16(final ByteParserContext context) {
         final ByteBuffer buffer = context.buffer();
         assert buffer.remaining() > Short.BYTES;
         return (maskedByte(buffer) << B1_OFFSET) + maskedByte(buffer);
     }
 
 
-    public static long getLong(ByteParserContext context) {
+    /**
+     * Get long.
+     *
+     * @param context the context
+     * @return the value
+     */
+    public static long getLong(final ByteParserContext context) {
         final ByteBuffer buffer = context.buffer();
         assert buffer.remaining() > Short.BYTES;
         return (((long) maskedByte(buffer)) << B7_OFFSET)
