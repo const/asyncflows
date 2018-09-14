@@ -1,9 +1,9 @@
 = AsyncFlows Framework 0.1.0
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
-0.1.0, 2018-09-11
+0.1.1, 2018-09-11
 :toc:
 :toc-placement!:
-:snapshot-version: 0.1.0-SNAPSHOT
+:stable-version: 0.1.0
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
@@ -32,6 +32,30 @@ executable. If copied in own code, one usually need to resolve some static impor
 The project source repository is currently available on https://github.com/const/asyncflows[github].
 
 Snapshot releases are available at repository https://oss.sonatype.org/content/groups/public[OSS Sonatype repository].
+
+The latest stable version is {stable-version} is available from maven central. The following project artifacts are released:
+
+[source, xml, subs="attributes,verbatim"]
+----
+            <!-- Core library -->
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-core</artifactId>
+                <version>{stable-version}</version>
+            </dependency>
+            <!-- IO library -->
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-io</artifactId>
+                <version>{stable-version}</version>
+            </dependency>
+            <!-- HTTP protocol support -->
+            <dependency>
+                <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-protocol-http</artifactId>
+                <version>{stable-version}</version>
+            </dependency>
+----
 
 === History
 
