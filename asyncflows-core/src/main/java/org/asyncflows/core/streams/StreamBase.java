@@ -55,6 +55,7 @@ public abstract class StreamBase<A> extends CloseableInvalidatingBase implements
     public final Promise<Maybe<A>> next() {
         Promise<Maybe<A>> result;
         try {
+            ensureValidAndOpen();
             result = produce();
         } catch (Throwable t) {
             result = aFailure(t);

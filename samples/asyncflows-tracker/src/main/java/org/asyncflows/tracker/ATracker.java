@@ -21,7 +21,31 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.tracker;
+package org.asyncflows.tracker;
 
-public class TrackerBuilder {
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.util.ASubscription;
+
+import java.util.function.Consumer;
+
+/**
+ * The tracker for some values.
+ *
+ * @param <T> the tracker element type
+ */
+public interface ATracker<T> {
+    /**
+     * @return the promise for the current value if it is already available.
+     */
+    Promise<Maybe<Outcome<T>>> value();
+
+    /**
+     * Subscribe to tracker.
+     *
+     * @param listener the listener
+     * @return a promise with subscription object that can be used to unsubscribe.
+     */
+    Promise<ASubscription> listen(Consumer<Outcome<T>> listener);
 }

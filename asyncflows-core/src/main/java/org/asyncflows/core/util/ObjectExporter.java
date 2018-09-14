@@ -117,17 +117,19 @@ public final class ObjectExporter {
          * @param implementation the implementation class
          */
         private Factory(final Class<?> implementation) {
-            final Class<?>[] interfaces = implementation.getInterfaces();
             final ArrayList<Class<?>> filtered = new ArrayList<>();
             final StringBuilder nameList = new StringBuilder();
-            nameList.append('[');
-            for (final Class<?> type : interfaces) {
-                if (!NeedsExport.class.isAssignableFrom(type)) {
-                    filtered.add(type);
-                    if (nameList.length() != 1) {
-                        nameList.append('&');
+            for (Class<?> c = implementation; c != null && c != Object.class; c = c.getSuperclass()) {
+                nameList.append('[');
+                final Class<?>[] interfaces = c.getInterfaces();
+                for (final Class<?> type : interfaces) {
+                    if (!NeedsExport.class.isAssignableFrom(type)) {
+                        filtered.add(type);
+                        if (nameList.length() != 1) {
+                            nameList.append('&');
+                        }
+                        nameList.append(type.getSimpleName());
                     }
-                    nameList.append(type.getSimpleName());
                 }
             }
             nameList.append(']');

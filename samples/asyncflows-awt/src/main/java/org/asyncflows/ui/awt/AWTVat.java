@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.awt;
+package org.asyncflows.ui.awt;
 
 import org.asyncflows.core.vats.Vat;
 import org.slf4j.Logger;

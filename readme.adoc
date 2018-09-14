@@ -1409,6 +1409,25 @@ On other hand, netty contains implementation of many network protocols. And it m
 these implementations from AsyncFlows. There is plan to create a library that access Netty channels
 from AsyncFlows framework.
 
+=== Reactive Programming
+
+The reactive programming is higher-level and more narrow paradigm than what is targeted by
+this framework. So it does not make sense to compare them directly. However, the concepts
+from reactive programming could be relatively easily implemented using framework constructs.
+The reactive programming mixes several concepts together, i.e. data stream processing and
+tracking/propagating changes. These are somewhat different tasks, and have different data
+processing needs, for example with tracking changes there is no problem to drop intermediate
+changes, but for processing data streams this might be not acceptable.
+
+The data stream processing is covered by stream library in AsyncFlows.
+
+The event processing is not covered in standard library yet, but it could be implemented using standard
+means of asynchronous component development, like it is done in
+link:samples/asyncflows-tracker/src/main/java/org/asyncflows/tracker[sample tracker library]. 
+The link:samples/asyncflows-awt/src/test/java/org/asyncflows/ui/awt/TrackerSample.java[demo]
+reproduces some typical scenarios. Java 9 flows are more oriented to similar task, and there
+might be some integration in the future.
+
 == Other Programming Languages
 
 The framework relies on Java 8 functional interfaces to create DSL. So if other language supports them 
