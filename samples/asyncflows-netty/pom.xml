@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.asyncflows</groupId>
         <artifactId>asyncflows-samples-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>asyncflows-netty</artifactId>
@@ -39,7 +39,6 @@
         This is an adapter intended to simplify usage of Netty 4.1.* from application code and
         to write additional asynchronous processing logic inside netty.
     </description>
-    <url>https://github.com/const/asyncflows</url>
 
     <dependencies>
         <dependency>
