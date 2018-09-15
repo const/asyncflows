@@ -33,7 +33,8 @@ The project source repository is currently available on https://github.com/const
 
 Snapshot releases are available at repository https://oss.sonatype.org/content/groups/public[OSS Sonatype repository].
 
-The latest stable version is {stable-version} is available from maven central. The following project artifacts are released:
+The latest stable version is {stable-version} is available from maven central. The following project
+artifacts are released:
 
 [source, xml, subs="attributes,verbatim"]
 ----
@@ -56,6 +57,10 @@ The latest stable version is {stable-version} is available from maven central. T
                 <version>{stable-version}</version>
             </dependency>
 ----
+
+This document contain information about the repository version, and it might mention unreleased
+features. For the document corresponding to the latest stable version refer to the following
+https://github.com/const/asyncflows/blob/release-{stable-version}/readme.adoc[link].
 
 === History
 
@@ -863,6 +868,62 @@ Let's see how it works in test:
         assertSame(null, t);
         assertEquals(Arrays.asList(-1, 1, -2, -3,  2, 3), result);
 ```  
+
+== Troubleshooting
+=== Logging
+
+The framework uses slf4j for logging. All exceptions that are received during listener
+notification are logged on the debug level. If you do not receive some events for some reason,
+you could try enable debug logging for the framework.
+
+A good logging could greatly help troubleshooting the applications a lot.
+
+=== Trace Provider
+
+The execution trace of asynchronous operations is difficult to record. In the framework, it is  
+possible to enable call tracing for the application using system property:
+```
+org.asyncflows.core.trace.provider=EXCEPTION
+```
+If this property is enabled, the stack trace will look like the following:
+```
+java.lang.IllegalStateException: Test
+	at org.asyncflows.core.CoreFlowsTest.lambda$null$3(CoreFlowsTest.java:51)
+	at org.asyncflows.core.CoreFlows.aNow(CoreFlows.java:191)
+	at org.asyncflows.core.CoreFlows.lambda$null$2(CoreFlows.java:256)
+	at org.asyncflows.core.vats.BatchedVat.runBatch(BatchedVat.java:148)
+	at org.asyncflows.core.vats.SingleThreadVatWithIdle.runInCurrentThread(SingleThreadVatWithIdle.java:63)
+	at org.asyncflows.core.AsyncContext.doAsyncOutcome(AsyncContext.java:69)
+	at org.asyncflows.core.AsyncContext.doAsync(AsyncContext.java:82)
+	... 55 more
+	Suppressed: org.asyncflows.core.PromiseTraceProvider$ExceptionProvider$PromiseTraceException
+		at org.asyncflows.core.PromiseTraceProvider$ExceptionProvider.recordTrace(PromiseTraceProvider.java:102)
+		at org.asyncflows.core.Promise.<init>(Promise.java:92)
+		at org.asyncflows.core.CoreFlows.aResolver(CoreFlows.java:171)
+		at org.asyncflows.core.CoreFlows.aLater(CoreFlows.java:255)
+		at org.asyncflows.core.CoreFlows.aLater(CoreFlows.java:268)
+		at org.asyncflows.core.CoreFlowsTest.lambda$testThrowLater$4(CoreFlowsTest.java:50)
+		at org.asyncflows.core.CoreFlows.aNow(CoreFlows.java:191)
+		at org.asyncflows.core.AsyncContext.lambda$doAsyncOutcome$1(AsyncContext.java:65)
+		... 59 more
+```
+The exception `org.asyncflows.core.PromiseTraceProvider$ExceptionProvider$PromiseTraceException`
+is entry created by the exception trace provider. This provider is quite expensive from CPU
+perspective as it creates an exception for each unresolved promise, so it is suggested to use
+it only during problem investigation.
+
+This feature is experimental. It is also possible to write own trace providers. Refer to interface
+link:asyncflows-core/src/main/java/org/asyncflows/core/PromiseTraceProvider.java[PromiseTraceProvider]
+for more information.
+
+=== Debugging Considerations
+
+When debugging, the stack trace is not available directly, but it is still possible to examine
+asynchronous stack by starting from resolvers passed from upper contexts. The Java saves variables
+in Java objects referenced by lambdas. If trace feature is enabled, it is also possible to find out stack
+trace for location where promise was created.
+
+So the debugging is more difficult, but it is still possible using framework.
 
 == Library
 

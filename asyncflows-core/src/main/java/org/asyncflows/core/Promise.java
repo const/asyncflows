@@ -57,6 +57,10 @@ public final class Promise<T> {
      */
     private final Object lock = new Object();
     /**
+     * The trace.
+     */
+    private final Object trace;
+    /**
      * The list of listeners.
      */
     private List<AResolver<? super T>> listeners;
@@ -78,12 +82,14 @@ public final class Promise<T> {
         Objects.requireNonNull(outcome);
         this.resolverAcquired = true;
         this.outcome = outcome;
+        this.trace = null;
     }
 
     /**
      * Constructor of unresolved promise.
      */
     public Promise() {
+        this.trace = PromiseTraceProvider.INSTANCE.recordTrace();
         this.listeners = new LinkedList<>();
     }
 
@@ -163,6 +169,9 @@ public final class Promise<T> {
                         l = listeners;
                         listeners = null;
                         outcome = adjustedOutcome;
+                        if (outcome.isFailure() && trace != null) {
+                            PromiseTraceProvider.INSTANCE.mergeTrace(outcome.failure(), trace);
+                        }
                     } else {
                         return;
                     }
