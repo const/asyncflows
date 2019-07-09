@@ -2,6 +2,7 @@
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
 0.1.1, 2018-09-11
 :toc:
+:toclevels: 5
 :toc-placement!:
 :stable-version: 0.1.0
 
