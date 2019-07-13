@@ -2,6 +2,7 @@
 
 == 0.1.1 (in progress)
 
+* Added support for NIO.2 sockets and file interfaces
 * Added asynchronous proxy generator annotation processor
 * Added PromiseTraceProvider that allows
 * Some small, renames, and bug fixes

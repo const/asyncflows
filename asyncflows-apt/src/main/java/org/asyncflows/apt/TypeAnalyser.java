@@ -240,8 +240,8 @@ public final class TypeAnalyser {
             @Override
             public Void visitWildcard(WildcardType t, Boolean bounds) {
                 out.append("?");
-                if (t.getSuperBound() instanceof NullType) {
-                    if (isNonEmptyType(t)) {
+                if (t.getSuperBound() == null || t.getSuperBound() instanceof NullType) {
+                    if (isNonEmptyType(t.getExtendsBound())) {
                         out.append(" extends ");
                         t.getExtendsBound().accept(this, false);
                     }
@@ -255,7 +255,7 @@ public final class TypeAnalyser {
     }
 
     private boolean isNonEmptyType(TypeMirror t) {
-        if (t.getKind() == TypeKind.NULL) {
+        if (t == null || t.getKind() == TypeKind.NULL) {
             return false;
         }
         if (t.getKind() != TypeKind.DECLARED) {

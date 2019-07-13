@@ -23,6 +23,7 @@
 
 package org.asyncflows.core;
 
+import org.asyncflows.core.function.AOneWayAction;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.SingleThreadVat;
@@ -132,6 +133,25 @@ public final class AsyncContext {
      * @return promise that resolves to the result of the execution
      */
     public static Promise<Void> aDaemonRun(final Runnable action) {
+        return aResolver(resolver -> Vats.DAEMON_EXECUTOR.execute(() -> {
+            try {
+                action.run();
+                Outcome.notifySuccess(resolver, null);
+            } catch (Throwable t) {
+                Outcome.notifyFailure(resolver, t);
+            }
+        }));
+    }
+
+    /**
+     * Run action on the daemon executor and resolve promise when that action finishes.
+     * This method is used when otherwise asynchronous component like SSLEngine requests
+     * to execute some runnable.
+     *
+     * @param action the action to execute (the action will not have a vat context)
+     * @return promise that resolves to the result of the execution
+     */
+    public static Promise<Void> aDaemonOneWay(final AOneWayAction action) {
         return aResolver(resolver -> Vats.DAEMON_EXECUTOR.execute(() -> {
             try {
                 action.run();

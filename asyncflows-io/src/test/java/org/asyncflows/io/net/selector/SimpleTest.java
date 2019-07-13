@@ -29,10 +29,12 @@ import org.asyncflows.core.data.Tuple3;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
+import org.asyncflows.io.net.async.AsyncSocketUtil;
 import org.asyncflows.io.net.blocking.BlockingSocketUtil;
 import org.asyncflows.io.util.AbstractDigestingStream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -52,6 +54,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The simple test
  */
 public class SimpleTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleTest.class);
+
     @Test
     public void testSelector() throws Throwable {
         final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
@@ -61,10 +65,18 @@ public class SimpleTest {
     }
 
     @Test
-    @Disabled("sometimes hangs")
     public void testBlocking() throws Throwable {
         final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
                 BlockingSocketUtil.runThrowable(this::checkSocketFactory);
+        assertEquals(result.getValue1(), result.getValue2().getValue3());
+        assertArrayEquals(result.getValue2().getValue1(), result.getValue2().getValue2());
+    }
+
+
+    @Test
+    public void testAsync() throws Throwable {
+        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result =
+                AsyncSocketUtil.runThrowable(this::checkSocketFactory);
         assertEquals(result.getValue1(), result.getValue2().getValue3());
         assertArrayEquals(result.getValue2().getValue1(), result.getValue2().getValue2());
     }
@@ -78,14 +90,21 @@ public class SimpleTest {
     private Promise<Tuple2<Long, Tuple3<byte[], byte[], Long>>> checkSocketFactory(final ASocketFactory socketFactory) {
         return aTry(socketFactory.makeServerSocket()).run(
                 serverSocket -> serverSocket.bind(new InetSocketAddress(0)).flatMap(
-                        socketAddress -> aAll(
-                                () -> aTrySocket(serverSocket.accept()).run(
-                                        (socket, input, output) ->
-                                                IOUtil.BYTE.copy(input, output, false, ByteBuffer.allocate(1024)))
-                        ).andLast(
-                                () -> aTry(socketFactory.makeSocket()).run(
-                                        socket -> digestingClient(socket, socketAddress))
-                        )
+                        socketAddress -> {
+                            LOGGER.info("Server socket created: " + socketAddress);
+                            return aAll(
+                                    () -> aTrySocket(serverSocket.accept()).run(
+                                            (socket, input, output) -> {
+                                                LOGGER.info("Server: connection accepted");
+                                                return IOUtil.BYTE.copy(input, output, false, ByteBuffer.allocate(1024));
+                                            })
+                                            .listen(o -> LOGGER.info("Server finished"))
+                            ).andLast(
+                                    () -> aTry(socketFactory.makeSocket()).run(
+                                            socket -> digestingClient(socket, socketAddress))
+                                            .listen(o -> LOGGER.info("Client finished"))
+                            );
+                        }
                 )
         );
     }
@@ -112,11 +131,11 @@ public class SimpleTest {
                                     final byte[] data = new byte[(int) length];
                                     rnd.nextBytes(data);
                                     return output.write(ByteBuffer.wrap(data));
-                                })
+                                }).listen(o -> LOGGER.info("Client: finished generating data"))
                 ).and(
                         () -> aTry(socket.getInput()).run(
                                 input -> digestAndDiscardInput(input, AbstractDigestingStream.MD5)
-                        )
+                        ).listen(o -> LOGGER.info("Client: finished reading data"))
                 ).andLast(constantSupplier(length)));
     }
 

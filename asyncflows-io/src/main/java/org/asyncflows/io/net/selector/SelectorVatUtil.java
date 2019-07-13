@@ -39,7 +39,7 @@ public final class SelectorVatUtil {
     /**
      * The socket factory.
      */
-    private static final ThreadLocal<ASocketFactory> SOCKET_FACTORY = new ThreadLocal<ASocketFactory>();
+    private static final ThreadLocal<ASocketFactory> SOCKET_FACTORY = new ThreadLocal<>();
 
     /**
      * The private constructor for the utility class.
@@ -59,7 +59,7 @@ public final class SelectorVatUtil {
     public static <T> T doAsyncIoThrowable(final AFunction<ASocketFactory, T> action) throws Throwable {
         final Object stopKey = new Object();
         final SelectorVat vat = new SelectorVat(stopKey);
-        final Cell<Outcome<T>> value = new Cell<Outcome<T>>();
+        final Cell<Outcome<T>> value = new Cell<>();
         vat.execute(() -> aNow(() -> {
             final ASocketFactory selectorSocketFactory = new SelectorSocketFactory(vat).export(vat);
             SOCKET_FACTORY.set(selectorSocketFactory);

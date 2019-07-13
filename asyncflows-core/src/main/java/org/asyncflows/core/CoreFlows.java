@@ -34,8 +34,11 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
+import static org.asyncflows.core.Outcome.notifyFailure;
+import static org.asyncflows.core.Outcome.notifySuccess;
 import static org.asyncflows.core.vats.Vats.defaultVat;
 
 /**
@@ -180,7 +183,7 @@ public final class CoreFlows {
         try {
             resolverAction.accept(resolver);
         } catch (Throwable e) {
-            Outcome.notifyFailure(resolver, e);
+            notifyFailure(resolver, e);
         }
         return promise;
     }
@@ -195,7 +198,12 @@ public final class CoreFlows {
      */
     public static <T> Promise<T> aNow(final ASupplier<T> action) {
         try {
-            return action.get();
+            final Promise<T> promise = action.get();
+            if (promise == null) {
+                return aFailure(new NullPointerException("Action returned null: " + action.getClass().getName()));
+            } else {
+                return promise;
+            }
         } catch (Throwable throwable) {
             return aFailure(throwable);
         }
@@ -233,6 +241,25 @@ public final class CoreFlows {
             } catch (Throwable throwable) {
                 LOGGER.error("One-way action failed", throwable);
             }
+        });
+    }
+
+    /**
+     * Send one-way action to vat.
+     *
+     * @param executor the vat
+     * @param action   the action
+     */
+    public static Promise<Void> aExecutorAction(final Executor executor, final AOneWayAction action) {
+        return aResolver(r -> {
+            executor.execute(() -> {
+                try {
+                    action.run();
+                    notifySuccess(r, null);
+                } catch (Throwable throwable) {
+                    notifyFailure(r, throwable);
+                }
+            });
         });
     }
 
