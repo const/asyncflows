@@ -24,9 +24,9 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AChannel;
+import org.asyncflows.io.AChannelProxyFactory;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -71,7 +71,7 @@ public class NulChannel<B extends Buffer> extends CloseableBase implements AChan
 
     @Override
     public AChannel<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AChannelProxyFactory.createProxy(vat, this);
     }
 
     @Override

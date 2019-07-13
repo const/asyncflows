@@ -23,11 +23,13 @@
 
 package org.asyncflows.protocol.http.client.core; //NOPMD
 
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.util.SimpleChannel;
 import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.protocol.http.client.AHttpRequest;
+import org.asyncflows.protocol.http.client.AHttpRequestProxyFactory;
 import org.asyncflows.protocol.http.client.HttpResponse;
 import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.HttpRequestMessage;
@@ -443,5 +445,10 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
         if (resolver != null) {
             notifySuccess(resolver, null);
         }
+    }
+
+    @Override
+    public AHttpRequest export(Vat vat) {
+        return AHttpRequestProxyFactory.createProxy(vat, this);
     }
 }

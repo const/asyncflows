@@ -382,7 +382,6 @@ public final class CoreFlowsSeq {
          * @param finallyAction an action to execute
          * @return a promise for the sequence result
          */
-        @SuppressWarnings("unchecked")
         public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
             final Vat currentVat = this.vat;
             return runner.run(() -> aNow(action).flatMapOutcome(currentVat,

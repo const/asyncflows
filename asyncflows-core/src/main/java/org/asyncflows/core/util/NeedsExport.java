@@ -61,7 +61,5 @@ public interface NeedsExport<T> {
      * @param vat the vat
      * @return the exported service
      */
-    default T export(final Vat vat) {
-        return ObjectExporter.export(vat, this);
-    }
+    T export(final Vat vat);
 }

@@ -24,6 +24,7 @@
 package org.asyncflows.core.streams;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 /**
@@ -33,6 +34,7 @@ import org.asyncflows.core.function.ACloseable;
  *
  * @param <T> the stream element type
  */
+@Asynchronous
 public interface ASink<T> extends ACloseable {
     /**
      * Put a value into the sink.

@@ -24,13 +24,23 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Outcome;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * The resolver or listener for outcome.
  *
  * @param <T> the result type
  */
-public interface AResolver<T> {
+@Asynchronous
+@FunctionalInterface
+public interface AResolver<T> extends AsynchronousFunction<AResolver<T>> {
+
+    @Override
+    default AResolver<T> forceExport(Vat vat) {
+        return AResolverProxyFactory.createProxy(vat, this);
+    }
+
     /**
      * Receive outcome.
      *

@@ -24,11 +24,13 @@
 package org.asyncflows.protocol.http.client;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 /**
  * The client.
  */
+@Asynchronous
 public interface AHttpClient extends ACloseable {
     /**
      * @return run the next request

@@ -36,6 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.WeakHashMap;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
@@ -117,6 +118,7 @@ public final class ObjectExporter {
          * @param implementation the implementation class
          */
         private Factory(final Class<?> implementation) {
+            Objects.requireNonNull(implementation);
             final ArrayList<Class<?>> filtered = new ArrayList<>();
             final StringBuilder nameList = new StringBuilder();
             for (Class<?> c = implementation; c != null && c != Object.class; c = c.getSuperclass()) {
@@ -135,7 +137,7 @@ public final class ObjectExporter {
             nameList.append(']');
             types = nameList.toString();
             final Class<?> proxyClass = Proxy.getProxyClass(implementation.getClassLoader(),
-                    filtered.toArray(new Class<?>[filtered.size()]));
+                    filtered.toArray(new Class<?>[0]));
             try {
                 constructor = proxyClass.getConstructor(InvocationHandler.class);
             } catch (NoSuchMethodException e) {
@@ -198,7 +200,7 @@ public final class ObjectExporter {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "squid:S3776"})
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable { // NOPMD
             final Class<?> returnType = method.getReturnType();
             if (void.class == returnType) {

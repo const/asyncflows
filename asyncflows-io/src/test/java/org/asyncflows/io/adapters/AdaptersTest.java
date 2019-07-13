@@ -26,6 +26,7 @@ package org.asyncflows.io.adapters;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
+import org.asyncflows.io.adapters.blocking.Adapters;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

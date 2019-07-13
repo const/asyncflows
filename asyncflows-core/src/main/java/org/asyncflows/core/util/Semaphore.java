@@ -99,6 +99,6 @@ public final class Semaphore implements ASemaphore, NeedsExport<ASemaphore> {
 
     @Override
     public ASemaphore export(final Vat vat) {
-        return UtilExporter.export(vat, this);
+        return ASemaphoreProxyFactory.createProxy(vat, this);
     }
 }

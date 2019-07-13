@@ -90,52 +90,6 @@ public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsE
 
     @Override
     public ATlsSocket export(final Vat vat) {
-        final ATlsSocket socket = this;
-        return new ATlsSocket() {
-            @Override
-            public Promise<Void> handshake() {
-                return aLater(vat, socket::handshake);
-            }
-
-            @Override
-            public Promise<SSLSession> getSession() {
-                return aLater(vat, socket::getSession);
-            }
-
-            @Override
-            public Promise<Void> setOptions(final SocketOptions options) {
-                return aLater(vat, () -> socket.setOptions(options));
-            }
-
-            @Override
-            public Promise<Void> connect(final SocketAddress address) {
-                return aLater(vat, () -> socket.connect(address));
-            }
-
-            @Override
-            public Promise<SocketAddress> getRemoteAddress() {
-                return aLater(vat, socket::getRemoteAddress);
-            }
-
-            @Override
-            public Promise<SocketAddress> getLocalAddress() {
-                return aLater(vat, socket::getRemoteAddress);
-            }
-
-            @Override
-            public Promise<AInput<ByteBuffer>> getInput() {
-                return aLater(vat, socket::getInput);
-            }
-
-            @Override
-            public Promise<AOutput<ByteBuffer>> getOutput() {
-                return aLater(vat, socket::getOutput);
-            }
-
-            @Override
-            public Promise<Void> close() {
-                return closeResource(vat, socket);
-            }
-        };
+        return ATlsSocketProxyFactory.createProxy(vat, this);
     }
 }

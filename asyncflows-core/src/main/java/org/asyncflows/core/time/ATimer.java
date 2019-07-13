@@ -24,6 +24,7 @@
 package org.asyncflows.core.time;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.streams.AStream;
 
@@ -32,6 +33,7 @@ import java.time.Instant;
 /**
  * The timer interface.
  */
+@Asynchronous
 public interface ATimer extends ACloseable {
     /**
      * Sleep for the specified time.

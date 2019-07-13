@@ -173,7 +173,7 @@ public final class RandevuQueue<T> {
 
         @Override
         public ASink<T> export(final Vat vat) {
-            return StreamExportUtil.export(vat, this);
+            return ASinkProxyFactory.createProxy(vat, this);
         }
     }
 

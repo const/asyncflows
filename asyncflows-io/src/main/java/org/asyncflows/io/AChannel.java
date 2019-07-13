@@ -24,6 +24,7 @@
 package org.asyncflows.io;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 import java.nio.Buffer;
@@ -33,6 +34,7 @@ import java.nio.Buffer;
  *
  * @param <B> the buffer type
  */
+@Asynchronous
 public interface AChannel<B extends Buffer> extends ACloseable {
     /**
      * @return the input for the channel.

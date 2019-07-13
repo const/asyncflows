@@ -24,11 +24,20 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * A runner for actions.
  */
-public interface ARunner {
+@Asynchronous
+public interface ARunner extends AsynchronousFunction<ARunner> {
+
+    @Override
+    default ARunner forceExport(Vat vat) {
+        return ARunnerProxyFactory.createProxy(vat, this);
+    }
+
     /**
      * Start asynchronous action somewhere.
      *

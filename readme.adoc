@@ -4,7 +4,7 @@ Konstantin Plotnikov <constantine.plotnikov@gmail.com>
 :toc:
 :toclevels: 5
 :toc-placement!:
-:stable-version: 0.1.0
+:stable-version: 0.1.1
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
@@ -204,6 +204,7 @@ Most of operators expect lambdas are arguments. These function interfaces are lo
 * `AFunction2` - the two argument function interface (analog of `BiFunction`)
 * `AFunction3` - the three argument function interface
 * `AFunction4` - the four argument function interface
+* `AOneWayAction` - the one-way action for which result is ignored ('Runnable', but with exception)
 
 === Asynchronous Context
 
@@ -603,6 +604,7 @@ The other types of methods could present on the interface, but they will not be 
 and they will throw an exception. Lets consider a simple Queue interface:
 
 ```java
+@Asynchronous
 public interface ATestQueue<T> {
     Promise<T> take();
     void put(T element);
@@ -683,7 +685,7 @@ The exporter could be written manually, and would look like this:
 
             @Override
             public void put(T element) {
-                aSend(vat, () -> put(element));
+                aOneWay(vat, () -> put(element));
             }
         };
     }
@@ -704,6 +706,109 @@ Let's test this method:
         });
         assertEquals((11 * 10) / 2, rc);
 ```
+
+==== Asynchronous Proxy Generator
+
+The AsyncFlows include annotation processor for generating proxies. This annotation
+processor is used for generating proxies for all asynchronous interfaces in the framework.
+
+To enable annotation processor, add it to compiler like the following:
+
+[source, xml, subs="attributes,verbatim"]
+----
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>org.asyncflows</groupId>
+                            <artifactId>asyncflows-apt</artifactId>
+                            <version>{stable-version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+----
+
+The annotation processor will generate proxies for all interfaces with `@Asynchronous`
+annotation. The implementation will be generated only for non-default interface methods.
+
+The generated proxy will look like the following:
+
+```java
+@javax.annotation.Generated("org.asyncflows.apt.AsynchronousProxyProcessor")
+public final class ATestQueueProxyFactory implements java.util.function.BiFunction<org.asyncflows.core.vats.Vat, java.lang.Object, java.lang.Object>, org.asyncflows.core.util.AsynchronousService {
+    public static final ATestQueueProxyFactory INSTANCE = new ATestQueueProxyFactory();
+
+    /**
+     * Create a proxy.
+     *
+     * @param vat     the vat
+     * @param service the service to export
+     * @param <T> a type parameter
+     * @return the exported service
+     */
+    public static <T> org.asyncflows.core.util.sample.ATestQueue<T> createProxy(org.asyncflows.core.vats.Vat vat, org.asyncflows.core.util.sample.ATestQueue<T> service) {
+        return new ATestQueueAsyncProxy<T>(vat, service);
+    }
+
+    /**
+     * Create a proxy.
+     *
+     * @param vat     the vat
+     * @param service the service to export
+     * @param <T> a type parameter
+     * @return the exported service
+     */
+    public <T> org.asyncflows.core.util.sample.ATestQueue<T> export(org.asyncflows.core.vats.Vat vat, org.asyncflows.core.util.sample.ATestQueue<T> service) {
+        return createProxy(vat, service);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public java.lang.Object apply(org.asyncflows.core.vats.Vat vat, java.lang.Object service) {
+        return createProxy(vat, (org.asyncflows.core.util.sample.ATestQueue) service);
+    }
+
+    @javax.annotation.Generated("org.asyncflows.apt.AsynchronousProxyProcessor")
+    private static final class ATestQueueAsyncProxy<T> implements org.asyncflows.core.util.sample.ATestQueue<T> {
+        private final org.asyncflows.core.vats.Vat vat;
+        private final org.asyncflows.core.util.sample.ATestQueue<T> service;
+
+        private ATestQueueAsyncProxy(final org.asyncflows.core.vats.Vat vat, final org.asyncflows.core.util.sample.ATestQueue<T> service) {
+            java.util.Objects.requireNonNull(vat);
+            java.util.Objects.requireNonNull(service);
+            this.vat = vat;
+            this.service = service;
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(service);
+        }
+
+        @Override
+        public boolean equals(java.lang.Object o2) {
+            return this == o2 || (o2 != null && o2.getClass() == getClass() && ((ATestQueueAsyncProxy)o2).service == this.service);
+        }
+
+        @Override
+        public org.asyncflows.core.Promise<T> take() {
+            return org.asyncflows.core.CoreFlows.aLater(this.vat, () -> this.service.take());
+        }
+
+        @Override
+        public void put(T element) {
+            org.asyncflows.core.CoreFlows.aOneWay(this.vat, () -> this.service.put(element));
+        }
+    }
+}
+```
+
 === Garbage Collection Consideration
 
 The framework objects are generally garbage collected by Java. There is no need to perform explicit cleanup
@@ -877,7 +982,7 @@ The framework uses slf4j for logging. All exceptions that are received during li
 notification are logged on the debug level. If you do not receive some events for some reason,
 you could try enable debug logging for the framework.
 
-A good logging could greatly help troubleshooting the applications a lot.
+A good logging could greatly help troubleshooting the applications.
 
 === Trace Provider
 
@@ -1423,7 +1528,8 @@ if Java EE components are called.
 
 The contextual security information like active user should be passed as parameters, and 
 it needs to be reestablished before invocation of Java EE functionality that requires it (for example 
-Hibernate audit support). 
+Hibernate audit support). Some of the technologies have support for re-establishing context (like
+`AsyncContext.run(Runnable)` for servlets).
 
 == Comparison with other frameworks
 

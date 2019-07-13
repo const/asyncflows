@@ -23,6 +23,8 @@
 
 package org.asyncflows.core;
 
+import java.util.Objects;
+
 /**
  * The success outcome.
  *
@@ -79,17 +81,13 @@ public final class Success<T> extends Outcome<T> {
 
         final Success success = (Success) o;
 
-        //noinspection RedundantIfStatement
-        if (value != null ? !value.equals(success.value) : success.value != null) { // NOPMD
-            return false;
-        }
+        return Objects.equals(value, success.value);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        return value != null ? value.hashCode() : 0;
+        return Objects.hashCode(value);
     }
 
     @Override

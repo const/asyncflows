@@ -24,6 +24,7 @@
 package org.asyncflows.io.net;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 import java.net.SocketAddress;
@@ -32,6 +33,7 @@ import java.nio.ByteBuffer;
 /**
  * The datagram socket.
  */
+@Asynchronous
 public interface ADatagramSocket extends ACloseable {
     /**
      * Set socket options.

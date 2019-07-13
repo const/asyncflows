@@ -24,7 +24,6 @@
 package org.asyncflows.io.net.blocking;
 
 import org.asyncflows.io.net.ADatagramSocket;
-import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
 import org.asyncflows.core.Promise;
@@ -176,7 +175,7 @@ public class BlockingDatagramSocket implements ADatagramSocket, NeedsExport<ADat
 
     @Override
     public ADatagramSocket export() {
-        return SocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), Vats.daemonVat(), this);
+        return BlockingSocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), Vats.daemonVat(), this);
     }
 
     @Override

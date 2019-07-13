@@ -23,14 +23,16 @@
 
 package org.asyncflows.io.net.selector; // NOPMD
 
+import org.asyncflows.core.util.ASemaphoreProxyFactory;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.AOutput;
+import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.net.ASocket;
-import org.asyncflows.io.net.SocketExportUtil;
+import org.asyncflows.io.net.ASocketProxyFactory;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
 import org.asyncflows.core.CoreFlows;
@@ -172,7 +174,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
 
     @Override
     public ASocket export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return ASocketProxyFactory.createProxy(vat, this);
     }
 
     @Override
@@ -272,13 +274,8 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
         }
 
         @Override
-        public AInput<ByteBuffer> export() {
-            return export(Vat.current());
-        }
-
-        @Override
         public AInput<ByteBuffer> export(final Vat vat) {
-            return IOExportUtil.export(vat, this);
+            return AInputProxyFactory.createProxy(vat, this);
         }
 
         @Override
@@ -377,7 +374,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
 
         @Override
         public AOutput<ByteBuffer> export(final Vat vat) {
-            return IOExportUtil.export(vat, this);
+            return AOutputProxyFactory.createProxy(vat, this);
         }
 
         @Override

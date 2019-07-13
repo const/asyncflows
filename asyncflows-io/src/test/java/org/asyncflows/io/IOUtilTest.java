@@ -23,7 +23,7 @@
 
 package org.asyncflows.io;
 
-import org.asyncflows.io.adapters.Adapters;
+import org.asyncflows.io.adapters.blocking.Adapters;
 import org.junit.jupiter.api.Test;
 
 import java.nio.CharBuffer;

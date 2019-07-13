@@ -24,10 +24,12 @@
 package org.asyncflows.io.net;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 
 /**
  * Socket factory.
  */
+@Asynchronous
 public interface ASocketFactory {
     /**
      * @return the promise for a plain socket

@@ -119,6 +119,7 @@ public abstract class BatchedVat extends Vat {
      *
      * @return true if the vat is scheduled
      */
+    @SuppressWarnings("squid:S3776")
     protected final boolean runBatch() {
         enter();
         boolean scheduleNeeded;

@@ -24,11 +24,13 @@
 package org.asyncflows.protocol.http.server;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 
 /**
  * The basic HTTP handler interface.The more complex interfaces are supposed to be built upon it.
  * The handler provides access to the very raw HTTP request.
  */
+@Asynchronous
 public interface AHttpHandler {
     /**
      * Handle the exchange. After the result promise is resolved, the both input and output are closed. If input

@@ -21,7 +21,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * The adapters for JDK blocking streams.
- */
-package org.asyncflows.io.adapters;
+package org.asyncflows.core.proxy_samples;
+
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+
+@Asynchronous
+public interface ABase<T> {
+    Promise<T> a();
+    void test();
+}

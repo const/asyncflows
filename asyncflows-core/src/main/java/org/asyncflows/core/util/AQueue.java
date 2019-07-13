@@ -24,12 +24,14 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 
 /**
  * AQueue of elements.
  *
  * @param <T> the element type
  */
+@Asynchronous
 public interface AQueue<T> {
     /**
      * Get element from the queue.

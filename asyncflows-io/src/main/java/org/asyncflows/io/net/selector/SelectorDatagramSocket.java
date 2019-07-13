@@ -24,7 +24,7 @@
 package org.asyncflows.io.net.selector;
 
 import org.asyncflows.io.net.ADatagramSocket;
-import org.asyncflows.io.net.SocketExportUtil;
+import org.asyncflows.io.net.ADatagramSocketProxyFactory;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
 import org.asyncflows.core.Promise;
@@ -206,12 +206,7 @@ class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, N
     }
 
     @Override
-    public ADatagramSocket export() {
-        return export(Vat.current());
-    }
-
-    @Override
     public ADatagramSocket export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return ADatagramSocketProxyFactory.createProxy(vat, this);
     }
 }

@@ -25,7 +25,7 @@ package org.asyncflows.protocol.http.core;
 
 import org.asyncflows.core.AsyncExecutionException;
 import org.asyncflows.io.AInput;
-import org.asyncflows.io.adapters.Adapters;
+import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.HttpStatusException;

@@ -73,6 +73,6 @@ public abstract class SinkBase<A> extends CloseableInvalidatingBase implements A
 
     @Override
     public ASink<A> export(final Vat vat) {
-        return StreamExportUtil.export(vat, this);
+        return ASinkProxyFactory.createProxy(vat, this);
     }
 }

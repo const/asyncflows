@@ -42,13 +42,13 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <groovyVersion>2.2.1</groovyVersion>
+        <groovyVersion>2.5.2</groovyVersion>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
+            <artifactId>groovy</artifactId>
             <version>${groovyVersion}</version>
         </dependency>
         <dependency>
@@ -90,7 +90,7 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-all</artifactId>
+                        <artifactId>groovy</artifactId>
                         <version>${groovyVersion}</version>
                     </dependency>
                 </dependencies>

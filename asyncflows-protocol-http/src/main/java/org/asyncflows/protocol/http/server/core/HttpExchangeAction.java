@@ -23,6 +23,7 @@
 
 package org.asyncflows.protocol.http.server.core; // NOPMD
 
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
@@ -633,5 +634,10 @@ class HttpExchangeAction extends CloseableInvalidatingBase
             }
             return aVoid();
         });
+    }
+
+    @Override
+    public AHttpResponse export(Vat vat) {
+        return AHttpResponseProxyFactory.createProxy(vat, this);
     }
 }

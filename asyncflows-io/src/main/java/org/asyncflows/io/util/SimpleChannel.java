@@ -24,9 +24,9 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AChannel;
+import org.asyncflows.io.AChannelProxyFactory;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -60,8 +60,8 @@ public class SimpleChannel<B extends Buffer> extends CloseableBase implements AC
      * @param output the output
      */
     public SimpleChannel(final AInput<B> input, final AOutput<B> output) {
-        this.input = input;
-        this.output = output;
+        this.input = NeedsExport.exportIfNeeded(input);
+        this.output = NeedsExport.exportIfNeeded(output);
     }
 
     @Override
@@ -82,6 +82,6 @@ public class SimpleChannel<B extends Buffer> extends CloseableBase implements AC
 
     @Override
     public AChannel<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AChannelProxyFactory.createProxy(vat, this);
     }
 }

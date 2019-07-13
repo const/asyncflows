@@ -24,7 +24,7 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.IOExportUtil;
+import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -71,6 +71,6 @@ public class NulOutput<B extends Buffer> extends CloseableBase implements AOutpu
 
     @Override
     public AOutput<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AOutputProxyFactory.createProxy(vat, this);
     }
 }

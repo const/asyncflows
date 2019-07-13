@@ -38,35 +38,32 @@ public interface PromiseTraceProvider {
     /**
      * The instance of trace provider.
      */
-    PromiseTraceProvider INSTANCE = new Supplier<PromiseTraceProvider>() {
-        @Override
-        public PromiseTraceProvider get() {
-            final String provider = System.getProperty("org.asyncflows.core.trace.provider");
-            if ("EXCEPTION".equals(provider)) {
-                return new ExceptionProvider();
-            } else if (provider == null || "NOP".equals(provider)) {
-                return new NopProvider();
-            } else {
-                Logger logger = LoggerFactory.getLogger(PromiseTraceProvider.class);
-                try {
-                    ServiceLoader<PromiseTraceProvider> loader = ServiceLoader.load(PromiseTraceProvider.class);
-                    for (PromiseTraceProvider traceProvider : loader) {
-                        if (provider.equals(traceProvider.getClass().getName())) {
-                            return traceProvider;
-                        }
-                    }
-                    if (logger.isErrorEnabled()) {
-                        logger.error("The trace provider: " + provider + " not found.");
-                    }
-                } catch (Throwable ex) {
-                    if (logger.isErrorEnabled()) {
-                        logger.error("The trace provider: " + provider + " not found.");
+    PromiseTraceProvider INSTANCE = ((Supplier<PromiseTraceProvider>) () -> {
+        final String provider = System.getProperty("org.asyncflows.core.trace.provider");
+        if ("EXCEPTION".equals(provider)) {
+            return new ExceptionProvider();
+        } else if (provider == null || "NOP".equals(provider)) {
+            return new NopProvider();
+        } else {
+            Logger logger = LoggerFactory.getLogger(PromiseTraceProvider.class);
+            try {
+                ServiceLoader<PromiseTraceProvider> loader = ServiceLoader.load(PromiseTraceProvider.class);
+                for (PromiseTraceProvider traceProvider : loader) {
+                    if (provider.equals(traceProvider.getClass().getName())) {
+                        return traceProvider;
                     }
                 }
-                return new NopProvider();
+                if (logger.isErrorEnabled()) {
+                    logger.error(String.format("The trace provider: %s not found.", provider));
+                }
+            } catch (Throwable ex) {
+                if (logger.isErrorEnabled()) {
+                    logger.error(String.format("The trace provider: %s not found.", provider));
+                }
             }
+            return new NopProvider();
         }
-    }.get();
+    }).get();
 
     /**
      * @return this method is used to get the current trace when promise is created.
@@ -113,11 +110,11 @@ public interface PromiseTraceProvider {
         public void mergeTrace(final Throwable problem, final Object trace) {
             problem.addSuppressed((PromiseTraceException) trace);
         }
+    }
 
-        /**
-         * The exception used to record trace.
-         */
-        public static final class PromiseTraceException extends Exception {
-        }
+    /**
+     * The exception used to record trace.
+     */
+    final class PromiseTraceException extends Exception {
     }
 }

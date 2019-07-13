@@ -24,8 +24,8 @@
 package org.asyncflows.protocol.websocket.core;
 
 import org.asyncflows.io.AOutput;
+import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.io.text.EncoderOutput;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.CharIOUtil;
@@ -378,7 +378,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
 
         @Override
         public AOutput<ByteBuffer> export(final Vat vat) {
-            return IOExportUtil.export(vat, this);
+            return AOutputProxyFactory.createProxy(vat, this);
         }
     }
 
@@ -460,7 +460,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
 
         @Override
         public AOutput<ByteBuffer> export(final Vat vat) {
-            return IOExportUtil.export(vat, this);
+            return AOutputProxyFactory.createProxy(vat, this);
         }
     }
 

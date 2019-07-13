@@ -25,6 +25,7 @@ package org.asyncflows.core.util;
 
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
@@ -37,8 +38,10 @@ import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 
 /**
- * Fail-fast runner that fails if any running block has failed.
+ * Fail-fast runner that fails if any running block has failed or this instance is failed.
+ * The class is thread-safe and it could be passed around.
  */
+@ThreadSafe
 public class FailFast implements ARunner {
     /**
      * Failure promise.

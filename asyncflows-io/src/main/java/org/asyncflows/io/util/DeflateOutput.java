@@ -29,7 +29,7 @@ import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.IOExportUtil;
+import org.asyncflows.io.AOutputProxyFactory;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Deflater;
@@ -249,6 +249,6 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
 
     @Override
     public AOutput<ByteBuffer> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AOutputProxyFactory.createProxy(vat, this);
     }
 }

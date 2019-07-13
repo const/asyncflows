@@ -57,6 +57,8 @@ public final class Vats {
     /**
      * @return the new daemon vat
      */
+    // FIXME revise all places where it is used to support explicit specification of executor for Java EE context
+    // (ManagedExecutorService)
     public static ExecutorVat daemonVat() {
         return new ExecutorVat(DAEMON_EXECUTOR, Integer.MAX_VALUE);
     }

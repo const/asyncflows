@@ -43,17 +43,19 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <junit.version>5.1.0</junit.version>
+        <junit.version>5.3.1</junit.version>
         <logback.version>1.2.3</logback.version>
         <commons-io.verions>2.6</commons-io.verions>
         <verify.config.base>${project.basedir}/../src/config/checks</verify.config.base>
     </properties>
 
     <modules>
+        <module>asyncflows-apt</module>
         <module>asyncflows-core</module>
         <module>asyncflows-io</module>
         <module>asyncflows-protocol</module>
         <module>asyncflows-protocol-http</module>
+<!--        <module>java-ee</module>-->
     </modules>
 
     <scm>

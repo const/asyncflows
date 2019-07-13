@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.adapters;
+package org.asyncflows.io.adapters.blocking;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;

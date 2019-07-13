@@ -72,6 +72,6 @@ public final class SimpleQueue<T> implements AQueue<T>, NeedsExport<AQueue<T>> {
 
     @Override
     public AQueue<T> export(final Vat vat) {
-        return UtilExporter.export(vat, this);
+        return AQueueProxyFactory.createProxy(vat, this);
     }
 }

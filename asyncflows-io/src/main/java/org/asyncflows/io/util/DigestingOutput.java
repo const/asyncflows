@@ -24,7 +24,6 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.AFunction;
@@ -32,6 +31,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.util.CoreFlowsResource;
+import org.asyncflows.io.AOutputProxyFactory;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -128,7 +128,7 @@ public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>
 
     @Override
     public AOutput<ByteBuffer> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AOutputProxyFactory.createProxy(vat, this);
     }
 
 }

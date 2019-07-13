@@ -21,12 +21,16 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.net; // NOPMD
+package org.asyncflows.io.net.blocking; // NOPMD
 
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
+import org.asyncflows.io.net.ADatagramSocket;
+import org.asyncflows.io.net.AServerSocket;
+import org.asyncflows.io.net.ASocket;
+import org.asyncflows.io.net.SocketOptions;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -37,23 +41,12 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 /**
  * Export utilities for the socket.
  */
-public final class SocketExportUtil { // NOPMD
+public final class BlockingSocketExportUtil { // NOPMD
 
     /**
      * Private constructor for utility class.
      */
-    private SocketExportUtil() {
-    }
-
-    /**
-     * Export server socket.
-     *
-     * @param vat          the vat
-     * @param serverSocket the server socket
-     * @return the exported server socket
-     */
-    public static AServerSocket export(final Vat vat, final AServerSocket serverSocket) {
-        return export(vat, vat, serverSocket);
+    private BlockingSocketExportUtil() {
     }
 
     /**
@@ -101,17 +94,6 @@ public final class SocketExportUtil { // NOPMD
     /**
      * Export a socket.
      *
-     * @param vat    the vat
-     * @param socket the socket
-     * @return the exported socket
-     */
-    public static ASocket export(final Vat vat, final ASocket socket) {
-        return export(vat, vat, socket);
-    }
-
-    /**
-     * Export a socket.
-     *
      * @param vat      the vat
      * @param closeVat the vat on which socket is closed
      * @param socket   the socket
@@ -154,43 +136,6 @@ public final class SocketExportUtil { // NOPMD
                 return closeResource(closeVat, socket);
             }
         };
-    }
-
-    /**
-     * Export a socket factory.
-     *
-     * @param vat     the vat
-     * @param factory the factory
-     * @return the exported factory
-     */
-    public static ASocketFactory export(final Vat vat, final ASocketFactory factory) {
-        return new ASocketFactory() {
-            @Override
-            public Promise<ASocket> makeSocket() {
-                return aLater(vat, factory::makeSocket);
-            }
-
-            @Override
-            public Promise<AServerSocket> makeServerSocket() {
-                return aLater(vat, factory::makeServerSocket);
-            }
-
-            @Override
-            public Promise<ADatagramSocket> makeDatagramSocket() {
-                return aLater(vat, factory::makeDatagramSocket);
-            }
-        };
-    }
-
-    /**
-     * A single vat version.
-     *
-     * @param vat    the vat
-     * @param socket the socket to wrap
-     * @return a socket wrapped into the proxy.
-     */
-    public static ADatagramSocket export(final Vat vat, final ADatagramSocket socket) {
-        return export(vat, vat, vat, socket);
     }
 
     /**

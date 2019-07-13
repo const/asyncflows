@@ -24,10 +24,12 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 
 /**
  * Closeable object.
  */
+@Asynchronous
 public interface ACloseable {
     /**
      * The close operation.

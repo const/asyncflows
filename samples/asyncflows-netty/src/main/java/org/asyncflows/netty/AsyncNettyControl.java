@@ -65,7 +65,6 @@ public final class AsyncNettyControl {
      */
     public static <T> Future<T> toNettyFuture(Promise<T> promise) {
         NettyVat vat = NettyVat.currentNettyVat();
-        Outcome<T> outcome = promise.getOutcome();
         DefaultPromise<T> rc = new DefaultPromise<>(vat.getEventLoop());
         promise.listen(vat, o -> {
             if (o.isSuccess()) {

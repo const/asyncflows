@@ -28,10 +28,10 @@ import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
-import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
+import org.asyncflows.io.net.ASocketFactoryProxyFactory;
 
 import java.net.SocketException;
 
@@ -72,6 +72,6 @@ public class BlockingSocketFactory implements ASocketFactory, NeedsExport<ASocke
 
     @Override
     public ASocketFactory export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return ASocketFactoryProxyFactory.createProxy(vat, this);
     }
 }

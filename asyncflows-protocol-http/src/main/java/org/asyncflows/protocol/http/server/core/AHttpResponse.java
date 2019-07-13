@@ -23,6 +23,7 @@
 
 package org.asyncflows.protocol.http.server.core;
 
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
@@ -40,6 +41,7 @@ import java.nio.ByteBuffer;
  * <p>The instance is specific to a particular request.</p>
  */
 @Internal
+@Asynchronous
 public interface AHttpResponse extends ACloseable {
     /**
      * Perform intermediate response with 10x code. This is a method that is invoked before

@@ -107,6 +107,7 @@ public final class AsyncContext {
      * @param <R>      the runner
      * @return the result of action
      */
+    @SuppressWarnings("squid:S1604")
     public static <R> R withDefaultContext(final BiFunction<ARunner, Vat, R> function) {
         final Vat current = Vat.currentOrNull();
         if (current != null) {

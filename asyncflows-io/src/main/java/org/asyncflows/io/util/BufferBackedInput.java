@@ -24,9 +24,9 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.CloseableBase;
@@ -139,7 +139,7 @@ public class BufferBackedInput<B extends Buffer> extends CloseableBase implement
 
     @Override
     public AInput<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AInputProxyFactory.createProxy(vat, this);
     }
 
 }

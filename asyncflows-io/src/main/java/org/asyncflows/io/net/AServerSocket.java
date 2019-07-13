@@ -24,6 +24,7 @@
 package org.asyncflows.io.net;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 import java.net.SocketAddress;
@@ -31,6 +32,7 @@ import java.net.SocketAddress;
 /**
  * A server socket.
  */
+@Asynchronous
 public interface AServerSocket extends ACloseable {
     /**
      * Bind to specified port and host.

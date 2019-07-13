@@ -24,11 +24,13 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AChannel;
+import org.asyncflows.io.AChannelProxyFactory;
 import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.AOutput;
+import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.ACloseable;
@@ -70,11 +72,11 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, NeedsExport<
     /**
      * The exported input.
      */
-    private final AInput<B> exportedInput = IOExportUtil.export(Vat.current(), input);
+    private final AInput<B> exportedInput = AInputProxyFactory.createProxy(Vat.current(), input);
     /**
      * The exported output.
      */
-    private final AOutput<B> exportedOutput = IOExportUtil.export(Vat.current(), output);
+    private final AOutput<B> exportedOutput = AOutputProxyFactory.createProxy(Vat.current(), output);
 
     /**
      * The constructor.
@@ -136,7 +138,7 @@ public class BufferedPipe<B extends Buffer> implements AChannel<B>, NeedsExport<
 
     @Override
     public AChannel<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AChannelProxyFactory.createProxy(vat, this);
     }
 
     /**

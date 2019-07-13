@@ -24,6 +24,7 @@
 package org.asyncflows.io.net;
 
 
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.core.Promise;
 
@@ -33,6 +34,7 @@ import java.nio.ByteBuffer;
 /**
  * The basic socket interface.
  */
+@Asynchronous
 public interface ASocket extends AChannel<ByteBuffer> {
     /**
      * Set socket options.

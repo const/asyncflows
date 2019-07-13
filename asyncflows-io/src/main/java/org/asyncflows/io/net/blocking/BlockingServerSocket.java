@@ -26,7 +26,6 @@ package org.asyncflows.io.net.blocking;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
-import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
 import org.asyncflows.core.Promise;
@@ -135,7 +134,7 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
 
     @Override
     public AServerSocket export() {
-        return SocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
+        return BlockingSocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
     }
 
     @Override

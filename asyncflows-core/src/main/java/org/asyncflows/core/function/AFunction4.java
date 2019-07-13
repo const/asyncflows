@@ -24,6 +24,8 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * The four argument function.
@@ -34,7 +36,15 @@ import org.asyncflows.core.Promise;
  * @param <D> the forth argument type
  * @param <R> the result type
  */
-public interface AFunction4<A, B, C, D, R> {
+@Asynchronous
+@FunctionalInterface
+public interface AFunction4<A, B, C, D, R> extends AsynchronousFunction<AFunction4<A, B, C, D, R>> {
+
+    @Override
+    default AFunction4<A, B, C, D, R> forceExport(Vat vat) {
+        return AFunction4ProxyFactory.createProxy(vat, this);
+    }
+
     /**
      * Invoke function.
      *
@@ -45,5 +55,6 @@ public interface AFunction4<A, B, C, D, R> {
      * @return the promise for result.
      * @throws Throwable if any failure
      */
+    @SuppressWarnings("squid:S00112")
     Promise<R> apply(A a, B b, C c, D d) throws Throwable;
 }

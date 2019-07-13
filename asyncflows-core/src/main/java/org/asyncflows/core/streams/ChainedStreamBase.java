@@ -83,6 +83,6 @@ public abstract class ChainedStreamBase<O, I extends ACloseable>
 
     @Override
     public AStream<O> export(final Vat vat) {
-        return StreamExportUtil.export(vat, this);
+        return AStreamProxyFactory.createProxy(vat, this);
     }
 }

@@ -91,11 +91,4 @@ public abstract class Vat implements Executor {
         active = false;
     }
 
-
-    /**
-     * Execute action on the vat from unknown context.
-     *
-     * @param action the action to action
-     */
-    public abstract void execute(final Runnable action);
 }

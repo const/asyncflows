@@ -23,6 +23,7 @@
 
 package org.asyncflows.protocol.websocket.core;
 
+import org.asyncflows.core.streams.AStreamProxyFactory;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.protocol.websocket.WebSocketMessage;
 import org.asyncflows.core.Promise;
@@ -30,7 +31,6 @@ import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.streams.AStream;
-import org.asyncflows.core.streams.StreamExportUtil;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
@@ -74,6 +74,6 @@ public class WebSocketInput extends CloseableInvalidatingBase
 
     @Override
     public AStream<WebSocketMessage> export(final Vat vat) {
-        return StreamExportUtil.export(vat, this);
+        return AStreamProxyFactory.createProxy(vat, this);
     }
 }

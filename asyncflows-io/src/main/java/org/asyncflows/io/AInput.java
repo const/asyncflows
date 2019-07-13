@@ -24,6 +24,7 @@
 package org.asyncflows.io;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 
 import java.nio.Buffer;
@@ -32,9 +33,8 @@ import java.nio.Buffer;
  * An input based on NIO buffers.
  *
  * @param <B> the buffer type
- *            <p>
- *            TODO buffer specific subtypes.
  */
+@Asynchronous
 public interface AInput<B extends Buffer> extends ACloseable {
     /**
      * Read some bytes into the buffer. Note that if there are some bytes in the buffer

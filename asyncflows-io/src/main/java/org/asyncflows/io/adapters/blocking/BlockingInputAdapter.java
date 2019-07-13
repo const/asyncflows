@@ -21,13 +21,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.adapters;
+package org.asyncflows.io.adapters.blocking;
 
 import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.io.AOutput;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 
@@ -36,17 +36,17 @@ import java.io.IOException;
 import java.nio.Buffer;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
-import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.CoreFlows.aValue;
 
 /**
- * The base class for blocking output adapters.
+ * The simple adapter for JDK input. The adapter is not thread safe.
  *
  * @param <B> the buffer type
- * @param <O> the output type
+ * @param <I> the input type
  * @param <A> the array type
  */
-public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeable, A>
-        extends CloseableAdapter<O> implements AOutput<B>, NeedsExport<AOutput<B>> {
+public abstract class BlockingInputAdapter<B extends Buffer, I extends Closeable, A>
+        extends CloseableAdapter<I> implements AInput<B>, NeedsExport<AInput<B>> {
     /**
      * The data array.
      */
@@ -55,9 +55,9 @@ public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeabl
     /**
      * The constructor.
      *
-     * @param stream the output stream
+     * @param stream the input stream
      */
-    public BlockingOutputAdapter(final O stream) {
+    public BlockingInputAdapter(final I stream) {
         super(stream);
     }
 
@@ -67,75 +67,62 @@ public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeabl
     protected abstract BufferOperations<B, A> operations();
 
     /**
-     * Write data to output from the array.
+     * Read data from input into the array.
      *
-     * @param output the output to write to
+     * @param input  the input to read from
      * @param array  the array
      * @param offset the offset in array
      * @param length the max length to read
-     * @throws java.io.IOException in case of IO problem
-     */
-    protected abstract void write(O output, A array, int offset, int length) throws IOException;
-
-    /**
-     * Flush the stream.
-     *
-     * @param output the output
+     * @return the read size
      * @throws IOException in case of IO problem
      */
-    protected abstract void flush(O output) throws IOException;
+    protected abstract int read(I input, A array, int offset, int length) throws IOException;
 
     @Override
-    public final Promise<Void> write(final B buffer) {
+    public final Promise<Integer> read(final B buffer) {
         if (buffer.remaining() == 0) {
-            return aVoid();
+            return aValue(0);
         }
         final BufferOperations<B, A> operations = operations();
-        try {
-            if (buffer.hasArray()) {
-                final A b = operations.array(buffer);
-                final int offset = buffer.arrayOffset();
-                final int length = buffer.remaining();
-                write(stream, b, offset, length);
-                buffer.position(buffer.position() + length);
-            } else {
-                if (dataArray == null) {
-                    dataArray = operations.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
-                }
-                final A b = dataArray;
-                final int offset = 0;
-                int length;
-                do {
-                    length = Math.min(IOUtil.DEFAULT_BUFFER_SIZE, buffer.remaining());
-                    operations.get(buffer, b, offset, length);
-                    write(stream, b, offset, length);
-                } while (buffer.hasRemaining());
+        A b;
+        int offset;
+        int length;
+        if (buffer.hasArray()) {
+            b = operations.array(buffer);
+            offset = buffer.arrayOffset();
+            length = buffer.remaining();
+        } else {
+            if (dataArray == null) {
+                dataArray = operations.allocate(IOUtil.DEFAULT_BUFFER_SIZE);
             }
-            return aVoid();
-        } catch (IOException ex) {
-            return aFailure(ex);
+            b = dataArray;
+            offset = 0;
+            length = Math.min(IOUtil.DEFAULT_BUFFER_SIZE, buffer.remaining());
         }
-    }
-
-    @Override
-    public final Promise<Void> flush() {
         try {
-            flush(stream);
-            return aVoid();
+            final int rc = read(stream, b, offset, length);
+            if (rc > 0) {
+                if (buffer.hasArray()) {
+                    buffer.position(buffer.position() + rc);
+                } else {
+                    operations.put(buffer, b, offset, rc);
+                }
+            }
+            return aValue(rc);
         } catch (IOException e) {
             return aFailure(e);
         }
     }
 
     @Override
-    public final AOutput<B> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+    public final AInput<B> export(final Vat vat) {
+        return AInputProxyFactory.createProxy(vat, this);
     }
 
     /**
      * @return the proxy for blocking stream
      */
-    public final AOutput<B> exportBlocking() {
-        return IOExportUtil.exportBlocking(this);
+    public final AInput<B> exportBlocking() {
+        return BlockingIOExportUtil.exportBlocking(this);
     }
 }

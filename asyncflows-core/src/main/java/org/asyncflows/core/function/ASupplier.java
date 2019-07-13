@@ -24,19 +24,29 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * Asynchronous supplier.
  *
  * @param <R> the result type
  */
+@Asynchronous
 @FunctionalInterface
-public interface ASupplier<R> {
+public interface ASupplier<R> extends AsynchronousFunction<ASupplier<R>>{
+
+    @Override
+    default ASupplier<R> forceExport(Vat vat) {
+        return ASupplierProxyFactory.createProxy(vat, this);
+    }
+
     /**
      * Get result.
      *
      * @return the promise for result.
      * @throws Throwable if any problem
      */
+    @SuppressWarnings("squid:S00112")
     Promise<R> get() throws Throwable;
 }

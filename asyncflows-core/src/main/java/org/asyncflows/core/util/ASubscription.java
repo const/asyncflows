@@ -23,13 +23,21 @@
 
 package org.asyncflows.core.util;
 
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
+import org.asyncflows.core.function.AsynchronousFunction;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * Special variant of closeable that represents usage of some resource w/o direct access to it.
  * Do not extend this interface. If you need to add some methods, just directly extend {@link ACloseable}.
  * This object should be returned when adding listeners to some objects.
  */
-public interface ASubscription extends ACloseable {
-
+@Asynchronous
+@FunctionalInterface
+public interface ASubscription extends ACloseable, AsynchronousFunction<ASubscription> {
+    @Override
+    default ASubscription forceExport(Vat vat) {
+        return ASubscriptionProxyFactory.createProxy(vat, this);
+    }
 }

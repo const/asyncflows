@@ -24,6 +24,8 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
  * The three argument function.
@@ -33,7 +35,15 @@ import org.asyncflows.core.Promise;
  * @param <C> the third argument type
  * @param <R> the result type
  */
-public interface AFunction3<A, B, C, R> {
+@Asynchronous
+@FunctionalInterface
+public interface AFunction3<A, B, C, R> extends AsynchronousFunction<AFunction3<A, B, C, R>>  {
+
+    @Override
+    default AFunction3<A, B, C, R> forceExport(Vat vat) {
+        return AFunction3ProxyFactory.createProxy(vat, this);
+    }
+
     /**
      * Invoke function.
      *
@@ -43,5 +53,6 @@ public interface AFunction3<A, B, C, R> {
      * @return the promise for result.
      * @throws Throwable if any failure
      */
+    @SuppressWarnings("squid:S00112")
     Promise<R> apply(A a, B b, C c) throws Throwable;
 }

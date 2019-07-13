@@ -29,7 +29,8 @@ import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
-import org.asyncflows.io.net.SocketExportUtil;
+import org.asyncflows.io.net.ASocketFactoryProxyFactory;
+import org.asyncflows.io.net.ASocketProxyFactory;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.protocol.http.client.AHttpClient;
 import org.asyncflows.protocol.http.client.AHttpRequest;
@@ -100,7 +101,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
 
     @Override
     public ASocketFactory export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return ASocketFactoryProxyFactory.createProxy(vat, this);
     }
 
 
@@ -227,7 +228,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
 
         @Override
         public ASocket export(final Vat vat) {
-            return SocketExportUtil.export(vat, this);
+            return ASocketProxyFactory.createProxy(vat, this);
         }
     }
 }

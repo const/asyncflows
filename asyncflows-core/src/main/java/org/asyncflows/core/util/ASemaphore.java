@@ -24,10 +24,12 @@
 package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 
 /**
  * Semaphore.
  */
+@Asynchronous
 public interface ASemaphore {
     /**
      * Release permits.

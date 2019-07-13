@@ -21,35 +21,29 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.adapters;
+package org.asyncflows.core.function;
 
-import org.asyncflows.io.BufferOperations;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.CharBuffer;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.vats.Vat;
 
 /**
- * The simple adapter for Reader. The adapter is not thread safe.
+ * A one-way action. The difference from runnable is that any exception is allowed,
+ * including checked exception and errors.
  */
-public class ReaderAdapter extends BlockingInputAdapter<CharBuffer, Reader, char[]> {
+@Asynchronous
+@FunctionalInterface
+public interface AOneWayAction extends AsynchronousFunction<AOneWayAction> {
+
+    @Override
+    default AOneWayAction forceExport(Vat vat) {
+        return AOneWayActionProxyFactory.createProxy(vat, this);
+    }
+
     /**
-     * The constructor.
+     * Run action.
      *
-     * @param stream the reader
+     * @throws Throwable if any problem
      */
-    public ReaderAdapter(final Reader stream) {
-        super(stream);
-    }
-
-    @Override
-    protected final BufferOperations<CharBuffer, char[]> operations() {
-        return BufferOperations.CHAR;
-    }
-
-    @Override
-    protected final int read(final Reader input, final char[] array, final int offset, final int length)
-            throws IOException {
-        return input.read(array, offset, length);
-    }
+    @SuppressWarnings("squid:S00112")
+    void run() throws Throwable;
 }

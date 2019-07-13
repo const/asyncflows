@@ -75,7 +75,7 @@ public final class FunctionExporter {
      * @return the wrapper resolver
      */
     public static <T> AResolver<T> exportResolver(final Vat vat, final AResolver<T> resolver) {
-        return o -> vat.execute(() -> resolver.resolve(o));
+        return AResolverProxyFactory.createProxy(vat, resolver);
     }
 
     /**
@@ -99,7 +99,7 @@ public final class FunctionExporter {
      * @return the exported supplier
      */
     public static <T> ASupplier<T> exportSupplier(final Vat vat, final ASupplier<T> supplier) {
-        return () -> aLater(vat, supplier);
+        return ASupplierProxyFactory.createProxy(vat, supplier);
     }
 
     /**

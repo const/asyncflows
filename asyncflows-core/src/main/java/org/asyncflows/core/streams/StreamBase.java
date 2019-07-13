@@ -69,10 +69,11 @@ public abstract class StreamBase<A> extends CloseableInvalidatingBase implements
      * @return the next produced element
      * @throws Throwable in case if the next element could not be produced.
      */
+    @SuppressWarnings("squid:S00112")
     protected abstract Promise<Maybe<A>> produce() throws Throwable;
 
     @Override
     public AStream<A> export(final Vat vat) {
-        return StreamExportUtil.export(vat, this);
+        return AStreamProxyFactory.createProxy(vat, this);
     }
 }

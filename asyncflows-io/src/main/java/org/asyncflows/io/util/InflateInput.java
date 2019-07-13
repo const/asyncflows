@@ -24,8 +24,8 @@
 package org.asyncflows.io.util;
 
 import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.IOExportUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.vats.Vat;
@@ -222,6 +222,6 @@ public class InflateInput extends CloseableInvalidatingBase implements
 
     @Override
     public AInput<ByteBuffer> export(final Vat vat) {
-        return IOExportUtil.export(vat, this);
+        return AInputProxyFactory.createProxy(vat, this);
     }
 }

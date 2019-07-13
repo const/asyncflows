@@ -23,6 +23,8 @@
 
 package org.asyncflows.core;
 
+import java.util.Objects;
+
 /**
  * The failure outcome.
  *
@@ -92,18 +94,12 @@ public final class Failure<T> extends Outcome<T> {
 
         final Failure failure1 = (Failure) o;
 
-        //noinspection RedundantIfStatement
-        if (!failure.equals(failure1.failure)) {  // NOPMD
-
-            return false;
-        }
-
-        return true;
+        return Objects.equals(failure, failure1.failure);
     }
 
     @Override
     public int hashCode() {
-        return failure.hashCode();
+        return Objects.hashCode(failure);
     }
 
     @Override

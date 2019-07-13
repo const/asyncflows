@@ -195,7 +195,7 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
 
     @Override
     public AllStreamBuilder<T> window(final int size) {
-        return new AllStreamBuilder<T>(outcomeSink.window(size));
+        return new AllStreamBuilder<>(outcomeSink.window(size));
     }
 
     @Override

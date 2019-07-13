@@ -25,6 +25,7 @@ package org.asyncflows.core.time;
 
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
@@ -33,6 +34,7 @@ import org.asyncflows.core.function.FunctionExporter;
 import org.asyncflows.core.streams.AStream;
 import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.streams.AsyncStreams;
+import org.asyncflows.core.util.AsynchronousService;
 import org.asyncflows.core.util.SimpleQueue;
 
 import java.lang.ref.PhantomReference;
@@ -58,7 +60,9 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  * <p>
  * The timer keeps track of its streams and auto-close them if they become unreferenced.
  */
-public class Timer implements ATimer {
+@ThreadSafe
+@SuppressWarnings("squid:S1700")
+public class Timer implements ATimer, AsynchronousService {
     // DO NOT REPEAT DANGEROUS DESIGN PATTERNS FROM THIS CLASS, UNLESS YOU KNOW WHAT YOU ARE DOING
     /**
      * The counter for anonymous timers.

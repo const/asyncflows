@@ -24,6 +24,7 @@
 package org.asyncflows.protocol.http.client;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.io.AOutput;
@@ -39,6 +40,7 @@ import java.nio.ByteBuffer;
  *
  * @see org.asyncflows.protocol.http.common.HttpScopeUtil for addtional keys.
  */
+@Asynchronous
 public interface AHttpRequest extends ACloseable {
     // TODO additional transfer encodings
     /**

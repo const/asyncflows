@@ -25,6 +25,7 @@ package org.asyncflows.tracker;
 
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.ASubscription;
 
@@ -35,6 +36,7 @@ import java.util.function.Consumer;
  *
  * @param <T> the tracker element type
  */
+@Asynchronous
 public interface ATracker<T> {
     /**
      * @return the promise for the current value if it is already available.

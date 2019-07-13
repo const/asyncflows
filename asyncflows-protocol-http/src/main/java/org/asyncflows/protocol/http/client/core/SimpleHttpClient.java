@@ -30,6 +30,7 @@ import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.protocol.http.client.AHttpClient;
+import org.asyncflows.protocol.http.client.AHttpClientProxyFactory;
 import org.asyncflows.protocol.http.client.AHttpRequest;
 import org.asyncflows.protocol.http.client.HttpResponse;
 import org.asyncflows.protocol.http.common.HttpLimits;
@@ -264,6 +265,11 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
     protected Promise<Void> closeAction() {
         return aForIterable(new ArrayList<>(connections.values())).all()
                 .flatMapIterable(value -> aValue(new ArrayList<>(value))).map(ACloseable::close).toVoid();
+    }
+
+    @Override
+    public AHttpClient export(Vat vat) {
+        return AHttpClientProxyFactory.createProxy(vat, this);
     }
 
 

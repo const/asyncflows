@@ -24,9 +24,12 @@
 package org.asyncflows.core;
 
 import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.AOneWayAction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.Vat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -39,6 +42,10 @@ import static org.asyncflows.core.vats.Vats.defaultVat;
  * Basic asynchronous control constructs.
  */
 public final class CoreFlows {
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoreFlows.class);
     /**
      * The constant promise NULL.
      */
@@ -205,12 +212,37 @@ public final class CoreFlows {
     }
 
     /**
-     * Send even to the default vat.
+     * Send event to the default vat.
      *
      * @param action the action
      */
     public static void aSend(final Runnable action) {
         defaultVat().execute(action);
+    }
+
+    /**
+     * Send one-way action to vat.
+     *
+     * @param vat    the vat
+     * @param action the action
+     */
+    public static void aOneWay(final Vat vat, final AOneWayAction action) {
+        vat.execute(() -> {
+            try {
+                action.run();
+            } catch (Throwable throwable) {
+                LOGGER.error("One-way action failed", throwable);
+            }
+        });
+    }
+
+    /**
+     * Send even to the default vat.
+     *
+     * @param action the action
+     */
+    public static void aOneWay(final AOneWayAction action) {
+        aOneWay(defaultVat(), action);
     }
 
     /**

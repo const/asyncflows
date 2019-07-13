@@ -24,6 +24,7 @@
 package org.asyncflows.core.streams;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ACloseable;
 
@@ -33,6 +34,7 @@ import org.asyncflows.core.function.ACloseable;
  *
  * @param <T> the stream element type
  */
+@Asynchronous
 public interface AStream<T> extends ACloseable {
     /**
      * <p>The next element in the stream. Note that the stream might contain errors. After EOF is returned,

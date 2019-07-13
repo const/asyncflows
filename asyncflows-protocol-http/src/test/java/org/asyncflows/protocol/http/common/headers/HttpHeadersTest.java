@@ -23,7 +23,7 @@
 
 package org.asyncflows.protocol.http.common.headers;
 
-import org.asyncflows.io.adapters.Adapters;
+import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.common.HttpLimits;

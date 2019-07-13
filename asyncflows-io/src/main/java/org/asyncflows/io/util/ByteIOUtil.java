@@ -27,7 +27,7 @@ import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.adapters.Adapters;
+import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;

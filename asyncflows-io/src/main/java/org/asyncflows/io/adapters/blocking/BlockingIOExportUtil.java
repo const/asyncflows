@@ -21,11 +21,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io;
+package org.asyncflows.io.adapters.blocking;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AOutput;
 
 import java.nio.Buffer;
 
@@ -35,50 +37,11 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 /**
  * The export utilities.
  */
-public final class IOExportUtil {
+public final class BlockingIOExportUtil {
     /**
      * Private constructor for utility class.
      */
-    private IOExportUtil() {
-    }
-
-    /**
-     * Export channel.
-     *
-     * @param vat     the target vat
-     * @param channel the channel to export
-     * @param <B>     the buffer type
-     * @return the exported channel
-     */
-    public static <B extends Buffer> AChannel<B> export(final Vat vat, final AChannel<B> channel) {
-        return new AChannel<B>() {
-            @Override
-            public Promise<AInput<B>> getInput() {
-                return aLater(vat, channel::getInput);
-            }
-
-            @Override
-            public Promise<AOutput<B>> getOutput() {
-                return aLater(vat, channel::getOutput);
-            }
-
-            @Override
-            public Promise<Void> close() {
-                return closeResource(vat, channel);
-            }
-        };
-    }
-
-    /**
-     * Export input stream.
-     *
-     * @param vat   the target vat
-     * @param input the input
-     * @param <B>   the buffer type
-     * @return exported stream
-     */
-    public static <B extends Buffer> AInput<B> export(final Vat vat, final AInput<B> input) {
-        return exportInput(input, vat, vat);
+    private BlockingIOExportUtil() {
     }
 
     /**
@@ -117,18 +80,6 @@ public final class IOExportUtil {
                 return closeResource(closeVat, input);
             }
         };
-    }
-
-    /**
-     * Export output stream.
-     *
-     * @param vat   the target vat
-     * @param input the input
-     * @param <B>   the buffer type
-     * @return exported stream
-     */
-    public static <B extends Buffer> AOutput<B> export(final Vat vat, final AOutput<B> input) {
-        return exportOutput(input, vat, vat);
     }
 
     /**

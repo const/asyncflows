@@ -75,6 +75,6 @@ public abstract class ChainedSinkBase<I, U extends ACloseable> extends ChainedCl
 
     @Override
     public ASink<I> export(final Vat vat) {
-        return StreamExportUtil.export(vat, this);
+        return ASinkProxyFactory.createProxy(vat, this);
     }
 }

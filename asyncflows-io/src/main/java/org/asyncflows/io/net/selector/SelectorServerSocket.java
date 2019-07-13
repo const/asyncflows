@@ -24,8 +24,8 @@
 package org.asyncflows.io.net.selector;
 
 import org.asyncflows.io.net.AServerSocket;
+import org.asyncflows.io.net.AServerSocketProxyFactory;
 import org.asyncflows.io.net.ASocket;
-import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
@@ -146,12 +146,7 @@ class SelectorServerSocket extends CloseableBase implements AServerSocket, Needs
     }
 
     @Override
-    public AServerSocket export() {
-        return export(Vat.current());
-    }
-
-    @Override
     public AServerSocket export(final Vat vat) {
-        return SocketExportUtil.export(vat, this);
+        return AServerSocketProxyFactory.createProxy(vat, this);
     }
 }

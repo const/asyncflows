@@ -26,10 +26,9 @@ package org.asyncflows.io.net.blocking;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
-import org.asyncflows.io.adapters.InputStreamAdapter;
-import org.asyncflows.io.adapters.OutputStreamAdapter;
+import org.asyncflows.io.adapters.blocking.InputStreamAdapter;
+import org.asyncflows.io.adapters.blocking.OutputStreamAdapter;
 import org.asyncflows.io.net.ASocket;
-import org.asyncflows.io.net.SocketExportUtil;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
 import org.asyncflows.core.Promise;
@@ -147,7 +146,7 @@ public class BlockingSocket extends CloseableInvalidatingBase implements ASocket
 
     @Override
     public ASocket export() {
-        return SocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
+        return BlockingSocketExportUtil.export(Vats.daemonVat(), Vats.daemonVat(), this);
     }
 
     @Override
