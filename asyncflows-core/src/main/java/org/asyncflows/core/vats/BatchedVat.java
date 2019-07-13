@@ -26,6 +26,9 @@ package org.asyncflows.core.vats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * The batched vat. It it implements internally a queue of action that is optimized for
  * multiple-writers-single-reader usage pattern.
@@ -40,29 +43,17 @@ public abstract class BatchedVat extends Vat {
      */
     private static final Logger LOG = LoggerFactory.getLogger(BatchedVat.class);
     /**
-     * The vat lock.
-     */
-    private final Object lock = new Object();
-    /**
      * The batch size to execute.
      */
     private final int batchSize;
     /**
-     * The synchronized head, used for access from other vats.
+     * The queue.
      */
-    private Cell head;
-    /**
-     * The synchronized tail, used for access from other vats.
-     */
-    private Cell tail;
-    /**
-     * Execution head, used for access from this vat.
-     */
-    private Cell execHead;
+    private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
     /**
      * If true, the vat is scheduled.
      */
-    private boolean scheduled;
+    private final AtomicBoolean scheduled = new AtomicBoolean();
 
     /**
      * The constructor with default batch size.
@@ -87,23 +78,8 @@ public abstract class BatchedVat extends Vat {
      */
     @Override
     public final void execute(final Runnable action) {
-        final Cell cell = new Cell(action);
-        final boolean scheduleNeeded;
-        synchronized (lock) {
-            final Cell previousTail = this.tail;
-            if (previousTail == null) {
-                this.head = cell;
-                this.tail = cell;
-            } else {
-                previousTail.next = cell;
-                this.tail = cell;
-            }
-            scheduleNeeded = !this.scheduled;
-            if (scheduleNeeded) {
-                this.scheduled = true;
-            }
-        }
-        if (scheduleNeeded) {
+        queue.add(action);
+        if (scheduled.compareAndSet(false, true)) {
             schedule();
         }
     }
@@ -122,70 +98,31 @@ public abstract class BatchedVat extends Vat {
     @SuppressWarnings("squid:S3776")
     protected final boolean runBatch() {
         enter();
-        boolean scheduleNeeded;
+        boolean scheduledRun = false;
         try {
             for (int step = batchSize; step > 0; step--) {
-                Cell current = execHead;
-                if (current == null) {
-                    synchronized (lock) {
-                        current = head;
-                        if (current == null) {
-                            break;
-                        }
-                        if (current.next != null) {
-                            execHead = current.next;
-                        }
-                        head = null;
-                        tail = null;
-                    }
-                } else {
-                    if (current.next != null) {
-                        execHead = current.next;
-                    } else {
-                        execHead = null;
-                    }
+                final Runnable action = queue.poll();
+                if (action == null) {
+                    break;
                 }
                 try {
-                    current.action.run();
+                    action.run();
                 } catch (Throwable t) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Error while executing action: " + current.action, t);
+                        LOG.debug("Error while executing action: " + action, t);
                     }
                 }
             }
         } finally {
             leave();
-            synchronized (lock) {
-                scheduleNeeded = !this.scheduled && (execHead != null || head != null);
-                this.scheduled = scheduleNeeded;
-            }
-            if (scheduleNeeded) {
-                schedule();
+            scheduled.set(false);
+            if (!queue.isEmpty()) {
+                if (scheduled.compareAndSet(false, true)) {
+                    schedule();
+                }
+                scheduledRun = true;
             }
         }
-        return scheduleNeeded;
-    }
-
-    /**
-     * The queue cell.
-     */
-    private static final class Cell {
-        /**
-         * The action for the cell.
-         */
-        private final Runnable action;
-        /**
-         * The next cell.
-         */
-        private Cell next;
-
-        /**
-         * The constructor.
-         *
-         * @param submittedAction the action
-         */
-        private Cell(final Runnable submittedAction) {
-            this.action = submittedAction;
-        }
+        return scheduledRun;
     }
 }
