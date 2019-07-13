@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -37,7 +37,7 @@ import org.asyncflows.core.vats.Vat;
  */
 @Asynchronous
 @FunctionalInterface
-public interface AFunction3<A, B, C, R> extends AsynchronousFunction<AFunction3<A, B, C, R>>  {
+public interface AFunction3<A, B, C, R> extends AsynchronousFunction<AFunction3<A, B, C, R>> {
 
     @Override
     default AFunction3<A, B, C, R> forceExport(Vat vat) {

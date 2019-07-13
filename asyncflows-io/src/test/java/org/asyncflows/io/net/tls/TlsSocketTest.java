@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,15 +23,15 @@
 
 package org.asyncflows.io.net.tls;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Tuple2;
+import org.asyncflows.core.data.Tuple3;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.selector.SelectorVatUtil;
 import org.asyncflows.io.util.AbstractDigestingStream;
 import org.asyncflows.io.util.LimitedInput;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Tuple2;
-import org.asyncflows.core.data.Tuple3;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLEngine;
@@ -40,13 +40,13 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static org.asyncflows.io.net.SocketUtil.aTrySocket;
-import static org.asyncflows.io.util.DigestingInput.digestAndDiscardInput;
-import static org.asyncflows.io.util.DigestingOutput.digestOutput;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.asyncflows.core.util.CoreFlowsResource.aTry;
+import static org.asyncflows.io.net.SocketUtil.aTrySocket;
+import static org.asyncflows.io.util.DigestingInput.digestAndDiscardInput;
+import static org.asyncflows.io.util.DigestingOutput.digestOutput;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

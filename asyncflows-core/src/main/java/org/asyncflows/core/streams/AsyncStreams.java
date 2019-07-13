@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -36,6 +36,7 @@ import java.util.stream.Stream;
  */
 public final class AsyncStreams {
     // TODO add support for JDK8 stream API
+
     /**
      * The private constructor for utility class.
      */
@@ -56,8 +57,8 @@ public final class AsyncStreams {
     /**
      * Stream builder from iterable object.
      *
-     * @param start the start of range
-     * @param endExclusive   the end of range (not included)
+     * @param start        the start of range
+     * @param endExclusive the end of range (not included)
      * @return the stream builder for the iterator.
      */
     public static PullStreamBuilder<Integer> aForRange(final int start, final int endExclusive) {

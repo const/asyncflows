@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,9 @@
 
 package org.asyncflows.protocol.http.common.content;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.AResolver;
 import org.asyncflows.io.BufferOperations;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.util.ByteParserContext;
@@ -33,13 +36,9 @@ import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.protocol.http.common.HttpLimits;
 import org.asyncflows.protocol.http.common.HttpRuntimeUtil;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Maybe;
-import org.asyncflows.core.function.AResolver;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.io.IOUtil.isEof;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
@@ -48,6 +47,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifyResolver;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.io.IOUtil.isEof;
 
 /**
  * The chunked input.

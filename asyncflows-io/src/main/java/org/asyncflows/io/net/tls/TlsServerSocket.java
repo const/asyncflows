@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,15 +23,15 @@
 
 package org.asyncflows.io.net.tls;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.util.ChainedClosable;
+import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.AServerSocketProxyFactory;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketOptions;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
 
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;

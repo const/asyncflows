@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,13 +23,13 @@
 
 package org.asyncflows.protocol.http.common.headers; // NOPMD
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.protocol.ProtocolException;
 import org.asyncflows.protocol.ProtocolLimitExceededException;
 import org.asyncflows.protocol.ProtocolStreamTruncatedException;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.function.ASupplier;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -41,14 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.protocol.LineUtil.CR;
 import static org.asyncflows.protocol.LineUtil.CRLF;
 import static org.asyncflows.protocol.LineUtil.LF;
 import static org.asyncflows.protocol.LineUtil.MAX_ISO_8859_1;
 import static org.asyncflows.protocol.LineUtil.isBlank;
 import static org.asyncflows.protocol.LineUtil.writeLatin1;
-import static org.asyncflows.core.CoreFlows.aFalse;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The HTTP headers structure. The structure is keeping headers in the normalized form.

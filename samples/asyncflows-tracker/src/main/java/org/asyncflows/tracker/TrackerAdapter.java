@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -61,7 +61,8 @@ public final class TrackerAdapter<A> implements Consumer<Outcome<A>> {
 
     /**
      * The constructor.
-     * @param tracker the wrapped tracker
+     *
+     * @param tracker  the wrapped tracker
      * @param onChange the callback invoked on change
      */
     public TrackerAdapter(ATracker<A> tracker, Runnable onChange) {

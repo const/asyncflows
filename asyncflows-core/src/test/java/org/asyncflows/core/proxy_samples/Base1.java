@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -32,9 +32,14 @@ import java.util.Collection;
 @Asynchronous
 public interface Base1<A extends Serializable> {
     Promise<Collection<A>> test(A arg);
+
     <T extends A> T a1(T a);
+
     <T> T a2(T a);
+
     <T extends Collection<? super A>> T get();
+
     A test1();
+
     Object test();
 }

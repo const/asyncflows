@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,14 +23,14 @@
 
 package org.asyncflows.protocol.http.common.content;
 
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.util.ByteParserContext;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.RequestQueue;
 
 import java.nio.ByteBuffer;
 

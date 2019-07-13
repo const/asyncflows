@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,10 +23,10 @@
 
 package org.asyncflows.protocol.http.common;
 
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.common.headers.TransferEncoding;
-import org.asyncflows.core.function.ASupplier;
 
 import javax.net.ssl.SSLSession;
 import java.util.List;

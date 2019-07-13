@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,10 +23,10 @@
 
 package org.asyncflows.protocol.http.common.content;
 
-import org.asyncflows.io.util.ByteGeneratorContext;
-import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
+import org.asyncflows.io.util.ByteGeneratorContext;
+import org.asyncflows.protocol.http.HttpException;
 
 import java.nio.ByteBuffer;
 

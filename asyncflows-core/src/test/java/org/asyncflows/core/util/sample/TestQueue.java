@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -42,7 +42,7 @@ public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
 
     private void invariantCheck() {
         // checks that queue invariant holds
-        if(!elements.isEmpty() && !resolvers.isEmpty()) {
+        if (!elements.isEmpty() && !resolvers.isEmpty()) {
             throw new IllegalStateException("BUG: one of the collections should be empty");
         }
     }

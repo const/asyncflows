@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -36,9 +36,9 @@ import static org.asyncflows.core.CoreFlows.aOutcome;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
-import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 
 /**
  * The stream utilities.

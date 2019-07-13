@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -170,7 +170,7 @@ public class BinaryReader {
                 return 1;
             }
             int i = context.getOctet();
-            output.accept(model, (byte)i);
+            output.accept(model, (byte) i);
             return 0;
         };
     }
@@ -225,7 +225,6 @@ public class BinaryReader {
             }
         });
     }
-
 
 
     /**

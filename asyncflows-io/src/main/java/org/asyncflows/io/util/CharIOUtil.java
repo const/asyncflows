@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,21 +23,21 @@
 
 package org.asyncflows.io.util;
 
-import org.asyncflows.io.AInput;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.io.AInput;
 
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
-import static org.asyncflows.io.IOUtil.isEof;
 import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.io.IOUtil.isEof;
 
 /**
  * Character IO utilities.

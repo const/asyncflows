@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -34,9 +34,9 @@ import java.nio.ByteBuffer;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aValue;
-import static org.asyncflows.core.util.FailFast.failFast;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.core.util.FailFast.failFast;
 import static org.asyncflows.io.IOUtil.isEof;
 
 public class IOSample {
@@ -86,20 +86,20 @@ public class IOSample {
                 () -> aSeqWhile(
                         () -> failFast.run(readQueue::take).flatMap(
                                 b -> failFast.run(() -> input.read(b)).flatMap(c -> {
-                            if (isEof(c)) {
-                                writeQueue.put(null);
-                                return aFalse();
-                            } else {
-                                result[0] += c;
-                                writeQueue.put(b);
-                                return aTrue();
-                            }
-                        }))
+                                    if (isEof(c)) {
+                                        writeQueue.put(null);
+                                        return aFalse();
+                                    } else {
+                                        result[0] += c;
+                                        writeQueue.put(b);
+                                        return aTrue();
+                                    }
+                                }))
                 )
         ).and(
                 () -> aSeqWhile(
                         () -> failFast.run(writeQueue::take).flatMap(b -> {
-                            if(b == null) {
+                            if (b == null) {
                                 return aFalse();
                             } else {
                                 b.flip();

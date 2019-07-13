@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,8 +23,8 @@
 
 package org.asyncflows.io.net.blocking;
 
-import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.core.function.AFunction;
+import org.asyncflows.io.net.ASocketFactory;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
 import static org.asyncflows.core.AsyncContext.doAsyncThrowable;

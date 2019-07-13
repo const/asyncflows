@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,9 +29,9 @@ import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.util.CoreFlowsResource;
 import org.asyncflows.core.util.ProducerUtil;
 import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.util.ArrayDeque;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -50,13 +50,13 @@ public class SemaphoreTest {
             final ASemaphore semaphore = new Semaphore(0).export();
             //noinspection Convert2MethodRef
             return aAll(() ->
-                            aSeq(
-                                    () -> semaphore.acquire().listen(o -> result.add(1))
-                            ).thenDo(
-                                    () -> semaphore.acquire(3).listen(o -> result.add(2))
-                            ).thenDoLast(
-                                    () -> semaphore.acquire().listen(o -> result.add(3))
-                            )
+                    aSeq(
+                            () -> semaphore.acquire().listen(o -> result.add(1))
+                    ).thenDo(
+                            () -> semaphore.acquire(3).listen(o -> result.add(2))
+                    ).thenDoLast(
+                            () -> semaphore.acquire().listen(o -> result.add(3))
+                    )
             ).andLast(() ->
                     aSeq(
                             () -> aForRange(0, 10).toVoid()
@@ -79,7 +79,7 @@ public class SemaphoreTest {
                     })).toVoid();
         });
         assertSame(null, t);
-        assertEquals(Arrays.asList(-1, 1, -2, -3,  2, 3), result);
+        assertEquals(Arrays.asList(-1, 1, -2, -3, 2, 3), result);
     }
 
     @Test

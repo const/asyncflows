@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,10 @@
 
 package org.asyncflows.protocol.http.core.handlers;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.util.LogUtil;
+import org.asyncflows.core.util.ResourceClosedException;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
@@ -39,10 +43,6 @@ import org.asyncflows.protocol.http.server.HttpExchange;
 import org.asyncflows.protocol.http.server.HttpHandlerBase;
 import org.asyncflows.protocol.http.server.core.ExchangeFinishedEvent;
 import org.asyncflows.protocol.http.server.util.ResponseUtil;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.util.LogUtil;
-import org.asyncflows.core.util.ResourceClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +50,12 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.io.net.SocketUtil.aTrySocket;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.io.net.SocketUtil.aTrySocket;
 
 /**
  * Simple connect handler that implements switch protocol action.

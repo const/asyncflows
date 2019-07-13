@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,14 +23,14 @@
 
 package org.asyncflows.io.text;
 
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.streams.AStream;
 import org.asyncflows.core.streams.ChainedStreamBase;
 import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.IOUtil;
+import org.asyncflows.io.util.CharIOUtil;
 
 import java.nio.CharBuffer;
 

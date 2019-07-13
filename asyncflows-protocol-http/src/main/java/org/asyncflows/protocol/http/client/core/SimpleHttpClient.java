@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,7 +23,16 @@
 
 package org.asyncflows.protocol.http.client.core; // NOPMD
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Cell;
+import org.asyncflows.core.function.ACloseable;
+import org.asyncflows.core.util.CloseableBase;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
+import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.ObjectExporter;
+import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.core.util.ResourceClosedException;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.ASocketFactory;
@@ -38,15 +47,6 @@ import org.asyncflows.protocol.http.common.HttpURIUtil;
 import org.asyncflows.protocol.http.common.Scope;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Cell;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.ResourceClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -544,17 +544,17 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
             }
             connectionList.add(this);
             aSeq(() -> requests.runSeqWhile(
-                            () -> requests.suspend().thenFlatGet(() -> {
-                                if (!isOpen()) {
-                                    return aFalse();
-                                }
-                                if (nextRequest != null) {
-                                    return aTrue();
-                                } else {
-                                    return nextRequest();
-                                }
+                    () -> requests.suspend().thenFlatGet(() -> {
+                        if (!isOpen()) {
+                            return aFalse();
+                        }
+                        if (nextRequest != null) {
+                            return aTrue();
+                        } else {
+                            return nextRequest();
+                        }
 
-                            }))
+                    }))
             ).finallyDo(this::close).listen(resolution -> {
                 if (resolution.isSuccess()) {
                     if (LOG.isDebugEnabled()) {

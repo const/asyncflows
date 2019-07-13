@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,19 +23,19 @@
 
 package org.asyncflows.protocol.http.common.content;
 
-import org.asyncflows.io.util.ByteGeneratorContext;
-import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.io.util.ByteGeneratorContext;
+import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 
 import java.nio.ByteBuffer;
 
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.protocol.LineUtil.CR;
 import static org.asyncflows.protocol.LineUtil.CRLF;
 import static org.asyncflows.protocol.LineUtil.LF;
 import static org.asyncflows.protocol.LineUtil.writeASCII;
-import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The chunked output.

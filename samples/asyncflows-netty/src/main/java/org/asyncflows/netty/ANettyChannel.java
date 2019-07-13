@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,7 +28,8 @@ import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.streams.ASink;
 import org.asyncflows.core.streams.AStream;
 
-public interface ANettyChannel<I, O> extends ACloseable  {
+public interface ANettyChannel<I, O> extends ACloseable {
     Promise<AStream<I>> getInput();
+
     Promise<ASink<O>> getOutput();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -33,10 +33,10 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import static org.asyncflows.core.CoreFlows.aNow;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The asynchronous request queue. It is is similar to non-reentrant mutex.

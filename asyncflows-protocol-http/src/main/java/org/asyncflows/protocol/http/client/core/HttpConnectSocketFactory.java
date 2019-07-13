@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,11 @@
 
 package org.asyncflows.protocol.http.client.core;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.ACloseable;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
+import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.net.ADatagramSocket;
@@ -39,11 +44,6 @@ import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.HttpURIUtil;
 import org.asyncflows.protocol.http.common.Scope;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
 
 import java.net.ConnectException;
 import java.net.SocketAddress;

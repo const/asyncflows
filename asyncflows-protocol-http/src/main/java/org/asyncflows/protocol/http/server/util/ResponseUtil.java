@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,7 @@
 
 package org.asyncflows.protocol.http.server.util;
 
+import org.asyncflows.core.Promise;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.util.CharIOUtil;
@@ -31,12 +32,11 @@ import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.server.HttpExchange;
-import org.asyncflows.core.Promise;
 
 import java.nio.ByteBuffer;
 
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsResource.aTry;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The utility class that contains helper methods for responding.

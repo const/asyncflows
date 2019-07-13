@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,8 @@
 
 package org.asyncflows.protocol.http.common.content; // NOPMD
 
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.AOutput;
@@ -41,8 +43,6 @@ import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.HttpVersionUtil;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.TransferEncoding;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.function.ASupplier;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;

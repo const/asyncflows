@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,13 +23,13 @@
 
 package org.asyncflows.io.util;
 
-import org.asyncflows.io.AChannel;
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.util.CoreFlowsResource;
+import org.asyncflows.io.AChannel;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AOutput;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;

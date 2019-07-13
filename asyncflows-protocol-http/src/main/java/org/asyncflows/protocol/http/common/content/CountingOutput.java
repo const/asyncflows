@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,8 +23,8 @@
 
 package org.asyncflows.protocol.http.common.content;
 
-import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
+import org.asyncflows.io.AOutput;
 
 import java.nio.Buffer;
 import java.util.function.Consumer;

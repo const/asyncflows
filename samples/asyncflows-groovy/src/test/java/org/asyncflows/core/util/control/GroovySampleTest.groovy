@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test
 import static org.asyncflows.core.AsyncContext.doAsync
 import static org.asyncflows.core.CoreFlows.*
 import static org.asyncflows.core.Outcome.notifySuccess
-import static org.asyncflows.core.util.CoreFlowsAny.aAny
 import static org.asyncflows.core.util.CoreFlowsAll.aAll
+import static org.asyncflows.core.util.CoreFlowsAny.aAny
 import static org.junit.jupiter.api.Assertions.assertEquals
 
 class GroovySampleTest {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,14 +23,14 @@
 
 package org.asyncflows.io.net.selector;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.ASocketFactory;
 import org.asyncflows.io.net.blocking.BlockingSocketUtil;
 import org.asyncflows.io.util.ByteIOUtil;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.function.ASupplier;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -42,8 +42,8 @@ import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aOutcome;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 import static org.asyncflows.core.util.CoreFlowsResource.aTry;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -67,11 +67,11 @@ public class DatagramSocketTest {
         ).andOther(
                 socketFactory.makeDatagramSocket()
         ).run((server, client) -> server.bind(new InetSocketAddress("localhost", 0)).flatMap(
-                        serverSocketAddress -> aAll(
-                                () -> echoServer(server)
-                        ).and(
-                                () -> runClient(client, serverSocketAddress)
-                        ).selectValue1()
+                serverSocketAddress -> aAll(
+                        () -> echoServer(server)
+                ).and(
+                        () -> runClient(client, serverSocketAddress)
+                ).selectValue1()
                 )
         );
     }

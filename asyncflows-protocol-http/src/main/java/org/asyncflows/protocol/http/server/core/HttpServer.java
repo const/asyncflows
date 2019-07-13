@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,10 @@
 
 package org.asyncflows.protocol.http.server.core;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.streams.AsyncStreams;
+import org.asyncflows.core.util.CloseableBase;
+import org.asyncflows.core.util.LogUtil;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.protocol.http.common.HttpLimits;
@@ -31,10 +35,6 @@ import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.server.AHttpHandler;
 import org.asyncflows.protocol.http.server.HttpExchange;
 import org.asyncflows.protocol.http.server.util.DelegatingHandler;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.streams.AsyncStreams;
-import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.LogUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +44,8 @@ import java.util.Set;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 
 /**
  * The basic HTTP 1.1 server. Note, that it uses only the single normal request handler. Additional handlers might be

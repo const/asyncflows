@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,7 +23,11 @@
 
 package org.asyncflows.io.net.blocking;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.vats.Vat;
+import org.asyncflows.core.vats.Vats;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.adapters.blocking.InputStreamAdapter;
@@ -31,10 +35,6 @@ import org.asyncflows.io.adapters.blocking.OutputStreamAdapter;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.io.net.SocketUtil;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.vats.Vats;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
 
 import java.io.IOException;
 import java.io.InputStream;

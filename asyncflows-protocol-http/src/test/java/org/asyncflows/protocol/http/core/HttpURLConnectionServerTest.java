@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,11 +23,11 @@
 
 package org.asyncflows.protocol.http.core;
 
-import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.apache.commons.io.IOUtils;
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vats;
 import org.asyncflows.core.util.LogUtil;
+import org.asyncflows.core.vats.Vats;
+import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,8 +23,8 @@
 
 package org.asyncflows.io.net.selector;
 
-import org.asyncflows.core.vats.SingleThreadVatWithIdle;
 import org.asyncflows.core.util.ResourceClosedException;
+import org.asyncflows.core.vats.SingleThreadVatWithIdle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,13 @@
 
 package org.asyncflows.protocol.http.server.core; // NOPMD
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.function.FunctionExporter;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
+import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AInput;
@@ -47,13 +54,6 @@ import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.common.headers.TransferEncoding;
 import org.asyncflows.protocol.http.server.AHttpHandler;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.function.FunctionExporter;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.RequestQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +74,8 @@ import static org.asyncflows.core.function.AsyncFunctionUtil.constantSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.FunctionExporter.exportSupplier;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The handler for single HTTP exchange of the connection.

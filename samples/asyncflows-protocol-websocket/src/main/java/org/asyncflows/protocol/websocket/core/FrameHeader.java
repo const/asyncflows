@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,12 +23,12 @@
 
 package org.asyncflows.protocol.websocket.core;
 
-import org.asyncflows.io.util.BinaryParsingUtil;
-import org.asyncflows.io.util.ByteGeneratorContext;
-import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.io.util.BinaryParsingUtil;
+import org.asyncflows.io.util.ByteGeneratorContext;
+import org.asyncflows.io.util.ByteParserContext;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -68,6 +68,10 @@ public final class FrameHeader {
      */
     public static final int OP_PONG = 10;
     /**
+     * Max 16-bit unsigned int.
+     */
+    public static final int MAX_UINT_16 = 0xFFFF;
+    /**
      * Payload length is 2 bytes.
      */
     private static final int PAYLOAD_LENGTH_2 = 126;
@@ -92,10 +96,6 @@ public final class FrameHeader {
      */
     private static final int INITIAL_LENGTH_MASK = 0x7F;
     /**
-     * Max 16-bit unsigned int.
-     */
-    public static final int MAX_UINT_16 = 0xFFFF;
-    /**
      * Final fragment flag.
      */
     private boolean finalFragment;
@@ -111,6 +111,87 @@ public final class FrameHeader {
      * The mask (4 byte array).
      */
     private byte[] mask;
+
+    /**
+     * Read frame header.
+     *
+     * @param input the context
+     * @return the promise for the header.
+     */
+    public static Promise<FrameHeader> read(final ByteParserContext input) {
+        final FrameHeader rc = new FrameHeader();
+        final int START = 0;
+        final int INITIAL = 1;
+        int state = START;
+        if (input.buffer().remaining() >= Short.BYTES) {
+            parseInitial(rc, input);
+            state = INITIAL;
+            if (input.buffer().remaining() >= rc.getPostInitialSize()) {
+                parsePostInitial(rc, input);
+                return aValue(rc);
+            }
+        }
+        final int savedState = state;
+        return aSeqUntilValue(new ASupplier<Maybe<FrameHeader>>() {
+            private int loopState = savedState;
+
+            @Override
+            public Promise<Maybe<FrameHeader>> get() throws Exception {
+                if (loopState == START) {
+                    return input.ensureAvailable(Short.BYTES).thenFlatGet(() -> {
+                        parseInitial(rc, input);
+                        loopState = INITIAL;
+                        return aMaybeEmpty();
+                    });
+                } else if (loopState == INITIAL) {
+                    return input.ensureAvailable(rc.getPostInitialSize()).thenFlatGet(() -> {
+                        parseInitial(rc, input);
+                        return aMaybeValue(rc);
+                    });
+                } else {
+                    throw new IllegalStateException("Unknown state " + loopState);
+                }
+            }
+        });
+    }
+
+    /**
+     * Parse initial two bytes.
+     *
+     * @param rc    the target object
+     * @param input the input
+     */
+    private static void parseInitial(final FrameHeader rc, final ByteParserContext input) {
+        int b1 = input.buffer().get();
+        if ((b1 & FINAL_BIT_MASK) != 0) {
+            rc.setFinalFragment(true);
+        }
+        rc.setOpCode(b1 & OP_CODE_MASK);
+        int b2 = input.buffer().get();
+        if ((b2 & FINAL_BIT_MASK) != 0) {
+            rc.setMask(new byte[Integer.BYTES]);
+        }
+        rc.setLength(b2 & INITIAL_LENGTH_MASK);
+    }
+
+    /**
+     * Parse additional information if needed.
+     *
+     * @param rc    the target object
+     * @param input the input
+     */
+    private static void parsePostInitial(final FrameHeader rc, final ByteParserContext input) {
+        final ByteBuffer buffer = input.buffer();
+        assert buffer.order() == ByteOrder.BIG_ENDIAN;
+        if (rc.length == PAYLOAD_LENGTH_2) {
+            rc.length = ((int) buffer.getShort()) & MAX_UINT_16;
+        } else if (rc.length == PAYLOAD_LENGTH_8) {
+            rc.length = BinaryParsingUtil.getLong(input);
+        }
+        if (rc.mask != null) {
+            buffer.get(rc.mask);
+        }
+    }
 
     /**
      * @return true if this is a final fragment.
@@ -239,87 +320,5 @@ public final class FrameHeader {
             }
             return aVoid();
         });
-    }
-
-    /**
-     * Read frame header.
-     *
-     * @param input the context
-     * @return the promise for the header.
-     */
-    public static Promise<FrameHeader> read(final ByteParserContext input) {
-        final FrameHeader rc = new FrameHeader();
-        final int START = 0;
-        final int INITIAL = 1;
-        int state = START;
-        if (input.buffer().remaining() >= Short.BYTES) {
-            parseInitial(rc, input);
-            state = INITIAL;
-            if (input.buffer().remaining() >= rc.getPostInitialSize()) {
-                parsePostInitial(rc, input);
-                return aValue(rc);
-            }
-        }
-        final int savedState = state;
-        return aSeqUntilValue(new ASupplier<Maybe<FrameHeader>>() {
-            private int loopState = savedState;
-
-            @Override
-            public Promise<Maybe<FrameHeader>> get() throws Exception {
-                if (loopState == START) {
-                    return input.ensureAvailable(Short.BYTES).thenFlatGet(() -> {
-                        parseInitial(rc, input);
-                        loopState = INITIAL;
-                        return aMaybeEmpty();
-                    });
-                } else if (loopState == INITIAL) {
-                    return input.ensureAvailable(rc.getPostInitialSize()).thenFlatGet(() -> {
-                        parseInitial(rc, input);
-                        return aMaybeValue(rc);
-                    });
-                } else {
-                    throw new IllegalStateException("Unknown state " + loopState);
-                }
-            }
-        });
-    }
-
-
-    /**
-     * Parse initial two bytes.
-     *
-     * @param rc    the target object
-     * @param input the input
-     */
-    private static void parseInitial(final FrameHeader rc, final ByteParserContext input) {
-        int b1 = input.buffer().get();
-        if ((b1 & FINAL_BIT_MASK) != 0) {
-            rc.setFinalFragment(true);
-        }
-        rc.setOpCode(b1 & OP_CODE_MASK);
-        int b2 = input.buffer().get();
-        if ((b2 & FINAL_BIT_MASK) != 0) {
-            rc.setMask(new byte[Integer.BYTES]);
-        }
-        rc.setLength(b2 & INITIAL_LENGTH_MASK);
-    }
-
-    /**
-     * Parse additional information if needed.
-     *
-     * @param rc    the target object
-     * @param input the input
-     */
-    private static void parsePostInitial(final FrameHeader rc, final ByteParserContext input) {
-        final ByteBuffer buffer = input.buffer();
-        assert buffer.order() == ByteOrder.BIG_ENDIAN;
-        if (rc.length == PAYLOAD_LENGTH_2) {
-            rc.length = ((int) buffer.getShort()) & MAX_UINT_16;
-        } else if (rc.length == PAYLOAD_LENGTH_8) {
-            rc.length = BinaryParsingUtil.getLong(input);
-        }
-        if (rc.mask != null) {
-            buffer.get(rc.mask);
-        }
     }
 }

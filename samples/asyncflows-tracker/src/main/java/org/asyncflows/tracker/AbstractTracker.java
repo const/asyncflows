@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -87,7 +87,7 @@ public class AbstractTracker<T> implements ATracker<T>, NeedsExport<ATracker<T>>
         if (value != null) {
             notifyListener(listener);
         }
-        if(subscriptions.size() == 1) {
+        if (subscriptions.size() == 1) {
             subscriptionStarted();
         }
         return aValue(ASubscriptionProxyFactory.createProxy(Vats.defaultVat(), () -> {

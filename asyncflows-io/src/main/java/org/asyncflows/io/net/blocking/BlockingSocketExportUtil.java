@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,10 +23,10 @@
 
 package org.asyncflows.io.net.blocking; // NOPMD
 
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.AOutput;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AOutput;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;

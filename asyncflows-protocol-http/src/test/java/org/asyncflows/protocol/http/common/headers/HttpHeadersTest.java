@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,11 +23,11 @@
 
 package org.asyncflows.protocol.http.common.headers;
 
+import org.asyncflows.core.Promise;
 import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.common.HttpLimits;
-import org.asyncflows.core.Promise;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

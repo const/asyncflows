@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,11 +23,11 @@
 
 package org.asyncflows.protocol.http.core.handlers;
 
+import org.asyncflows.core.Promise;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.server.HttpExchange;
 import org.asyncflows.protocol.http.server.HttpHandlerBase;
 import org.asyncflows.protocol.http.server.util.ResponseUtil;
-import org.asyncflows.core.Promise;
 
 import static org.asyncflows.protocol.http.common.XmlUtil.escapeXml;
 

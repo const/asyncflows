@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,7 @@
 
 package org.asyncflows.protocol.http.core;
 
+import org.asyncflows.core.AsyncContext;
 import org.asyncflows.core.AsyncExecutionException;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.adapters.blocking.Adapters;
@@ -33,11 +34,9 @@ import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.HttpRequestMessage;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.server.core.HttpServerMessageUtil;
-import org.asyncflows.core.AsyncContext;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;

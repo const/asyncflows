@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,15 +23,14 @@
 
 package org.asyncflows.core.proxy_samples;
 
-import org.asyncflows.core.Promise;
 import org.asyncflows.core.annotations.Asynchronous;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 
 @Asynchronous
 public interface Ext1<B extends Serializable> extends Base1<B> {
     <A extends Collection<? super B>> A get();
+
     String test();
 }

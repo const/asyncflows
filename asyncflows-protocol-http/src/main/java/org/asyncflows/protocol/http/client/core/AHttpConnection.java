@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,11 +23,11 @@
 
 package org.asyncflows.protocol.http.client.core;
 
+import org.asyncflows.core.Promise;
 import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.annotations.Internal;
-import org.asyncflows.protocol.http.client.AHttpRequest;
-import org.asyncflows.core.Promise;
 import org.asyncflows.core.streams.AStream;
+import org.asyncflows.protocol.http.client.AHttpRequest;
 
 import java.net.SocketAddress;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -32,8 +32,8 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
 import org.asyncflows.core.function.FunctionExporter;
 import org.asyncflows.core.streams.AStream;
-import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.streams.AsyncStreams;
+import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.util.AsynchronousService;
 import org.asyncflows.core.util.SimpleQueue;
 

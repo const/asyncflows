@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -86,8 +86,8 @@ public final class ProducerUtil {
      * Construct a callable that iterates over range of integers. It starts from {@code start} value
      * and iterates util end is reached.
      *
-     * @param start the iteration start
-     * @param endExclusive   the iteration end
+     * @param start        the iteration start
+     * @param endExclusive the iteration end
      * @return the iteration
      */
     public static ASupplier<Maybe<Integer>> fromRange(final int start, final int endExclusive) {

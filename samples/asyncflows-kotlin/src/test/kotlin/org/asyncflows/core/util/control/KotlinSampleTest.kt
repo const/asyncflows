@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -27,8 +27,8 @@ import org.asyncflows.core.AsyncContext.doAsync
 import org.asyncflows.core.CoreFlows.*
 import org.asyncflows.core.Outcome.notifySuccess
 import org.asyncflows.core.Promise
-import org.asyncflows.core.util.CoreFlowsAny.aAny
 import org.asyncflows.core.util.CoreFlowsAll.aAll
+import org.asyncflows.core.util.CoreFlowsAny.aAny
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

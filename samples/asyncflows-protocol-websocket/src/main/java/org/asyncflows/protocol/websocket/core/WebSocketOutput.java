@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,6 +23,13 @@
 
 package org.asyncflows.protocol.websocket.core;
 
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.util.CloseableInvalidatingBase;
+import org.asyncflows.core.util.CoreFlowsResource;
+import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.io.IOUtil;
@@ -31,13 +38,6 @@ import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.websocket.AWebSocketOutput;
 import org.asyncflows.protocol.websocket.WebSocketMessage;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.RequestQueue;
-import org.asyncflows.core.util.CoreFlowsResource;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -49,9 +49,9 @@ import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
+import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
-import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 
 /**
  * The implementation of web socket output message stream.
@@ -286,6 +286,10 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
          */
         private final RequestQueue streamRequests = new RequestQueue();
         /**
+         * The data writer.
+         */
+        private final DataWriter writer = new DataWriter();
+        /**
          * True if the first frame.
          */
         private boolean firstWrite;
@@ -293,10 +297,6 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
          * Remaining amount to be written.
          */
         private long remaining;
-        /**
-         * The data writer.
-         */
-        private final DataWriter writer = new DataWriter();
 
 
         /**

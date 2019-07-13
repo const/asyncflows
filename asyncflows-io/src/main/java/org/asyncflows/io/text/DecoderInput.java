@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -23,14 +23,14 @@
 
 package org.asyncflows.io.text;
 
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.AInputProxyFactory;
-import org.asyncflows.io.IOUtil;
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.util.ChainedClosable;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
+import org.asyncflows.core.vats.Vat;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AInputProxyFactory;
+import org.asyncflows.io.IOUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -39,11 +39,11 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 
-import static org.asyncflows.io.IOUtil.isEof;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+import static org.asyncflows.io.IOUtil.isEof;
 
 /**
  * The character decoder input.

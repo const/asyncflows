@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Konstantin Plotnikov
+ * Copyright (c) 2018-2019 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -245,9 +245,9 @@ public final class CoreFlowsAll {
      * Iterate using iterator.
      *
      * @param stream the stream
-     * @param body     the body that iterates over it. If body returns false, the cycle is aborted.
-     * @param <T>      the element type
-     * @param <R>      the body result type
+     * @param body   the body that iterates over it. If body returns false, the cycle is aborted.
+     * @param <T>    the element type
+     * @param <R>    the body result type
      * @return the void promise
      */
     public static <T, R> Promise<Void> aAllForUnit(final Stream<T> stream, final AFunction<T, R> body) {
