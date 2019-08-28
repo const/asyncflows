@@ -64,6 +64,7 @@ public final class CoreFlowsAll {
     /**
      * The daemon thread runner.
      */
+    @SuppressWarnings("squid:S1604")
     private static final ARunner DAEMON_RUNNER = new ARunner() {
         @Override
         public <A> Promise<A> run(final ASupplier<A> t) {
@@ -262,7 +263,7 @@ public final class CoreFlowsAll {
      */
     @SuppressWarnings("unchecked")
     private static <T> Collector<T, Void, Void> collectVoid() {
-        return (Collector<T, Void, Void>) (Object) VOID_COLLECTOR;
+        return (Collector<T, Void, Void>) VOID_COLLECTOR;
     }
 
 
@@ -314,6 +315,7 @@ public final class CoreFlowsAll {
      * @param <C>        the final type
      * @return the void promise
      */
+    @SuppressWarnings({"squid:S3776", "squid:S135"})
     public static <T, R, I, C> Promise<C> aParForCollect(final Iterator<T> iterator, final AFunction<T, R> body,
                                                          final Collector<R, I, C> collector, final ARunner bodyRunner) {
         return AsyncContext.withDefaultContext((runner, vat) -> runner.run(() -> aResolver(resolver -> {
@@ -345,7 +347,7 @@ public final class CoreFlowsAll {
                     }
                 } catch (Throwable t) {
                     final Promise<Void> previous = mergeNext;
-                    mergeNext = aNow(() -> merge.apply(CoreFlows.<R>aFailure(t), previous));
+                    mergeNext = aNow(() -> merge.apply(CoreFlows.aFailure(t), previous));
                     break;
                 }
             }
@@ -479,7 +481,7 @@ public final class CoreFlowsAll {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     return aResolver(resolver -> {
-                        p1.listenSync(r1 -> p2.listen(ctx.getVat(), r2 -> {
+                        p1.listen(r1 -> p2.listen(ctx.getVat(), r2 -> {
                             if (notifyIfFailed(resolver, r1, r2)) {
                                 return;
                             }
@@ -589,7 +591,7 @@ public final class CoreFlowsAll {
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                     return aResolver(resolver -> {
-                        p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listen(ctx.getVat(), r3 -> {
+                        p1.listen(r1 -> p2.listen(r2 -> p3.listen(ctx.getVat(), r3 -> {
                             if (notifyIfFailed(resolver, r1, r2, r3)) {
                                 return;
                             }
@@ -717,7 +719,7 @@ public final class CoreFlowsAll {
                 final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                 final Promise<T4> p4 = ctx.getBodyRunner().run(action4);
                 return aResolver(resolver -> {
-                    p1.listenSync(r1 -> p2.listenSync(r2 -> p3.listenSync(r3 -> p4.listen(ctx.getVat(), r4 -> {
+                    p1.listen(r1 -> p2.listen(r2 -> p3.listen(r3 -> p4.listen(ctx.getVat(), r4 -> {
                         if (notifyIfFailed(resolver, r1, r2, r3, r4)) {
                             return;
                         }

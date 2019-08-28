@@ -29,10 +29,10 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
 import org.asyncflows.core.vats.Vat;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -53,25 +53,17 @@ import static org.asyncflows.core.vats.Vats.defaultVat;
  */
 public final class Promise<T> {
     /**
-     * Lock for promise state.
-     */
-    private final Object lock = new Object();
-    /**
      * The trace.
      */
     private final Object trace;
     /**
-     * The list of listeners.
+     * State of the promise. It is either {@code null}, {@link Cell} with listeners, or {@link Outcome}.
      */
-    private List<AResolver<? super T>> listeners;
-    /**
-     * The outcome (null if not resolved).
-     */
-    private Outcome<T> outcome;
+    private final AtomicReference<Object> state = new AtomicReference<>();
     /**
      * True if resolver has been already acquired.
      */
-    private boolean resolverAcquired;
+    private final AtomicBoolean resolverAcquired = new AtomicBoolean(false);
 
     /**
      * Constructor of resolved promise from outcome.
@@ -80,8 +72,8 @@ public final class Promise<T> {
      */
     public Promise(final Outcome<T> outcome) {
         Objects.requireNonNull(outcome);
-        this.resolverAcquired = true;
-        this.outcome = outcome;
+        this.resolverAcquired.set(true);
+        state.set(outcome);
         this.trace = null;
     }
 
@@ -90,7 +82,6 @@ public final class Promise<T> {
      */
     public Promise() {
         this.trace = PromiseTraceProvider.INSTANCE.recordTrace();
-        this.listeners = new LinkedList<>();
     }
 
 
@@ -100,30 +91,49 @@ public final class Promise<T> {
      * @param listener the listener.
      * @return this promise
      */
+    @SuppressWarnings({"unchecked", "squid:S135"})
     public Promise<T> listenSync(final AResolver<? super T> listener) {
-        final Outcome<T> o;
-        synchronized (lock) {
-            if (outcome != null) {
-                o = outcome;
+        Cell<AResolver<? super T>> listenerCell = null;
+        while (true) {
+            final Object currentState = state.get();
+            if (currentState instanceof Outcome) {
+                Outcome.notifyResolver(listener, (Outcome<T>) currentState);
+                break;
             } else {
-                listeners.add(listener);
-                return this;
+                Cell<AResolver<? super T>> next = (Cell<AResolver<? super T>>) currentState;
+                if (listenerCell == null) {
+                    listenerCell = new Cell<>(listener, next);
+                } else {
+                    listenerCell.next = next;
+                }
+                if (state.compareAndSet(next, listenerCell)) {
+                    break;
+                }
             }
         }
-        Outcome.notifyResolver(listener, o);
         return this;
     }
 
     /**
      * There are rare cases when control construct does not care about listener anymore,
-     * so it is better to forget anyway in order to reduce memory usage..
+     * so it is better to forget anyway in order to reduce memory usage and linked state.
      *
      * @param listener the listener
      * @return this promise
      */
+    @SuppressWarnings({"unchecked", "squid:S135"})
     public Promise<T> forget(final AResolver<? super T> listener) {
-        synchronized (lock) {
-            listeners.remove(listener);
+        while (true) {
+            final Object currentState = state.get();
+            if (currentState instanceof Cell) {
+                final Cell<AResolver<? super T>> current = (Cell<AResolver<? super T>>) currentState;
+                final Cell<AResolver<? super T>> modified = current.copyWithoutElement(listener);
+                if (current == modified || state.compareAndSet(current, modified)) {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
         return this;
     }
@@ -154,33 +164,36 @@ public final class Promise<T> {
      *
      * @return the resolver
      */
+    @SuppressWarnings({"unchecked", "squid:S3776", "squid:S135"})
     public AResolver<T> resolver() {
-        synchronized (lock) {
-            if (resolverAcquired) {
-                throw new IllegalStateException("Resolver is already acquired");
-            }
-            resolverAcquired = true;
-            return o -> {
-                final List<AResolver<? super T>> l;
-                final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(
-                        new IllegalArgumentException("Notified with null outcome"));
-                synchronized (lock) {
-                    if (outcome == null) {
-                        l = listeners;
-                        listeners = null;
-                        outcome = adjustedOutcome;
-                        if (outcome.isFailure() && trace != null) {
-                            PromiseTraceProvider.INSTANCE.mergeTrace(outcome.failure(), trace);
-                        }
-                    } else {
-                        return;
-                    }
-                }
-                for (final AResolver<? super T> resolver : l) {
-                    Outcome.notifyResolver(resolver, o);
-                }
-            };
+        if (!resolverAcquired.compareAndSet(false, true)) {
+            throw new IllegalStateException("Resolver is already acquired");
         }
+        return o -> {
+            final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(
+                    new IllegalArgumentException("Notified with null outcome"));
+            if (adjustedOutcome.isFailure() && trace != null) {
+                PromiseTraceProvider.INSTANCE.mergeTrace(adjustedOutcome.failure(), trace);
+            }
+            while (true) {
+                Object currentState = state.get();
+                if (currentState instanceof Outcome) {
+                    break;
+                }
+                if (!state.compareAndSet(currentState, adjustedOutcome)) {
+                    continue;
+                }
+                if (currentState != null) {
+                    Cell<AResolver<? super T>> cell =
+                            ((Cell<AResolver<? super T>>) currentState).reverse();
+                    for (; cell != null; cell = cell.next) {
+                        Outcome.notifyResolver(cell.value, o);
+
+                    }
+                    break;
+                }
+            }
+        };
     }
 
     /**
@@ -374,20 +387,19 @@ public final class Promise<T> {
     /**
      * @return the current outcome of promise.
      */
+    @SuppressWarnings("unchecked")
     public Outcome<T> getOutcome() {
-        synchronized (lock) {
-            return outcome;
-        }
+        final Object currentState = state.get();
+        return currentState instanceof Outcome ? (Outcome<T>) currentState : null;
     }
 
     /**
      * @return the completable future, that is notified when promise is resolved.
      */
     public CompletableFuture<T> toCompletableFuture() {
-        synchronized (lock) {
-            if (outcome.isSuccess()) {
-                return CompletableFuture.completedFuture(outcome.value());
-            }
+        final Outcome<T> outcome = getOutcome();
+        if (outcome != null && outcome.isSuccess()) {
+            return CompletableFuture.completedFuture(outcome.value());
         }
         final CompletableFuture<T> future = new CompletableFuture<>();
         listenSync(o -> {
@@ -441,5 +453,89 @@ public final class Promise<T> {
      */
     public <R> Promise<R> thenPromise(final Promise<R> result) {
         return thenFlatGet(promiseSupplier(result));
+    }
+
+    /**
+     * The cell used in the listener list. It is designed to be kept in {@link AtomicReference},
+     * so some operations are designed not to corrupt values while it is being removed.
+     *
+     * @param <E>
+     */
+    private static class Cell<E> {
+        /**
+         * The value.
+         */
+        private final E value;
+        /**
+         * The next cell.
+         */
+        private Cell<E> next;
+
+        /**
+         * The constructor.
+         *
+         * @param value the cell value
+         * @param next  the next cell (nullable)
+         */
+        private Cell(E value, Cell<E> next) {
+            this.value = value;
+            this.next = next;
+        }
+
+        /**
+         * Reverse list. This method should be called only after cell is removed from {@link AtomicReference}.
+         *
+         * @return the reversed list.
+         */
+        private Cell<E> reverse() {
+            Cell<E> previous = null;
+            Cell<E> current = this;
+            while (current != null) {
+                Cell<E> savedNext = current.next;
+                current.next = previous;
+                previous = current;
+                current = savedNext;
+            }
+            return previous;
+        }
+
+        /**
+         * Return list that does not contain specified element. The tail after removed element is the same,
+         * but new cells are created before that element.
+         *
+         * @param element the element
+         * @return the value
+         */
+        private Cell<E> copyWithoutElement(E element) {
+            Cell<E> cellWithElement = null;
+            for (Cell<E> c = this; c != null; c = c.next) {
+                if (c.value == element) {
+                    cellWithElement = c;
+                    break;
+                }
+            }
+            if (cellWithElement == null) {
+                return this;
+            }
+            if (cellWithElement == this) {
+                return next;
+            }
+            Cell<E> newHead = null;
+            Cell<E> previous = null;
+            for (Cell<E> c = this; c != null; c = c.next) {
+                if (c == cellWithElement) {
+                    previous.next = c.next;
+                    break;
+                }
+                final Cell<E> n = new Cell<>(c.value, null);
+                if (previous == null) {
+                    newHead = n;
+                } else {
+                    previous.next = n;
+                }
+                previous = n;
+            }
+            return newHead;
+        }
     }
 }

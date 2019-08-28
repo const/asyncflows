@@ -89,7 +89,7 @@ public abstract class BlockingInputAdapter<B extends Buffer, I extends Closeable
         int length;
         if (buffer.hasArray()) {
             b = operations.array(buffer);
-            offset = buffer.arrayOffset();
+            offset = buffer.arrayOffset() + buffer.position();
             length = buffer.remaining();
         } else {
             if (dataArray == null) {

@@ -32,7 +32,7 @@ public abstract class SingleThreadVatWithIdle extends BatchedVat {
     /**
      * The stop object.
      */
-    protected final Object myStopKey;
+    private final Object myStopKey;
     /**
      * If true, the vat is stopped.
      */
@@ -54,11 +54,15 @@ public abstract class SingleThreadVatWithIdle extends BatchedVat {
      */
     public void runInCurrentThread() {
         boolean hasMore = true;
-        while (!stopped.get()) {
+        while (true) {
             if (hasMore) {
                 pollIdle();
             } else {
-                idle();
+                if (stopped.get()) {
+                    break;
+                } else {
+                    idle();
+                }
             }
             hasMore = runBatch();
         }
@@ -100,9 +104,6 @@ public abstract class SingleThreadVatWithIdle extends BatchedVat {
 
     @Override
     protected void schedule() {
-        if (stopped.get()) {
-            throw new IllegalStateException("The vat is already stopped");
-        }
         wakeUp();
     }
 }

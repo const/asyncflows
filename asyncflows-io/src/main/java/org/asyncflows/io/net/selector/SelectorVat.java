@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
@@ -155,7 +156,8 @@ public class SelectorVat extends SingleThreadVatWithIdle {
             notifyKeys();
         } catch (IOException e) {
             failKeys(e);
-            throw new IllegalStateException("The selector fails: ", e);
+        } catch (ClosedSelectorException e) {
+            // vat closed, ignore it
         }
     }
 
@@ -210,6 +212,7 @@ public class SelectorVat extends SingleThreadVatWithIdle {
     /**
      * Change selector.
      */
+    @SuppressWarnings("squid:S3776")
     public void changeSelector() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Changing selector for the SelectorVat, because of broken selector");

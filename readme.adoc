@@ -1,10 +1,11 @@
-= AsyncFlows Framework 0.1.0
+= AsyncFlows Framework 0.1.1
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
-0.1.1, 2018-09-11
+0.1.1, 2019-08-??
 :toc:
 :toclevels: 5
 :toc-placement!:
-:stable-version: 0.1.1
+:stable-version: 0.1.0
+:current-version: 0.1.1-SNAPSHOT
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
@@ -59,7 +60,7 @@ artifacts are released:
             </dependency>
 ----
 
-This document contain information about the repository version, and it might mention unreleased
+This document contain information about the current version {current-version}, and it might mention unreleased
 features. For the document corresponding to the latest stable version refer to the following
 https://github.com/const/asyncflows/blob/release-{stable-version}/readme.adoc[link].
 
@@ -709,7 +710,8 @@ Let's test this method:
 
 ==== Asynchronous Proxy Generator
 
-The AsyncFlows include annotation processor for generating proxies. This annotation
+The AsyncFlows framework includes annotation processor for generating proxies.
+This annotation
 processor is used for generating proxies for all asynchronous interfaces in the framework.
 
 To enable annotation processor, add it to compiler like the following:
@@ -727,7 +729,7 @@ To enable annotation processor, add it to compiler like the following:
                         <annotationProcessorPath>
                             <groupId>org.asyncflows</groupId>
                             <artifactId>asyncflows-apt</artifactId>
-                            <version>{stable-version}</version>
+                            <version>{current-version}</version>
                         </annotationProcessorPath>
                     </annotationProcessorPaths>
                 </configuration>
@@ -1542,16 +1544,16 @@ Practically, there is at least one one asynchronous micro-component for each asy
 are only one asynchronous component for each event queue. This leads to problems with resource management as state of
 component need to be tracked.
 
-2. Event dispatch is done explicitly and each queue supports only closed set of events. There is no interfaces 
+2. Event dispatch in Akka is done explicitly and each queue supports only closed set of events.
+There is no interfaces
 for components and even returning result is different each time. (TypedActors try to solve problem of explicit dispatch, 
 but introduce own set of the problems due to blocking calls, and also still support only closed set of events).
 AsyncFlows support open set of events, as they translate to `Runnable` anyway. As many components could leave 
 
 3. Actors are heavy-weight as they are integrated with event queue. They also need to be deleted explicitly to free
 resources. By comparison, AsyncFlows do not manage components explicitly, as they could garbage collected normally.
-Some Vats needs to be managed explicitly, but these vats are usually used as application starting point in 
-the main thread. ExecutorVat does not need to be explicitly stopped (the underlying executor needs to be stopped, 
-but daemon executor creates and frees threads as needed and does not need to be stopped).
+Some Vats needs to be managed explicitly, but these vats are usually used as application starting point in the main thread or have the same lifetime as application (NIO).
+ExecutorVat does not need to be explicitly stopped (the underlying executor needs to be stopped, but daemon executor creates and frees threads as needed and does not need to be stopped).
 
 4. As Akka Actors work with event queue directly, it is possible handle events not in the order they were sent to actor.
 AsyncFlows insists on handling events in the order they are received by a vat. Reordering of event
@@ -1754,12 +1756,11 @@ be possible to get advantages of both approaches.
 
 === Scala
 
-The Scala is not directly supported as it wraps Java types and this causes multiple problems 
-in different places. So for the Scala adapters needed and support for scala collections needs 
-to be implemented. Some code could be executed directly, but it is less usable than in other
-languages.
+The Scala is not directly supported as it wraps Java types and this causes multiple problems in different places, if AsyncFlows used directly.
+So for the Scala adapters needed and support for scala collections needs to be implemented.
+Some code could be executed directly, but it is less usable than in other languages.
 
-Generally, the framework ideas are compatible with Scala, and few first research versions of 
+Generally, the framework ideas are well compatible with Scala, and few first research versions of
 the framework were implemented in Scala. This Java version is based on ideas from Scala version. 
 And Java 8 finally allows more compact syntax to be used.
 
@@ -1795,3 +1796,4 @@ In the old sample code, control flow looked like the following:
     assertEquals(42, rc)
     assertEquals(List(1, 2, 3, 4), list)
 ```
+It looks the same as Groovy version (but with better typing), and it a bit more clean than Kotlin version.

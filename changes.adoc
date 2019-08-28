@@ -4,8 +4,9 @@
 
 * Added support for NIO.2 sockets and file interfaces
 * Added asynchronous proxy generator annotation processor
-* Added PromiseTraceProvider that allows
-* Some small, renames, and bug fixes
+* Added PromiseTraceProvider that allows enriching exceptions with asynchronous stack traces
+* Some small renames, and bug fixes
+* Promise and BatchedVat now used wait-free structures based on AtomicReference
 * TODO Changed to sonar for verification (default rule set)
 
 == 0.1.0
