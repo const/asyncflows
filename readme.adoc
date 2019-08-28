@@ -514,15 +514,16 @@ receive the abandoned results.
 
 ```
 
-==== Fail-fast
+==== Cancellation
 
-The `FailFast` utility class is an application of the `aAny` operator.
+The `Cancellation` utility class is an application of the `aAny` operator.
 
 In some cases it is needed to fail the entire process if some operation has failed.
 For example, if one asynchronous operation has already failed, the related operations
 need also fail.
 
-For that purpose, framework contains FailFast utility class. The class monitor results
+For that purpose, framework contains Cancellation utility class.
+The class monitor results
 of operations.
 
 Sometimes, an operation returns the resource that require cleanup (for example open connection).
@@ -537,10 +538,10 @@ we would like to consumer to fail as well. For example:
         ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
             SimpleQueue<Integer> queue = new SimpleQueue<>();
-            FailFast failFast = new FailFast();
+            Cancellation cancellation = new Cancellation();
             return aAll(
                     // () -> aSeqWhile(() -> queue.take().map(t -> {
-                    () -> aSeqWhile(() -> failFast.run(queue::take).map(t -> {
+                    () -> aSeqWhile(() -> cancellation.run(queue::take).map(t -> {
                         if (t == null) {
                             return false;
                         } else {
@@ -557,7 +558,7 @@ we would like to consumer to fail as well. For example:
                             // pause
                             () -> aSeqForUnit(rangeIterator(1, 10), t -> aLater(() -> aTrue()))
                     ).thenDoLast(
-                            () -> failFast.run(() -> aFailure(new RuntimeException()))
+                            () -> cancellation.run(() -> aFailure(new RuntimeException()))
                     )
             ).mapOutcome(o -> {
                 assertTrue(o.isFailure());
@@ -568,10 +569,11 @@ we would like to consumer to fail as well. For example:
         assertEquals(Arrays.asList(1, 2), list);
 ```
 If we do queue reading like in commented out line, the test will hang up, because the consumer will never
-receive the value, because supplier failed. But in uncommented line, we wrap call to `queue.take()` into
-fail-fast runner. This allows us to fail all executions of fail-fast that are active or will be active.
-Inside the call of `failFast.run(...)` there is any operator against common promise, if any of the 
-`failFast.run(...)` fails, that promise fails as well. Otherwise it stays in unresolved state.
+receive the value, because supplier failed. But in uncommented line, we wrap call to `queue.take()` into cancellation runner.
+This allows us to fail all executions of cancellation that are active or will be active.
+Inside the call of `cancellation.run(...)` there is any operator against common promise, if any of the
+`cancellation.run(...)` fails, that promise fails as well.
+Otherwise it stays in unresolved state.
 
 === Safety frames
 
@@ -1385,15 +1387,15 @@ framework to ensure that reads and writes are done in parallel when it makes sen
     public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int buffers, int bufferSize) {
         final SimpleQueue<ByteBuffer> readQueue = new SimpleQueue<>();
         final SimpleQueue<ByteBuffer> writeQueue = new SimpleQueue<>();
-        final FailFast failFast = failFast();
+           final Cancellation cancellation = cancellation();
         for (int i = 0; i < buffers; i++) {
             readQueue.put(ByteBuffer.allocate(bufferSize));
         }
         final long[] result = new long[1];
         return aAll(
                 () -> aSeqWhile(
-                        () -> failFast.run(readQueue::take).flatMap(
-                                b -> failFast.run(() -> input.read(b)).flatMap(c -> {
+                           () -> cancellation.run(readQueue::take).flatMap(
+                                   b -> cancellation.run(() -> input.read(b)).flatMap(c -> {
                             if (isEof(c)) {
                                 writeQueue.put(null);
                                 return aFalse();
@@ -1406,12 +1408,12 @@ framework to ensure that reads and writes are done in parallel when it makes sen
                 )
         ).and(
                 () -> aSeqWhile(
-                        () -> failFast.run(writeQueue::take).flatMap(b -> {
+                           () -> cancellation.run(writeQueue::take).flatMap(b -> {
                             if(b == null) {
                                 return aFalse();
                             } else {
                                 b.flip();
-                                return failFast.run(() -> output.write(b)).thenGet(() -> {
+                                   return cancellation.run(() -> output.write(b)).thenGet(() -> {
                                     b.compact();
                                     readQueue.put(b);
                                     return true;
@@ -1579,8 +1581,8 @@ The CompletableFuture defaults to ForkJoin pool. This pool is generally not acce
 and IO could block it for indefinite time. Small errors could lead to application blocking. Practically all
 invocations on CompletableFuture required explicit specification of target vat.
 
-AsyncFlows also has a lot of utility methods, that do not make sense as CompletableFuture API. 
-For example, loops, request queues, fail-fast.
+AsyncFlows also has a lot of utility methods, that do not make sense as CompletableFuture API.
+For example, loops, request queues, cancellation.
 
 Also, CompletableFuture does not have component model. It is just a single class w/o larger
 contexts. When and how asynchronous method is executed is left up to component designer.   

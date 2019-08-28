@@ -24,7 +24,7 @@
 package org.asyncflows.core.util.control;
 
 import org.asyncflows.core.CoreFlows;
-import org.asyncflows.core.util.FailFast;
+import org.asyncflows.core.util.Cancellation;
 import org.asyncflows.core.util.SimpleQueue;
 import org.junit.jupiter.api.Test;
 
@@ -42,17 +42,17 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FailFastTest {
+public class CancellationTest {
 
     @Test
     public void test() {
         final ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
             final SimpleQueue<Integer> queue = new SimpleQueue<>();
-            final FailFast failFast = new FailFast();
+            final Cancellation cancellation = new Cancellation();
             return aAll(
                     // () -> aSeqWhile(() -> queue.take().map(t -> {
-                    () -> aSeqWhile(() -> failFast.run(queue::take).map(t -> {
+                    () -> aSeqWhile(() -> cancellation.run(queue::take).map(t -> {
                         if (t == null) {
                             return false;
                         } else {
@@ -69,7 +69,7 @@ public class FailFastTest {
                             // pause
                             () -> aSeqForUnit(rangeIterator(1, 10), t -> aLater(CoreFlows::aTrue))
                     ).thenDoLast(
-                            () -> failFast.run(() -> aFailure(new RuntimeException()))
+                            () -> cancellation.run(() -> aFailure(new RuntimeException()))
                     )
             ).mapOutcome(o -> {
                 assertTrue(o.isFailure());

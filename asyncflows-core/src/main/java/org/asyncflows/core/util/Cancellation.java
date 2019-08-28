@@ -38,11 +38,11 @@ import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 
 /**
- * Fail-fast runner that fails if any running block has failed or this instance is failed.
+ * Cancellation runner that fails if any running block has failed or this instance is failed.
  * The class is thread-safe and it could be passed around.
  */
 @ThreadSafe
-public class FailFast implements ARunner {
+public class Cancellation implements ARunner {
     /**
      * Failure promise.
      */
@@ -53,10 +53,10 @@ public class FailFast implements ARunner {
     private final AtomicBoolean resolved = new AtomicBoolean(false);
 
     /**
-     * @return a fail-fast runner that
+     * @return a new cancellation runner that
      */
-    public static FailFast failFast() {
-        return new FailFast();
+    public static Cancellation cancellation() {
+        return new Cancellation();
     }
 
     @Override
