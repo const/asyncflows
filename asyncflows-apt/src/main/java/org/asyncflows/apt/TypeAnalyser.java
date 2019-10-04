@@ -220,6 +220,7 @@ public final class TypeAnalyser {
                 return null;
             }
 
+            @SuppressWarnings("squid:S5411")
             @Override
             public Void visitTypeVariable(TypeVariable t, Boolean bounds) {
                 out.append(t.asElement().getSimpleName());
@@ -356,5 +357,4 @@ public final class TypeAnalyser {
             return processingEnvironment.getTypeUtils().erasure(type.getReturnType()).toString();
         }
     }
-
 }

@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.protocol.http.client.core; //NOPMD
+package org.asyncflows.protocol.http.client.core;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
@@ -35,6 +35,7 @@ import org.asyncflows.io.util.SimpleChannel;
 import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.protocol.http.client.AHttpRequest;
 import org.asyncflows.protocol.http.client.AHttpRequestProxyFactory;
+import org.asyncflows.protocol.http.client.HttpRequestUtil;
 import org.asyncflows.protocol.http.client.HttpResponse;
 import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.HttpRequestMessage;
@@ -230,13 +231,14 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
             requestMessage.setEffectiveUri(uri);
             requestMessage.setVersion(requestScope.get(HttpScopeUtil.FORCE_VERSION, HttpVersionUtil.HTTP_VERSION_1_1));
             requestMessage.setHeaders(new HttpHeaders(headers));
-            if (requestScope.get(HttpScopeUtil.LAST_EXCHANGE)) {
+            final Boolean lastExchange = requestScope.get(HttpScopeUtil.LAST_EXCHANGE);
+            if (lastExchange != null && lastExchange) {
                 canContinue = false;
             }
             HttpClientMessageUtil.inferRequestTarget(requestMessage, connection.getHost());
             final List<TransferEncoding> encodings;
             final Long contentLength;
-            if (length != null && length == NO_CONTENT) {
+            if (length != null && length == HttpRequestUtil.NO_CONTENT) {
                 contentLength = null;
                 encodings = Collections.emptyList();
             } else {
@@ -273,7 +275,7 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
     public void requestContinue() {
         if (HttpVersionUtil.isHttp11(requestMessage.getVersion())) {
             final HttpHeaders headers = requestMessage.getHeaders();
-            if (scope.get(AHttpRequest.CONTINUE_LISTENER) != null) {
+            if (scope.get(HttpRequestUtil.CONTINUE_LISTENER) != null) {
                 headers.addHeader(HttpHeadersUtil.CONNECTION_HEADER, HttpHeadersUtil.EXPECT_HEADER);
                 headers.setHeader(HttpHeadersUtil.EXPECT_HEADER, HttpHeadersUtil.EXPECT_CONTINUE);
             } else {
@@ -326,80 +328,90 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
         responseStarted = true;
         return aSeq(() -> {
             ensureValidAndOpen();
-            return aSeqWhile(
-                    () -> HttpClientMessageUtil.readResponseMessage(connection.getInput(), responseMessage).thenFlatGet(
-                            () -> {
-                                final int statusCode = responseMessage.getStatusCode();
-                                if (statusCode == HttpStatusUtil.CONTINUE) {
-                                    notifyContinue();
-                                    return aTrue();
-                                } else if (statusCode == HttpStatusUtil.SWITCHING_PROTOCOLS) {
-                                    return aFalse();
-                                } else if (HttpStatusUtil.isInformational(statusCode)) {
-                                    return aTrue();
-                                }
+            return waitForResponse();
+        }).thenDo(() -> {
+            if (HttpStatusUtil.isSwitchProtocol(requestMessage.getMethod(), responseMessage.getStatusCode())) {
+                return switchProtocol();
+            } else {
+                return normalResponse();
+            }
+        }).failedLast(HttpRuntimeUtil.toHttpException()).listen(outcomeChecker());
+    }
+
+    private Promise<Void> waitForResponse() {
+        return aSeqWhile(
+                () -> HttpClientMessageUtil.readResponseMessage(connection.getInput(), responseMessage).thenFlatGet(
+                        () -> {
+                            final int statusCode = responseMessage.getStatusCode();
+                            if (statusCode == HttpStatusUtil.CONTINUE) {
+                                notifyContinue();
+                                return aTrue();
+                            } else if (statusCode == HttpStatusUtil.SWITCHING_PROTOCOLS) {
                                 return aFalse();
+                            } else if (HttpStatusUtil.isInformational(statusCode)) {
+                                return aTrue();
                             }
-                    ));
-        }).thenDo(() -> {
-            if (HttpStatusUtil.isSwitchProtocol(requestMessage.getMethod(), responseMessage.getStatusCode())) {
-                return outputStream.getStream().close();
-            } else {
-                return aVoid();
+                            return aFalse();
+                        }
+                ));
+    }
+
+    private Promise<HttpResponse> normalResponse() {
+        if (HttpHeadersUtil.isLastExchange(responseMessage.getVersion(), responseMessage.getHeaders())) {
+            canContinue = false;
+        }
+        final Long contentLength = HttpHeadersUtil.getContentLength(responseMessage.getHeaders());
+        final List<TransferEncoding> encodings = TransferEncoding.parse(
+                responseMessage.getHeaders().getHeaders(HttpHeadersUtil.TRANSFER_ENCODING_HEADER));
+        inputStream = ContentUtil.getInput(
+                requestMessage.getMethod(), responseMessage.getStatusCode(),
+                connection.getInput(),
+                inputStateTracker(),
+                inputTrailers.resolver(),
+                null,
+                encodings,
+                contentLength);
+        if (inputStream.isRestOfTheStream()) {
+            canContinue = false;
+        }
+        return aValue(new HttpResponse(
+                responseMessage.getStatusCode(),
+                responseMessage.getStatusMessage(),
+                responseMessage.getVersion(),
+                new HttpHeaders(responseMessage.getHeaders()),
+                inputStream.getStream(),
+                null));
+    }
+
+    private Promise<HttpResponse> switchProtocol() {
+        return aSeq(
+                () -> outputStream.getStream().close()
+        ).thenDoLast(() -> {
+            if (outputState != OutputState.CLOSED) {
+                throw new HttpException("Output stream must be closed before switching protocols: "
+                        + outputState);
             }
-        }).thenDo(() -> {
-            if (HttpStatusUtil.isSwitchProtocol(requestMessage.getMethod(), responseMessage.getStatusCode())) {
-                if (outputState != OutputState.CLOSED) {
-                    throw new HttpException("Output stream must be closed before switching protocols: "
-                            + outputState);
-                }
-                canContinue = false;
-                outputState = null;
-                inputStream = ContentUtil.getInput(
-                        HttpMethodUtil.GET, HttpStatusUtil.OK, connection.getInput(),
-                        inputStateTracker(), inputTrailers.resolver(), null,
-                        Collections.<TransferEncoding>emptyList(), null);
-                outputStream = ContentUtil.getOutput(HttpMethodUtil.GET, HttpStatusUtil.OK,
-                        connection.getOutput(),
-                        outputTracker(),
-                        constantSupplier((HttpHeaders) null),
-                        null,
-                        Collections.<TransferEncoding>emptyList(), null);
-                switchedProtocol = true;
-                return aValue(new HttpResponse(
-                        responseMessage.getStatusCode(),
-                        responseMessage.getStatusMessage(),
-                        responseMessage.getVersion(),
-                        new HttpHeaders(responseMessage.getHeaders()),
-                        null,
-                        new SimpleChannel<>(inputStream.getStream(), outputStream.getStream()).export()));
-            } else {
-                if (HttpHeadersUtil.isLastExchange(responseMessage.getVersion(), responseMessage.getHeaders())) {
-                    canContinue = false;
-                }
-                final Long contentLength = HttpHeadersUtil.getContentLength(responseMessage.getHeaders());
-                final List<TransferEncoding> encodings = TransferEncoding.parse(
-                        responseMessage.getHeaders().getHeaders(HttpHeadersUtil.TRANSFER_ENCODING_HEADER));
-                inputStream = ContentUtil.getInput(
-                        requestMessage.getMethod(), responseMessage.getStatusCode(),
-                        connection.getInput(),
-                        inputStateTracker(),
-                        inputTrailers.resolver(),
-                        null,
-                        encodings,
-                        contentLength);
-                if (inputStream.isRestOfTheStream()) {
-                    canContinue = false;
-                }
-                return aValue(new HttpResponse(
-                        responseMessage.getStatusCode(),
-                        responseMessage.getStatusMessage(),
-                        responseMessage.getVersion(),
-                        new HttpHeaders(responseMessage.getHeaders()),
-                        inputStream.getStream(),
-                        null));
-            }
-        }).failedLast(HttpRuntimeUtil.<HttpResponse>toHttpException()).listen(outcomeChecker());
+            canContinue = false;
+            outputState = null;
+            inputStream = ContentUtil.getInput(
+                    HttpMethodUtil.GET, HttpStatusUtil.OK, connection.getInput(),
+                    inputStateTracker(), inputTrailers.resolver(), null,
+                    Collections.emptyList(), null);
+            outputStream = ContentUtil.getOutput(HttpMethodUtil.GET, HttpStatusUtil.OK,
+                    connection.getOutput(),
+                    outputTracker(),
+                    constantSupplier(null),
+                    null,
+                    Collections.emptyList(), null);
+            switchedProtocol = true;
+            return aValue(new HttpResponse(
+                    responseMessage.getStatusCode(),
+                    responseMessage.getStatusMessage(),
+                    responseMessage.getVersion(),
+                    new HttpHeaders(responseMessage.getHeaders()),
+                    null,
+                    new SimpleChannel<>(inputStream.getStream(), outputStream.getStream()).export()));
+        });
     }
 
     /**
@@ -429,7 +441,7 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
      */
     @Override
     protected void onInvalidation(final Throwable throwable) {
-        final AResolver<Void> resolver = scope.remove(AHttpRequest.CONTINUE_LISTENER);
+        final AResolver<Void> resolver = scope.remove(HttpRequestUtil.CONTINUE_LISTENER);
         if (resolver != null) {
             notifyFailure(resolver, throwable);
         }
@@ -441,7 +453,7 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
      * Notify continue request.
      */
     public void notifyContinue() {
-        final AResolver<Void> resolver = scope.remove(AHttpRequest.CONTINUE_LISTENER);
+        final AResolver<Void> resolver = scope.remove(HttpRequestUtil.CONTINUE_LISTENER);
         if (resolver != null) {
             notifySuccess(resolver, null);
         }

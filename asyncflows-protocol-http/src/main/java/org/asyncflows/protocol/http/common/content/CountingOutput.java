@@ -64,7 +64,7 @@ public class CountingOutput<B extends Buffer> extends CountingStreamBase impleme
         if (listener == null) {
             return output;
         } else {
-            return new CountingOutput<B>(output, listener);
+            return new CountingOutput<>(output, listener);
         }
     }
 

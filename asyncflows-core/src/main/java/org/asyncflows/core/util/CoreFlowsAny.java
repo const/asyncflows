@@ -128,6 +128,7 @@ public final class CoreFlowsAny {
          * @param action an action
          * @return this builder
          */
+        @SuppressWarnings("squid:S3776")
         public AnyBuilder<T> or(final ASupplier<T> action) {
             if (promise == null) {
                 throw new IllegalStateException("Action is already started");

@@ -100,7 +100,7 @@ public class SelectorVat extends SingleThreadVatWithIdle {
      * @param buffer the buffer to release (must be same as allocated by {@link #getDirect()}.
      */
     public void releaseDirect(final ByteBuffer buffer) {
-        if (buffer != direct) { // NOPMD
+        if (buffer != direct) {
             throw new IllegalArgumentException("The wrong buffer is released!");
         }
         if (!isDirectBufferAllocated) {
@@ -217,7 +217,7 @@ public class SelectorVat extends SingleThreadVatWithIdle {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Changing selector for the SelectorVat, because of broken selector");
         }
-        final ArrayList<SelectionKey> keys = new ArrayList<>(selector.keys()); // NOPMD
+        final ArrayList<SelectionKey> keys = new ArrayList<>(selector.keys());
         try {
             selector.close();
         } catch (Throwable t) {

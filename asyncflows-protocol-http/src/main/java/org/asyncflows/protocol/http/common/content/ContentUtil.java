@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.protocol.http.common.content; // NOPMD
+package org.asyncflows.protocol.http.common.content;
 
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
@@ -102,7 +102,7 @@ public final class ContentUtil {
      * @throws HttpException                    if there is a generic validation problem
      * @throws UnknownTransferEncodingException if unknown encoding is detected
      */
-    // CHECKSTYLE:OFF
+    @SuppressWarnings("squid:S00107")
     public static StreamInfo<AOutput<ByteBuffer>> getOutput(final String method, final Integer statusCode,
                                                             final ByteGeneratorContext output,
                                                             final AResolver<OutputState> stateTracker,
@@ -110,7 +110,6 @@ public final class ContentUtil {
                                                             final Consumer<StreamFinishedEvent> listener,
                                                             final List<TransferEncoding> transferEncodings,
                                                             final Long contentLength) {
-        // CHECKSTYLE:ON
         final boolean isRequest = statusCode == null;
         if (!transferEncodings.isEmpty() && contentLength != null) {
             throw new HttpException("Both Transfer-Encoding and Content-Length specified");
@@ -121,18 +120,18 @@ public final class ContentUtil {
         } else if (isNoContent(method, statusCode, isRequest, transferEncodings, contentLength)) {
             return new StreamInfo<>(
                     export(listener, new ContentLengthOutput(output, stateTracker, 0L)),
-                    null, false, Collections.<TransferEncoding>emptyList());
+                    null, false, Collections.emptyList());
         } else if (!transferEncodings.isEmpty()) {
             return createEncodedOutputStream(output, stateTracker, trailersProvider, listener,
                     isRequest, transferEncodings);
         } else if (contentLength != null) {
             return new StreamInfo<>(
                     export(listener, new ContentLengthOutput(output, stateTracker, contentLength)),
-                    contentLength, false, Collections.<TransferEncoding>emptyList());
+                    contentLength, false, Collections.emptyList());
         } else {
             return new StreamInfo<>(
                     export(listener, new RestOfStreamOutput(output, stateTracker)),
-                    null, true, Collections.<TransferEncoding>emptyList());
+                    null, true, Collections.emptyList());
         }
     }
 
@@ -192,10 +191,10 @@ public final class ContentUtil {
                 throw new HttpException("The chunked encoding must happen only once.");
             } else if (GZIP_ENCODING.equalsIgnoreCase(encoding) || X_GZIP_ENCODING.equalsIgnoreCase(encoding)) {
                 ensureNoParameters(currentEncoding);
-                current = new GZipOutput(current, IOUtil.BYTE.writeBuffer(output.buffer().capacity()), null); // NOPMD
+                current = new GZipOutput(current, IOUtil.BYTE.writeBuffer(output.buffer().capacity()), null);
             } else if (DEFLATE_ENCODING.equalsIgnoreCase(encoding)) {
                 ensureNoParameters(currentEncoding);
-                current = new DeflateOutput(new Deflater(), current, // NOPMD
+                current = new DeflateOutput(new Deflater(), current,
                         IOUtil.BYTE.writeBuffer(output.buffer().capacity()));
             } else {
                 throw new UnknownTransferEncodingException("The unsupported encoding: " + currentEncoding);
@@ -226,7 +225,7 @@ public final class ContentUtil {
      * @throws HttpException                    if there is a generic validation problem
      * @throws UnknownTransferEncodingException if unknown encoding is detected
      */
-    // CHECKSTYLE:OFF
+    @SuppressWarnings("squid:S00107")
     public static StreamInfo<AInput<ByteBuffer>> getInput(final String method, final Integer statusCode,
                                                           final ByteParserContext input,
                                                           final AResolver<InputState> stateTracker,
@@ -234,7 +233,6 @@ public final class ContentUtil {
                                                           final Consumer<StreamFinishedEvent> listener,
                                                           final List<TransferEncoding> transferEncodings,
                                                           final Long contentLength) {
-        // CHECKSTYLE:ON
         final boolean isRequest = statusCode == null;
         if (!transferEncodings.isEmpty() && contentLength != null) {
             throw new HttpException("Both Transfer-Encoding and Content-Length specified");
@@ -247,7 +245,7 @@ public final class ContentUtil {
             trailersWouldNotHappen(trailersResolver);
             return new StreamInfo<>(
                     export(listener, new ContentLengthInput(stateTracker, input, 0L)),
-                    null, false, Collections.<TransferEncoding>emptyList());
+                    null, false, Collections.emptyList());
         } else if (!transferEncodings.isEmpty()) {
             return createEncodedInputStream(input, stateTracker, trailersResolver, listener,
                     isRequest, transferEncodings);
@@ -255,12 +253,12 @@ public final class ContentUtil {
             trailersWouldNotHappen(trailersResolver);
             return new StreamInfo<>(
                     export(listener, new ContentLengthInput(stateTracker, input, contentLength)),
-                    contentLength, false, Collections.<TransferEncoding>emptyList());
+                    contentLength, false, Collections.emptyList());
         } else {
             trailersWouldNotHappen(trailersResolver);
             return new StreamInfo<>(
                     export(listener, new RestOfStreamInput(input, stateTracker)),
-                    null, true, Collections.<TransferEncoding>emptyList());
+                    null, true, Collections.emptyList());
         }
     }
 
@@ -319,10 +317,10 @@ public final class ContentUtil {
                 throw new HttpException("The chunked encoding must happen only once.");
             } else if (GZIP_ENCODING.equalsIgnoreCase(encoding) || X_GZIP_ENCODING.equalsIgnoreCase(encoding)) {
                 ensureNoParameters(currentEncoding);
-                current = new GZipInput(current, IOUtil.BYTE.writeBuffer(input.buffer().capacity()), null); // NOPMD
+                current = new GZipInput(current, IOUtil.BYTE.writeBuffer(input.buffer().capacity()), null);
             } else if (DEFLATE_ENCODING.equalsIgnoreCase(encoding)) {
                 ensureNoParameters(currentEncoding);
-                current = new InflateInput(new Inflater(), current, // NOPMD
+                current = new InflateInput(new Inflater(), current,
                         IOUtil.BYTE.writeBuffer(input.buffer().capacity()));
             } else {
                 throw new UnknownTransferEncodingException("The unsupported encoding: " + currentEncoding);
@@ -355,6 +353,7 @@ public final class ContentUtil {
      * @param contentLength     the content length
      * @return true if there is no content
      */
+    @SuppressWarnings("squid:S3776")
     private static boolean isNoContent(final String method, final Integer statusCode,
                                        final boolean isRequest, final List<TransferEncoding> transferEncodings,
                                        final Long contentLength) {

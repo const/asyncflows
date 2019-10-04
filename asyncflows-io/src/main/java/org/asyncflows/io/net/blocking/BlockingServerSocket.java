@@ -88,7 +88,7 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
     @Override
     public Promise<Void> setDefaultOptions(final SocketOptions newOptions) {
         if (newOptions != null) {
-            options = newOptions.clone();
+            options = newOptions.copy();
         } else {
             options = null;
         }
@@ -105,6 +105,7 @@ public class BlockingServerSocket extends CloseableInvalidatingBase
     }
 
     @Override
+    @SuppressWarnings("squid:S1141")
     public Promise<ASocket> accept() {
         try {
             final Socket accepted = serverSocket.accept();

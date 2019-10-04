@@ -58,7 +58,7 @@ public final class SocketUtil {
      * @param options the options.
      * @throws SocketException if the option could not be set
      */
-    public static void applyOptions(final Socket socket, final SocketOptions options) throws SocketException { // NOPMD
+    public static void applyOptions(final Socket socket, final SocketOptions options) throws SocketException {
         final Boolean tpcNoDelay = options.getTpcNoDelay();
         if (tpcNoDelay != null) {
             socket.setTcpNoDelay(tpcNoDelay);
@@ -67,15 +67,9 @@ public final class SocketUtil {
         if (keepAlive != null) {
             socket.setKeepAlive(keepAlive);
         }
-        final Tuple2<Boolean, Integer> linger = options.getLinger();
+        final Integer linger = options.getLinger();
         if (linger != null) {
-            if (linger.getValue1() == null) {
-                throw new IllegalArgumentException("The 'on' component of SO_LINGER is null");
-            }
-            if (linger.getValue1() && linger.getValue2() == null) {
-                throw new IllegalArgumentException("The 'linger' component of SO_LINGER is null");
-            }
-            socket.setSoLinger(linger.getValue1(), linger.getValue1() ? linger.getValue2() : 0);
+            socket.setSoLinger(linger >= 0, linger);
         }
         final Boolean oobInline = options.getOobInline();
         if (oobInline != null) {
@@ -107,7 +101,7 @@ public final class SocketUtil {
      * @throws SocketException if the option could not be set
      */
     public static void applyOptions(final DatagramSocket socket,
-                                    final SocketOptions options) throws SocketException { // NOPMD
+                                    final SocketOptions options) throws SocketException {
         final Integer receiveBufferSize = options.getReceiveBufferSize();
         if (receiveBufferSize != null) {
             socket.setReceiveBufferSize(receiveBufferSize);
@@ -142,7 +136,7 @@ public final class SocketUtil {
      */
     public static CoreFlowsResource.Try3<ASocket, AInput<ByteBuffer>, AOutput<ByteBuffer>> aTrySocket(
             final ASupplier<ASocket> socket) {
-        return IOUtil.BYTE.aTryChannel(socket);
+        return IOUtil.aTryChannel(socket);
     }
 
     /**

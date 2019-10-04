@@ -38,7 +38,7 @@ public final class Scope {
     /**
      * The actual attributes for the objects.
      */
-    private final Map<Key<?>, Object> objects = new HashMap<>(); // NOPMD
+    private final Map<Key<?>, Object> objects = new HashMap<>();
 
     /**
      * Set the value.
@@ -108,7 +108,7 @@ public final class Scope {
             } else {
                 try {
                     return generator.call();
-                } catch (Exception e) { // NOPMD
+                } catch (Exception e) {
                     throw new IllegalArgumentException("The generator has thrown an exception", e);
                 }
             }
@@ -135,7 +135,7 @@ public final class Scope {
                     final T t = generator.call();
                     set(key, t);
                     return t;
-                } catch (Exception e) { // NOPMD
+                } catch (Exception e) {
                     throw new IllegalArgumentException("The generator has thrown an exception", e);
                 }
             }
@@ -275,7 +275,7 @@ public final class Scope {
                 return false;
             }
             //noinspection RedundantIfStatement
-            if (!name.equals(key.name)) { // NOPMD
+            if (!name.equals(key.name)) {
                 return false;
             }
 

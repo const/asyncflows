@@ -106,13 +106,12 @@ class HttpExchangeContext implements HttpExchange {
      * @param remoteAddress  the remote address
      * @param inputLength    the input length
      */
-    // CHECKSTYLE:OFF
-    public HttpExchangeContext(final Scope serverScope, // NOPMD
+    @SuppressWarnings("squid:S00107")
+    public HttpExchangeContext(final Scope serverScope,
                                final String method, final HttpHeaders requestHeaders, final AInput<ByteBuffer> input,
                                final ASupplier<HttpHeaders> trailers,
                                final AHttpResponse response, final URI requestUri, final SocketAddress localAddress,
                                final SocketAddress remoteAddress, final Long inputLength) {
-        // CHECKSTYLE:ON
         this.serverScope = serverScope;
         this.method = method;
         this.requestHeaders = requestHeaders;

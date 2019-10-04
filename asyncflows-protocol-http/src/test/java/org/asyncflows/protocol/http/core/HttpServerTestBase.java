@@ -203,7 +203,7 @@ public abstract class HttpServerTestBase {
         final boolean chunked = false;
         final String method = HttpMethodUtil.POST;
         final String path = "/mirror";
-        final Map<String, List<String>> headers = new LinkedHashMap<>(); // NOPMD
+        final Map<String, List<String>> headers = new LinkedHashMap<>();
         final List<String> contentEncoding = Collections.singletonList(HttpHeadersUtil.CONTENT_TYPE_TEXT_UTF8);
         headers.put(HttpHeadersUtil.CONTENT_TYPE_HEADER, contentEncoding);
         final byte[] requestContent = new byte[10000];
@@ -263,7 +263,7 @@ public abstract class HttpServerTestBase {
          * @param content the response content
          */
         public Response(final int status, final String message,
-                        final HttpHeaders headers, final byte[] content) { // NOPMD
+                        final HttpHeaders headers, final byte[] content) {
             this.status = status;
             this.message = message;
             this.headers = headers;
@@ -295,7 +295,7 @@ public abstract class HttpServerTestBase {
          * @return the content
          */
         public byte[] getContent() {
-            return content; // NOPMD
+            return content;
         }
     }
 
@@ -337,7 +337,7 @@ public abstract class HttpServerTestBase {
          * @param socketFactory  the socket factory
          */
         public Request(final String method, final URI uri, final Map<String, List<String>> headers,
-                       final byte[] requestContent, final boolean chunked, final ASocketFactory socketFactory) { //NOPMD
+                       final byte[] requestContent, final boolean chunked, final ASocketFactory socketFactory) {
             this.method = method;
             this.uri = uri;
             this.headers = headers;
@@ -371,7 +371,7 @@ public abstract class HttpServerTestBase {
          * @return the request content
          */
         public byte[] getRequestContent() {
-            return requestContent; // NOPMD
+            return requestContent;
         }
 
         /**

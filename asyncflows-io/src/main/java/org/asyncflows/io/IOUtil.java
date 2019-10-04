@@ -33,6 +33,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aTrue;
@@ -148,6 +149,7 @@ public class IOUtil<B extends Buffer, A> {
      *                  ready for the stream read operation). If operation fails, the state of buffer is undefined.
      * @return the amount of bytes read then written (bytes already in the buffer are not counted)
      */
+    @SuppressWarnings("squid:S3776")
     public final Promise<Long> copy(final AInput<B> input, final AOutput<B> output,
                                     final boolean autoFlush, final B buffer) {
         if (buffer.capacity() <= 0) {
@@ -202,6 +204,48 @@ public class IOUtil<B extends Buffer, A> {
                         return aTrue();
                     }
                 })
+        ).thenFlatGet(() -> aValue(result[0]));
+    }
+
+    /**
+     * Discard data from stream operation. The stream is discarded until EOF on input is reached.
+     *
+     * @param input  the input stream
+     * @param amount the amount to skip
+     * @param buffer the buffer to use (the buffer might have a data in it), the data is counted to discard limit.
+     *               The buffer is assumed to be in state ready for the stream read operation.
+     * @return the amount of bytes discarded
+     */
+    public final Promise<Long> discard(final AInput<B> input, long amount, final B buffer) {
+        if (amount == 0) {
+            return aValue(0L);
+        }
+        if (amount < 0) {
+            return aFailure(new IllegalArgumentException("Amount should be non-negative: " + amount));
+        }
+        final long[] result = new long[1];
+        result[0] += buffer.position();
+        if (amount < buffer.position()) {
+            buffer.flip();
+            buffer.position((int) amount);
+            operations.compact(buffer);
+            return aValue(amount);
+        }
+        buffer.clear();
+        return aSeqWhile(
+                () -> {
+                    int toRead = (int) Math.min(amount - result[0], buffer.capacity());
+                    buffer.limit(toRead);
+                    return input.read(buffer).flatMap(value -> {
+                        buffer.clear();
+                        if (isEof(value)) {
+                            return aFalse();
+                        } else {
+                            result[0] += value;
+                            return aTrue();
+                        }
+                    });
+                }
         ).thenFlatGet(() -> aValue(result[0]));
     }
 

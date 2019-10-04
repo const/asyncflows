@@ -93,6 +93,7 @@ public final class StreamUtil {
      * @param <O>    the element type
      * @return the amount of elements copied
      */
+    @SuppressWarnings("squid:S3776")
     public static <O> Promise<Long> connect(final AStream<O> stream, final ASink<? super O> sink) {
         final long[] count = new long[1];
         final Cell<Outcome<Void>> stopped = new Cell<>();

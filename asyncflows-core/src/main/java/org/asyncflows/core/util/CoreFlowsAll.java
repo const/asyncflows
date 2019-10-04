@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.util; // NOPMD
+package org.asyncflows.core.util;
 
 import org.asyncflows.core.AsyncContext;
 import org.asyncflows.core.CoreFlows;
@@ -480,14 +480,12 @@ public final class CoreFlowsAll {
                 return ctx.getOperatorRunner().run(() -> {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
-                    return aResolver(resolver -> {
-                        p1.listen(r1 -> p2.listen(ctx.getVat(), r2 -> {
-                            if (notifyIfFailed(resolver, r1, r2)) {
-                                return;
-                            }
-                            aNow(() -> function.apply(r1.value(), r2.value())).listenSync(resolver);
-                        }));
-                    });
+                    return aResolver(resolver -> p1.listen(r1 -> p2.listen(ctx.getVat(), r2 -> {
+                        if (notifyIfFailed(resolver, r1, r2)) {
+                            return;
+                        }
+                        aNow(() -> function.apply(r1.value(), r2.value())).listenSync(resolver);
+                    })));
                 });
             }
 
@@ -590,14 +588,12 @@ public final class CoreFlowsAll {
                     final Promise<T1> p1 = ctx.getBodyRunner().run(action1);
                     final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                     final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
-                    return aResolver(resolver -> {
-                        p1.listen(r1 -> p2.listen(r2 -> p3.listen(ctx.getVat(), r3 -> {
-                            if (notifyIfFailed(resolver, r1, r2, r3)) {
-                                return;
-                            }
-                            aNow(() -> function.apply(r1.value(), r2.value(), r3.value())).listenSync(resolver);
-                        })));
-                    });
+                    return aResolver(resolver -> p1.listen(r1 -> p2.listen(r2 -> p3.listen(ctx.getVat(), r3 -> {
+                        if (notifyIfFailed(resolver, r1, r2, r3)) {
+                            return;
+                        }
+                        aNow(() -> function.apply(r1.value(), r2.value(), r3.value())).listenSync(resolver);
+                    }))));
                 });
             }
 
@@ -718,14 +714,13 @@ public final class CoreFlowsAll {
                 final Promise<T2> p2 = ctx.getBodyRunner().run(action2);
                 final Promise<T3> p3 = ctx.getBodyRunner().run(action3);
                 final Promise<T4> p4 = ctx.getBodyRunner().run(action4);
-                return aResolver(resolver -> {
-                    p1.listen(r1 -> p2.listen(r2 -> p3.listen(r3 -> p4.listen(ctx.getVat(), r4 -> {
-                        if (notifyIfFailed(resolver, r1, r2, r3, r4)) {
-                            return;
-                        }
-                        aNow(() -> function.apply(r1.value(), r2.value(), r3.value(), r4.value())).listenSync(resolver);
-                    }))));
-                });
+                return aResolver(resolver ->
+                        p1.listen(r1 -> p2.listen(r2 -> p3.listen(r3 -> p4.listen(ctx.getVat(), r4 -> {
+                            if (notifyIfFailed(resolver, r1, r2, r3, r4)) {
+                                return;
+                            }
+                            aNow(() -> function.apply(r1.value(), r2.value(), r3.value(), r4.value())).listenSync(resolver);
+                        })))));
             });
         }
 

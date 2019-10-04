@@ -80,7 +80,7 @@ public abstract class MessageInput extends CloseableInvalidatingBase
         if (state == null) {
             throw new IllegalArgumentException("state cannot be null");
         }
-        if (isValid() && lastState != state) { // NOPMD
+        if (isValid() && lastState != state) {
             if (state.ordinal() < lastState.ordinal()) {
                 throw new IllegalStateException("Shifting state backward: " + lastState + " -> " + state);
             }

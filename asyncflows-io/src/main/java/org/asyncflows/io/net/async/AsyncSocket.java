@@ -24,7 +24,6 @@
 package org.asyncflows.io.net.async;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.vats.Vat;
@@ -111,10 +110,7 @@ class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implemen
         return aNow(() -> {
             applyOption(options.getBroadcast(), StandardSocketOptions.SO_BROADCAST);
             applyOption(options.getKeepAlive(), StandardSocketOptions.SO_KEEPALIVE);
-            final Tuple2<Boolean, Integer> linger = options.getLinger();
-            if (linger != null && linger.getValue1() != null && linger.getValue1()) {
-                applyOption(linger.getValue2(), StandardSocketOptions.SO_LINGER);
-            }
+            applyOption(options.getLinger(), StandardSocketOptions.SO_LINGER);
             applyOption(options.getReceiveBufferSize(), StandardSocketOptions.SO_RCVBUF);
             applyOption(options.getSendBufferSize(), StandardSocketOptions.SO_SNDBUF);
             applyOption(options.getReuseAddress(), StandardSocketOptions.SO_REUSEADDR);
@@ -139,6 +135,7 @@ class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implemen
      * @param h      completion handler
      */
     @Override
+    @SuppressWarnings("squid:S3358")
     protected void readFromChannel(ByteBuffer buffer, AResolver<Integer> r, CompletionHandler<Integer, AResolver<Integer>> h) {
         AResolver<Integer> tr = !LOGGER.isDebugEnabled() ? r : o -> {
             if (o.isSuccess() && LOGGER.isDebugEnabled()) {
@@ -164,6 +161,7 @@ class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implemen
      * @param h      completion handler
      */
     @Override
+    @SuppressWarnings({"squid:S1854", "squid:S1481"})
     protected void writeToChannel(ByteBuffer buffer, AResolver<Integer> r, CompletionHandler<Integer, AResolver<Integer>> h) {
         final int initial = buffer.remaining();
         AResolver<Integer> tr = !LOGGER.isDebugEnabled() ? r : o -> {
@@ -190,9 +188,7 @@ class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implemen
      */
     @Override
     public Promise<Void> connect(SocketAddress address) {
-        final Promise<Void> connectionResult = aCompletionHandler((r, c) -> {
-            channel.connect(address, r, c);
-        });
+        final Promise<Void> connectionResult = aCompletionHandler((r, c) -> channel.connect(address, r, c));
         if (LOGGER.isDebugEnabled()) {
             connectionResult.listenSync(o -> {
                 if (LOGGER.isDebugEnabled()) {

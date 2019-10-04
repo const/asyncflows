@@ -26,6 +26,7 @@ package org.asyncflows.protocol.http.core.handlers;
 import org.asyncflows.core.Promise;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.server.HttpExchange;
+import org.asyncflows.protocol.http.server.HttpExchangeUtil;
 import org.asyncflows.protocol.http.server.HttpHandlerBase;
 import org.asyncflows.protocol.http.server.util.ResponseUtil;
 
@@ -48,7 +49,7 @@ public class HelloHandler extends HttpHandlerBase {
                 + "<tr><td>Remote Address:</td><td>" + escapeXml(exchange.getRemoteAddress().toString())
                 + "</td></tr>"
                 + "<tr><td>Server Address:</td><td>"
-                + escapeXml(exchange.getServerScope().get(HttpExchange.SERVER_ADDRESS).toString()) + "</td></tr>"
+                + escapeXml(exchange.getServerScope().get(HttpExchangeUtil.SERVER_ADDRESS).toString()) + "</td></tr>"
                 + "</table></body></html>");
     }
 }

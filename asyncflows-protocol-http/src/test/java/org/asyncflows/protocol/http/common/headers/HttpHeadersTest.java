@@ -26,10 +26,10 @@ package org.asyncflows.protocol.http.common.headers;
 import org.asyncflows.core.Promise;
 import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.io.util.ByteParserContext;
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.common.HttpLimits;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -80,7 +80,7 @@ public class HttpHeadersTest {
      */
     public Promise<HttpHeaders> readHeadersAsync(final String data) {
         return HttpHeaders.readHeaders(
-                new ByteParserContext(Adapters.getByteArrayInput(data.getBytes(CharIOUtil.ISO8859_1)), 1024),
+                new ByteParserContext(Adapters.getByteArrayInput(data.getBytes(StandardCharsets.ISO_8859_1)), 1024),
                 HttpLimits.MAX_HEADERS_SIZE);
     }
 }

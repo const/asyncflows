@@ -125,7 +125,7 @@ public class GZipInput extends InflateInput {
         return context.ensureAvailable(GZipHeader.FOOTER_LENGTH).thenFlatGet(() -> {
             final ByteOrder order = compressed.order();
             compressed.order(ByteOrder.LITTLE_ENDIAN);
-            final int footerCRC = compressed.getInt(); // NOPMD
+            final int footerCRC = compressed.getInt();
             final int footerLength = compressed.getInt();
             compressed.order(order);
             final int accumulatedLength = (int) totalLength;

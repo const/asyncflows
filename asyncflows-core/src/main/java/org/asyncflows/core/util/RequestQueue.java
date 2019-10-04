@@ -79,12 +79,19 @@ public final class RequestQueue {
      * @return the promise that resolves to void when someone calls {@link #resume()}
      */
     public Promise<Void> suspend() {
-        if (suspendResolver != null) {
-            throw new IllegalStateException("The suspend operation is already in the progress");
-        }
+        ensureNoSuspendIsInProgress();
         final Promise<Void> rc = new Promise<>();
         suspendResolver = rc.resolver();
         return rc;
+    }
+
+    /**
+     * Ensure that no suspends is in progress now.
+     */
+    private void ensureNoSuspendIsInProgress() {
+        if (suspendResolver != null) {
+            throw new IllegalStateException("The suspend operation is already in the progress");
+        }
     }
 
     /**
@@ -95,9 +102,7 @@ public final class RequestQueue {
      * @return the promise that resolves to true when someone calls {@link #resume()}
      */
     public Promise<Boolean> suspendThenTrue() {
-        if (suspendResolver != null) {
-            throw new IllegalStateException("The suspend operation is already in the progress");
-        }
+        ensureNoSuspendIsInProgress();
         final Promise<Boolean> rc = new Promise<>();
         final AResolver<Boolean> resolver = rc.resolver();
         suspendResolver = resolution -> {
@@ -118,14 +123,12 @@ public final class RequestQueue {
      * @return the promise that resolves to empty option when someone calls {@link #resume()}
      */
     public <T> Promise<Maybe<T>> suspendThenEmpty() {
-        if (suspendResolver != null) {
-            throw new IllegalStateException("The suspend operation is already in the progress");
-        }
+        ensureNoSuspendIsInProgress();
         final Promise<Maybe<T>> rc = new Promise<>();
         final AResolver<Maybe<T>> resolver = rc.resolver();
         suspendResolver = resolution -> {
             if (resolution.isSuccess()) {
-                notifySuccess(resolver, Maybe.<T>empty());
+                notifySuccess(resolver, Maybe.empty());
             } else {
                 notifyFailure(resolver, resolution.failure());
             }

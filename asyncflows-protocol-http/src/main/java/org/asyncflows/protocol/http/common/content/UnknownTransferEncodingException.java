@@ -28,6 +28,7 @@ import org.asyncflows.protocol.http.HttpException;
 /**
  * The exception indicating unknown transfer encoding.
  */
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class UnknownTransferEncodingException extends HttpException {
     /**
      * The constructor.

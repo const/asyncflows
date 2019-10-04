@@ -35,6 +35,10 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  * Utilities for asynchronous netty operations.
  */
 public final class AsyncNettyControl {
+
+    private AsyncNettyControl() {
+    }
+
     /**
      * Convert netty promise to asyncflows promise.
      *
@@ -44,15 +48,13 @@ public final class AsyncNettyControl {
      */
     @SuppressWarnings("unchecked")
     public static <T> Promise<T> aNettyFuture(Future<T> promise) {
-        return aResolver(r -> {
-            promise.addListener(future -> {
-                if (future.isSuccess()) {
-                    notifySuccess(r, (T) (Object) future.getNow());
-                } else {
-                    notifyFailure(r, future.cause());
-                }
-            });
-        });
+        return aResolver(r -> promise.addListener(future -> {
+            if (future.isSuccess()) {
+                notifySuccess(r, (T) future.getNow());
+            } else {
+                notifyFailure(r, future.cause());
+            }
+        }));
     }
 
     /**

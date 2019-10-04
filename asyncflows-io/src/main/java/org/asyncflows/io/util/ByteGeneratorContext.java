@@ -52,7 +52,7 @@ public class ByteGeneratorContext {
     /**
      * The write mode for the stream.
      */
-    private boolean writeMode;
+    private boolean writeInProgress;
 
     /**
      * The constructor.
@@ -109,11 +109,11 @@ public class ByteGeneratorContext {
     public Promise<Boolean> send() {
         ensureValid();
         if (isSendNeeded()) {
-            writeMode = true;
+            writeInProgress = true;
             buffer.flip();
             return output.write(buffer).flatMapOutcome(value -> {
                 buffer.compact();
-                writeMode = false;
+                writeInProgress = false;
                 if (value.isSuccess()) {
                     return aTrue();
                 } else {
@@ -140,7 +140,7 @@ public class ByteGeneratorContext {
         if (invalidation != null) {
             throw new IllegalStateException("The stream has been failed", invalidation);
         }
-        if (writeMode) {
+        if (writeInProgress) {
             throw new IllegalStateException("The method is called while write operation is in progress.");
         }
     }

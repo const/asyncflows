@@ -23,7 +23,6 @@
 
 package org.asyncflows.protocol.http.common;
 
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.HttpException;
 
 import java.io.UnsupportedEncodingException;
@@ -32,8 +31,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -63,11 +62,8 @@ public final class HttpURIUtil {
      *
      * @param uri the uri parse
      * @return the parsed parameters (empty if none)
-     * @throws URISyntaxException           in case of bad URI
-     * @throws UnsupportedEncodingException in case of missing UTF-8
      */
-    public static Map<String, String> getQueryParameters(final URI uri)
-            throws URISyntaxException, UnsupportedEncodingException {
+    public static Map<String, String> getQueryParameters(final URI uri) {
         final String query = uri.getRawQuery();
         if (query == null) {
             return Collections.emptyMap();
@@ -78,7 +74,7 @@ public final class HttpURIUtil {
             final int p = query.indexOf('&', l);
             final String element;
             if (p == -1) {
-                element = query.substring(l, query.length());
+                element = query.substring(l);
                 l = -1;
             } else {
                 element = query.substring(l, p);
@@ -89,7 +85,7 @@ public final class HttpURIUtil {
                 if (eq == -1) {
                     map.put(decode(element), "");
                 } else {
-                    map.put(decode(element.substring(0, eq)), decode(element.substring(eq + 1, element.length())));
+                    map.put(decode(element.substring(0, eq)), decode(element.substring(eq + 1)));
                 }
             }
         }
@@ -142,9 +138,12 @@ public final class HttpURIUtil {
      *
      * @param element the element to decode
      * @return the decoded string
-     * @throws UnsupportedEncodingException if there is a problem decoding
      */
-    private static String decode(final String element) throws UnsupportedEncodingException {
-        return URLDecoder.decode(element, CharIOUtil.UTF8.name());
+    private static String decode(final String element) {
+        try {
+            return URLDecoder.decode(element, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 should be always available", e);
+        }
     }
 }

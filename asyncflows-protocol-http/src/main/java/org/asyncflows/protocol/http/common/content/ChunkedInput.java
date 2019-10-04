@@ -96,6 +96,7 @@ public class ChunkedInput extends MessageInput {
     }
 
     @Override
+    @SuppressWarnings("squid:S3776")
     protected Promise<Void> closeAction() {
         if (eofNotified) {
             stateChanged(InputState.CLOSED);
@@ -128,8 +129,8 @@ public class ChunkedInput extends MessageInput {
                 });
             });
         } else {
-            stateChanged(InputState.CLOSED_BEFORE_EOF);
             trailersNotReached();
+            stateChanged(InputState.CLOSED_BEFORE_EOF);
             return aVoid();
         }
     }
@@ -142,6 +143,7 @@ public class ChunkedInput extends MessageInput {
     }
 
     @Override
+    @SuppressWarnings("squid:S3776")
     public Promise<Integer> read(final ByteBuffer buffer) {
         return reads.runSeqUntilValue(() -> {
             ensureValidAndOpen();
@@ -234,6 +236,6 @@ public class ChunkedInput extends MessageInput {
                 throw new HttpException("The chunk size is too big: " + chunkSizeLine);
             }
             return aValue(result);
-        }).failedLast(HttpRuntimeUtil.<Long>toHttpException("Failed to parse chunk header"));
+        }).failedLast(HttpRuntimeUtil.toHttpException("Failed to parse chunk header"));
     }
 }

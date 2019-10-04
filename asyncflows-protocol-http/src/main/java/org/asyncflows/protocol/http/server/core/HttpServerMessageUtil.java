@@ -38,7 +38,6 @@ import org.asyncflows.protocol.http.common.HttpVersionUtil;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -97,7 +96,7 @@ public final class HttpServerMessageUtil {
         if (p == l) {
             throw new HttpStatusException(HttpStatusUtil.BAD_REQUEST, "No version in the request line");
         }
-        final String version = value.substring(l + 1, value.length());
+        final String version = value.substring(l + 1);
         message.setVersion(version);
         final String requestTarget = value.substring(p + 1, l).trim();
         if (requestTarget.length() == 0) {
@@ -192,7 +191,7 @@ public final class HttpServerMessageUtil {
                 final URI uri = filteredUri(target);
                 message.setEffectiveUri(uri);
             }
-        } catch (URISyntaxException | MalformedURLException ex) {
+        } catch (URISyntaxException ex) {
             throw new HttpStatusException(HttpStatusUtil.BAD_REQUEST, "Bad request "
                     + effectiveHost + " " + method + " " + target + " " + version, ex);
         }
@@ -203,10 +202,9 @@ public final class HttpServerMessageUtil {
      *
      * @param uriText the URL text
      * @return the URI
-     * @throws MalformedURLException in case of bad uri
      * @throws URISyntaxException    in case of bad uri
      */
-    private static URI filteredUri(final String uriText) throws MalformedURLException, URISyntaxException {
+    private static URI filteredUri(final String uriText) throws URISyntaxException {
         final URI uri = new URI(uriText);
         // strip fragment and user information from URI.
         if (uri.getUserInfo() != null) {

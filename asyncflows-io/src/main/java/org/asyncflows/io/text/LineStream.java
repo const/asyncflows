@@ -60,7 +60,7 @@ public class LineStream extends ChainedStreamBase<String, AInput<CharBuffer>> {
     /**
      * The current line.
      */
-    private StringBuilder line = new StringBuilder(); // NOPMD
+    private StringBuilder line = new StringBuilder();
 
 
     /**

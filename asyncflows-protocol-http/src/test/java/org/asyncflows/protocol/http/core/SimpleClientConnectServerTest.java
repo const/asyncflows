@@ -37,7 +37,7 @@ import static org.asyncflows.core.util.CoreFlowsResource.aTryResource;
 /**
  * The same test as {@link SimpleClientServerTest}, but uses the test server with connect proxy.
  */
-public class SimpleClientConnectServerTest extends SimpleClientServerTest { // NOPMD
+public class SimpleClientConnectServerTest extends SimpleClientServerTest {
 
     @Override
     protected <T> Promise<T> runWithClient(final ASocketFactory socketFactory, final URI uri, final AFunction<AHttpClient, T> action) {
@@ -50,7 +50,7 @@ public class SimpleClientConnectServerTest extends SimpleClientServerTest { // N
             final SimpleHttpClient client = new SimpleHttpClient();
             client.setUserAgent("test-client/1.0");
             client.setSocketFactory(connectSocketFactory);
-            return aTryResource(client.export()).run(action::apply);
+            return aTryResource(client.export()).run(action);
         });
     }
 }

@@ -28,6 +28,7 @@ import org.asyncflows.protocol.http.common.HttpStatusUtil;
 /**
  * The exception with associated HTTP status.
  */
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class HttpStatusException extends HttpException {
     /**
      * The status code.

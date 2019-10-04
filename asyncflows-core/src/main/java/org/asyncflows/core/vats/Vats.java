@@ -40,6 +40,7 @@ public final class Vats {
             Executors.newCachedThreadPool(new ThreadFactory() {
                 private final AtomicInteger threadCount = new AtomicInteger(0);
 
+                @SuppressWarnings("NullableProblems")
                 @Override
                 public Thread newThread(final Runnable r) {
                     final Thread t = new Thread(r, "AsyncFlows-" + threadCount.getAndIncrement());
@@ -57,7 +58,7 @@ public final class Vats {
     /**
      * @return the new daemon vat
      */
-    // FIXME revise all places where it is used to support explicit specification of executor for Java EE context
+    // TODO revise all places where it is used to support explicit specification of executor for Java EE context
     // (ManagedExecutorService)
     public static ExecutorVat daemonVat() {
         return new ExecutorVat(DAEMON_EXECUTOR, Integer.MAX_VALUE);

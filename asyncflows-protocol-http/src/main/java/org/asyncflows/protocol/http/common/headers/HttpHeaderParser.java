@@ -46,6 +46,7 @@ public class HttpHeaderParser extends ProtocolLineParser {
      * @param c the character to check
      * @return true if the obsolete text
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isObsText(final char c) {
         return '\u0080' <= c && c <= '\u00FF';
     }
@@ -93,11 +94,12 @@ public class HttpHeaderParser extends ProtocolLineParser {
     /**
      * @return try parsing quoted string.
      */
+    @SuppressWarnings("squid:S3776")
     public String tryString() {
         if (la() != '"') {
             return null;
         }
-        final int p = position; // NOPMD
+        final int p = position;
         consume();
         while (hasNext() && la() != '"') {
             final char c = consume();

@@ -25,10 +25,10 @@ package org.asyncflows.protocol.websocket;
 
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.util.BufferBackedInput;
-import org.asyncflows.io.util.CharIOUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The web socket message.
@@ -160,7 +160,7 @@ public final class WebSocketMessage {
      * @return the created message
      */
     public static WebSocketMessage close(short code, String message) {
-        final byte[] bytes = message.getBytes(CharIOUtil.UTF8);
+        final byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
         final ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 2);
         buffer.putShort(code);
         buffer.put(bytes);
@@ -190,19 +190,25 @@ public final class WebSocketMessage {
      * @return the message text (a new read-only buffer)
      */
     public CharBuffer getText() {
-        if (type != MessageType.TEXT) {
-            throw new IllegalStateException("The message has type: " + type);
-        }
+        expectType(MessageType.TEXT);
         return text.asReadOnlyBuffer();
+    }
+
+    private void expectType(MessageType messageType) {
+        if (type != messageType) {
+            throw new IllegalStateException(unexpectedType());
+        }
+    }
+
+    private String unexpectedType() {
+        return String.format("The message has type: %s", type);
     }
 
     /**
      * @return the message data (a new read-only buffer)
      */
     public ByteBuffer getBinary() {
-        if (type != MessageType.BINARY) {
-            throw new IllegalStateException("The message has type: " + type);
-        }
+        expectType(MessageType.BINARY);
         return binary.asReadOnlyBuffer();
     }
 
@@ -215,7 +221,7 @@ public final class WebSocketMessage {
         } else if (type == MessageType.TEXT) {
             return BufferBackedInput.wrap(text);
         } else {
-            throw new IllegalStateException("The message has type: " + type);
+            throw new IllegalStateException(unexpectedType());
         }
     }
 
@@ -228,7 +234,7 @@ public final class WebSocketMessage {
         } else if (type == MessageType.BINARY) {
             return BufferBackedInput.wrap(binary);
         } else {
-            throw new IllegalStateException("The message has type: " + type);
+            throw new IllegalStateException(unexpectedType());
         }
     }
 

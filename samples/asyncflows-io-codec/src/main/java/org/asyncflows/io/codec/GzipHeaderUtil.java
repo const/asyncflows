@@ -32,18 +32,24 @@ import static org.asyncflows.io.codec.BinaryReader.readerField;
 import static org.asyncflows.io.codec.BinaryReader.withCRC32;
 
 public class GzipHeaderUtil {
+
+    private GzipHeaderUtil() {
+    }
+
     public static BinaryReader.ReaderAction<GZipHeader> readGZip() {
-        return withCRC32(readSequence(GZipHeader.class,
-                readerField(readUint16(), (z, magic) -> {
-                            if (magic != GZipHeader.ID) {
-                                throw new BinaryFormatException(String.format("Not a GZip format: %04x", magic));
-                            }
-                        }
-                )
-        ).then(
-                readerField(readByte(), GZipHeader::setCompressionMethod)
-        ).then(
-                readerField(readByte(), GZipHeader::setFlags)
-        ).end());
+        return withCRC32(
+                readSequence(GZipHeader.class,
+                        readerField(readUint16(), (z, magic) -> {
+                                    if (magic != GZipHeader.ID) {
+                                        throw new BinaryFormatException(String.format("Not a GZip format: %04x", magic));
+                                    }
+                                }
+                        )
+                ).then(
+                        readerField(readByte(), GZipHeader::setCompressionMethod)
+                ).then(
+                        readerField(readByte(), GZipHeader::setFlags)
+                ).end()
+        );
     }
 }

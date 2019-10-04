@@ -55,7 +55,6 @@
         <module>asyncflows-io</module>
         <module>asyncflows-protocol</module>
         <module>asyncflows-protocol-http</module>
-        <!--        <module>java-ee</module>-->
     </modules>
 
     <scm>
@@ -226,71 +225,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>verify-project</id>
-            <activation>
-                <file>
-                    <exists>src/config/verify</exists>
-                </file>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>2.16</version>
-                        <configuration>
-                            <configLocation>${verify.config.base}/checkstyle-checker.xml</configLocation>
-                            <logViolationsToConsole>true</logViolationsToConsole>
-                            <detail>true</detail>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-pmd-plugin</artifactId>
-                        <version>3.5</version>
-                        <configuration>
-                            <targetJdk>1.8</targetJdk>
-                            <includeTests>true</includeTests>
-                            <detail>true</detail>
-                            <printFailingErrors>true</printFailingErrors>
-                            <rulesets>
-                                <ruleset>${verify.config.base}/pmd-rules.xml</ruleset>
-                            </rulesets>
-                            <excludeRoots>
-                                <excludeRoot>src/test/java</excludeRoot>
-                            </excludeRoots>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                        <version>3.0.1</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>sign-project</id>
             <activation>

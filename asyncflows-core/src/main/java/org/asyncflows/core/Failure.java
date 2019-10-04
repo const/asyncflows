@@ -30,6 +30,7 @@ import java.util.Objects;
  *
  * @param <T> the value type
  */
+@SuppressWarnings("squid:S1700")
 public final class Failure<T> extends Outcome<T> {
     /**
      * The failure outcome.
@@ -54,7 +55,7 @@ public final class Failure<T> extends Outcome<T> {
      */
     @SuppressWarnings("unchecked")
     public <A> Failure<A> toOtherType() {
-        return (Failure<A>) (Failure) this;
+        return (Failure<A>) this;
     }
 
     @Override
@@ -82,7 +83,6 @@ public final class Failure<T> extends Outcome<T> {
         return true;
     }
 
-    // NOPMD
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

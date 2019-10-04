@@ -57,7 +57,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * The server tests based on Apache HTTP client.
  */
-public class HttpClientServerTest extends HttpServerTestBase { // NOPMD
+public class HttpClientServerTest extends HttpServerTestBase {
     /**
      * The logger.
      */
@@ -89,10 +89,10 @@ public class HttpClientServerTest extends HttpServerTestBase { // NOPMD
             final ArrayList<Header> hs = new ArrayList<>();
             for (final Map.Entry<String, List<String>> entry : requestObject.getHeaders().entrySet()) {
                 for (final String value : entry.getValue()) {
-                    hs.add(new BasicHeader(entry.getKey(), value)); // NOPMD
+                    hs.add(new BasicHeader(entry.getKey(), value));
                 }
             }
-            request.setHeaders(hs.toArray(new Header[hs.size()]));
+            request.setHeaders(hs.toArray(new Header[0]));
             try (final CloseableHttpClient client = HttpClients.createDefault()) {
                 final HttpHost host = new HttpHost(requestObject.getUri().getHost(),
                         HttpURIUtil.getPort(requestObject.getUri()));

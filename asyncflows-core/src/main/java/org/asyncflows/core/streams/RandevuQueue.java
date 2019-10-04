@@ -80,7 +80,7 @@ public final class RandevuQueue<T> {
      */
     public static <T> Tuple2<ASink<T>, AStream<T>> local() {
         final RandevuQueue<T> queue = new RandevuQueue<>();
-        return Tuple2.of((ASink<T>) queue.sink, (AStream<T>) queue.stream);
+        return Tuple2.of(queue.sink, queue.stream);
     }
 
     /**
@@ -109,7 +109,7 @@ public final class RandevuQueue<T> {
         /**
          * True if the sink is closed.
          */
-        private boolean eof; // NOPMD
+        private boolean eof;
 
         /**
          * The constructor.
@@ -164,7 +164,7 @@ public final class RandevuQueue<T> {
             return requests.run(() -> {
                 eof = true;
                 if (currentRequest != null) {
-                    notifySuccess(currentRequest, Maybe.<T>empty());
+                    notifySuccess(currentRequest, Maybe.empty());
                     currentRequest = null;
                 }
                 return aVoid();
@@ -194,7 +194,7 @@ public final class RandevuQueue<T> {
         }
 
         @Override
-        protected Promise<Maybe<T>> produce() throws Throwable {
+        protected Promise<Maybe<T>> produce() {
             return requests.run(() -> {
                 if (problem != null) {
                     return aFailure(problem);

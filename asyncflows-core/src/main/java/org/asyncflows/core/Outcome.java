@@ -137,6 +137,7 @@ public abstract class Outcome<T> {
      * @return the value if it is success outcome
      * @throws Throwable if it is a failure outcome
      */
+    @SuppressWarnings("squid:S00112")
     public abstract T force() throws Throwable;
 
     /**

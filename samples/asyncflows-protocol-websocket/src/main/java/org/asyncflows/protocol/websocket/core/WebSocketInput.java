@@ -32,8 +32,11 @@ import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
+import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.protocol.websocket.WebSocketMessage;
+
+import java.nio.ByteBuffer;
 
 import static org.asyncflows.core.Outcome.notifySuccess;
 
@@ -63,8 +66,8 @@ public class WebSocketInput extends CloseableInvalidatingBase
                 header -> {
                     final int opCode = header.getOpCode();
                     if (opCode == FrameHeader.OP_CLOSE) {
-                        notifySuccess(resolver, Maybe.<WebSocketMessage>empty());
-                        //return IOUtil.BYTE.discard(input.input(), header.getLength(), ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE)).toVoid();
+                        notifySuccess(resolver, Maybe.empty());
+                        return IOUtil.BYTE.discard(input.input(), header.getLength(), ByteBuffer.allocate(IOUtil.DEFAULT_BUFFER_SIZE)).toVoid();
                     }
                     return null;
                 }

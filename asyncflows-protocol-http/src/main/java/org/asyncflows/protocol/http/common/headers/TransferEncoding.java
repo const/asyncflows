@@ -62,7 +62,7 @@ public class TransferEncoding {
      * @param name the name
      */
     public TransferEncoding(final String name) {
-        this(name, Collections.<String, String>emptyMap());
+        this(name, Collections.emptyMap());
     }
 
 
@@ -80,7 +80,7 @@ public class TransferEncoding {
         p.ows();
         while (p.tryChar(';')) {
             if (key != null && parameters == null) {
-                parameters = new LinkedHashMap<>(); // NOPMD
+                parameters = new LinkedHashMap<>();
                 parameters.put(key, value);
             }
             p.ows();
@@ -114,7 +114,7 @@ public class TransferEncoding {
     public static List<TransferEncoding> parse(final List<String> headerValues) {
         final List<TransferEncoding> rc = new ArrayList<>();
         for (final String value : headerValues) {
-            final HttpHeaderParser p = new HttpHeaderParser(value); // NOPMD
+            final HttpHeaderParser p = new HttpHeaderParser(value);
             while (true) {
                 do {
                     p.ows();

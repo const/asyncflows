@@ -29,7 +29,6 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.io.AInput;
 
 import java.nio.CharBuffer;
-import java.nio.charset.Charset;
 
 import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
@@ -43,14 +42,6 @@ import static org.asyncflows.io.IOUtil.isEof;
  * Character IO utilities.
  */
 public final class CharIOUtil {
-    /**
-     * UTF-8 charset.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
-    /**
-     * UTF-8 charset.
-     */
-    public static final Charset ISO8859_1 = Charset.forName("ISO-8859-1");
     /**
      * Unicode code point for NEXT LINE (NEL).
      */
@@ -148,6 +139,7 @@ public final class CharIOUtil {
      * @param includeNewLine if true, new line characters should be included into result
      * @return the resulting line or null if the last line has been read.
      */
+    @SuppressWarnings("squid:S3776")
     public static Promise<String> readLine(final AInput<CharBuffer> input, final CharBuffer buffer,
                                            final StringBuilder line, final boolean includeNewLine) {
         return aSeqUntilValue(new ASupplier<Maybe<String>>() {
@@ -155,7 +147,7 @@ public final class CharIOUtil {
             private boolean skippedSomething;
 
             @Override
-            public Promise<Maybe<String>> get() throws Exception {
+            public Promise<Maybe<String>> get() {
                 while (buffer.hasRemaining()) {
                     if (afterCr) {
                         final char c = buffer.charAt(0);

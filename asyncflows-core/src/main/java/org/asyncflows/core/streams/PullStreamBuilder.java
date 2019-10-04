@@ -97,6 +97,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
         });
     }
 
+    @SuppressWarnings("squid:S3776")
     @Override
     public <N> StreamBuilder<N> flatMapStream(final AFunction<T, AStream<N>> mapper) {
         return new PullStreamBuilder<>(new ChainedStreamBase<N, AStream<AStream<N>>>(map(mapper).current) {
@@ -109,15 +110,15 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
                 return requests.run(() -> aSeqUntilValue(() -> {
                     if (mapped == null) {
                         if (eof) {
-                            return aMaybeValue(Maybe.<N>empty());
+                            return aMaybeValue(Maybe.empty());
                         }
                         return wrapped.next().flatMap((Maybe<AStream<N>> value) -> {
                             if (value.isEmpty()) {
                                 eof = true;
-                                return aMaybeValue(Maybe.<N>empty());
+                                return aMaybeValue(Maybe.empty());
                             }
                             mapped = value.value();
-                            return CoreFlows.<Maybe<N>>aMaybeEmpty();
+                            return CoreFlows.aMaybeEmpty();
                         });
                     }
                     return mapped.next().flatMap(value -> {
@@ -156,7 +157,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
         });
         return new PullStreamBuilder<>(new StreamBase<T>() {
             @Override
-            protected Promise<Maybe<T>> produce() throws Throwable {
+            protected Promise<Maybe<T>> produce() {
                 return reads.runSeqUntilValue(() -> {
                     if (!isValidAndOpen()) {
                         return invalidationPromise();
@@ -182,6 +183,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
         });
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public Promise<Void> consume(final AFunction<T, Boolean> loopBody) {
         final AStream<T> stream = current;
@@ -202,7 +204,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
             protected Promise<Maybe<N>> produce() {
                 return requests.runSeqUntilValue(() -> wrapped.next().flatMap(value -> {
                     if (value.isEmpty()) {
-                        return aMaybeValue(Maybe.<N>empty());
+                        return aMaybeValue(Maybe.empty());
                     } else if (value.value().isEmpty()) {
                         return aMaybeEmpty();
                     } else {

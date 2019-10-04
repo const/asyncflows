@@ -142,8 +142,9 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
     }
 
     @Override
-    public Promise<Integer> read(final CharBuffer buffer) { // NOPMD
-        return requests.run(() -> { // NOPMD
+    @SuppressWarnings("squid:S3776")
+    public Promise<Integer> read(final CharBuffer buffer) {
+        return requests.run(() -> {
             if (!isValidAndOpen()) {
                 return invalidationPromise();
             }
@@ -154,7 +155,7 @@ public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
             return aSeqWhile(() -> {
                 ensureValidAndOpen();
                 final int position = buffer.position();
-                final CoderResult result = decoder.decode(bytes, buffer, eofSeen); // NOPMD
+                final CoderResult result = decoder.decode(bytes, buffer, eofSeen);
                 eofDecoded = eofSeen && !bytes.hasRemaining();
                 if (eofDecoded && position == buffer.position()) {
                     read[0] = IOUtil.EOF;

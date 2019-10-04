@@ -21,16 +21,32 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.tracker;
+package org.asyncflows.protocol.http.client;
 
-import org.junit.jupiter.api.Test;
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.protocol.http.common.Scope;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+/**
+ * Utilities and constants related to {@link HttpRequestUtil}.
+ */
+public final class HttpRequestUtil {
+    /**
+     * The continue listener. If it the version of the request is 1.1, then the listener is notified when the
+     * continue intermediate reply is received. Note that this reply might never be received in case if the server
+     * does not understand this header, so the client should watch some timer to check for the response.
+     */
+    public static final Scope.Key<AResolver<Void>> CONTINUE_LISTENER
+            = new Scope.Key<>(AHttpRequest.class, "continueListener");
+    /**
+     * Set this key on the scope, if the request should connect to the host, that is different from the host specified
+     * by URL.
+     */
+    public static final Scope.Key<String> CONNECTION_HOST = new Scope.Key<>(AHttpRequest.class, "connectionHost");
+    /**
+     * The constant meaning no-content.
+     */
+    public static final long NO_CONTENT = -1L;
 
-public class TrackerTest {
-
-    @Test
-    public void trackerTest() {
-        assertEquals(1, 2 - 1);
+    private HttpRequestUtil() {
     }
 }

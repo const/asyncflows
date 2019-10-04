@@ -44,8 +44,13 @@ import static org.asyncflows.core.CoreFlows.aLater;
 import static org.asyncflows.core.CoreFlows.aSend;
 
 /**
- * Create a reflection based proxy for the class.
+ * Create a reflection based proxy for the class. Class is deprecated in favor of manual proxies
+ * or asynchronous proxy generator.
+ *
+ * @deprecated
+ * @see org.asyncflows.core.annotations.Asynchronous
  */
+@Deprecated
 public final class ObjectExporter {
     /**
      * The logger.
@@ -201,7 +206,7 @@ public final class ObjectExporter {
 
         @Override
         @SuppressWarnings({"unchecked", "squid:S3776"})
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable { // NOPMD
+        public Object invoke(final Object proxy, final Method method, final Object[] args) {
             final Class<?> returnType = method.getReturnType();
             if (void.class == returnType) {
                 aSend(vat, () -> {

@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.util; // NOPMD
+package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ASupplier;
@@ -482,10 +482,8 @@ public final class GZipHeader {
      * @param b       the single byte
      */
     private static void putUInt16(final ByteGeneratorContext context, final CRC32 crc, final char b) {
-        // CHECKSTYLE:OFF
         final byte b1 = (byte) b;
         final byte b2 = (byte) (b >> 8);
-        // CHECKSTYLE:ON
         crc.update(b1);
         crc.update(b2);
         final ByteBuffer buffer = context.buffer();
@@ -501,12 +499,10 @@ public final class GZipHeader {
      * @param b       the single byte
      */
     private static void putInt32(final ByteGeneratorContext context, final CRC32 crc, final int b) {
-        // CHECKSTYLE:OFF
         final byte b1 = (byte) b;
         final byte b2 = (byte) (b >> 8);
         final byte b3 = (byte) (b >> 16);
         final byte b4 = (byte) (b >> 24);
-        // CHECKSTYLE:ON
         crc.update(b1);
         crc.update(b2);
         crc.update(b3);
@@ -525,6 +521,7 @@ public final class GZipHeader {
      * @param crc     the CRC to update
      * @return the promise for the string
      */
+    @SuppressWarnings("squid:S3776")
     private static Promise<String> readStringZero(final ByteParserContext context, final CRC32 crc) {
         final StringBuilder rc = new StringBuilder();
         return aSeq(() -> aSeqWhile(() -> {
@@ -571,7 +568,7 @@ public final class GZipHeader {
                 private int count;
 
                 @Override
-                public Promise<Boolean> get() throws Exception {
+                public Promise<Boolean> get() {
                     final ByteBuffer buffer = context.buffer();
                     while (count < size) {
                         if (!buffer.hasRemaining()) {
@@ -634,7 +631,7 @@ public final class GZipHeader {
     /**
      * Set derived flags value basing on fields.
      */
-    public void setRealFlags() {  // NOPMD
+    public void setRealFlags() {
         flags = isText() ? FTEXT : 0;
         flags |= isHeaderChecked() ? FHCRC : 0;
         flags |= getExtraFields().isEmpty() ? 0 : FEXTRA;

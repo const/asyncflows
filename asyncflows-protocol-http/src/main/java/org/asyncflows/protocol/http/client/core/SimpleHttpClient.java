@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.protocol.http.client.core; // NOPMD
+package org.asyncflows.protocol.http.client.core;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Cell;
@@ -29,7 +29,6 @@ import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.CloseableBase;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.ObjectExporter;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.util.ResourceClosedException;
 import org.asyncflows.core.vats.Vat;
@@ -41,6 +40,8 @@ import org.asyncflows.protocol.http.HttpException;
 import org.asyncflows.protocol.http.client.AHttpClient;
 import org.asyncflows.protocol.http.client.AHttpClientProxyFactory;
 import org.asyncflows.protocol.http.client.AHttpRequest;
+import org.asyncflows.protocol.http.client.AHttpRequestProxyFactory;
+import org.asyncflows.protocol.http.client.HttpRequestUtil;
 import org.asyncflows.protocol.http.client.HttpResponse;
 import org.asyncflows.protocol.http.common.HttpLimits;
 import org.asyncflows.protocol.http.common.HttpURIUtil;
@@ -86,7 +87,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
     /**
      * The connections.
      */
-    private final Map<URI, List<ConnectionWrapper>> connections = new HashMap<>(); // NOPMD
+    private final Map<URI, List<ConnectionWrapper>> connections = new HashMap<>();
     /**
      * The connection factory.
      */
@@ -114,11 +115,12 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
      * @param uri the URI to examine
      * @return the key URI
      */
+    @SuppressWarnings("squid:S3398")
     private static URI toKey(final URI uri) {
         try {
             return new URI(uri.getScheme().toLowerCase(), null, uri.getHost().toLowerCase(), HttpURIUtil.getPort(uri),
                     null, null, null);
-        } catch (Exception ex) { // NOPMD
+        } catch (Exception ex) {
             throw new HttpException("BAD URI: " + uri, ex);
         }
     }
@@ -177,6 +179,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
      * @param key the connection host to use
      * @return a request instance if there is a ready connection, or null if new connection should be created.
      */
+    @SuppressWarnings("squid:S3398")
     private AHttpRequest peekReady(final URI key) {
         ensureOpen();
         cleanup();
@@ -217,6 +220,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
      * @param key the key to use
      * @return the first request on the prepared connection
      */
+    @SuppressWarnings("squid:S3398")
     private Promise<AHttpRequest> connect(final URI key) {
         ensureOpen();
         final Cell<ASocket> socketCell = new Cell<>();
@@ -337,7 +341,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
                     throw new HttpException("UserInfo component must be blank, use headers.");
                 }
                 final HttpHeaders headers = new HttpHeaders(headersClient);
-                final String connectionHost = scope.get(CONNECTION_HOST);
+                final String connectionHost = scope.get(HttpRequestUtil.CONNECTION_HOST);
                 final URI key;
                 if (connectionHost != null) {
                     key = toKey(new URI(uri.getScheme() + "://" + connectionHost));
@@ -380,7 +384,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
          */
         private boolean isRetryException(final Throwable failure) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Checking if HTTPClient should retry on other connection: " + failure);
+                LOG.debug(String.format("Checking if HTTPClient should retry on other connection: %s", failure));
             }
             return !(failure instanceof Error) && !(failure instanceof HttpException);
         }
@@ -392,7 +396,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
          */
         private void setRequest(final AHttpRequest request) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Request ready: " + request);
+                LOG.debug(String.format("Request ready: %s", request));
             }
             this.request = request;
             if (requestReadyPromise != null) {
@@ -455,8 +459,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
 
         @Override
         public AHttpRequest export(final Vat vat) {
-            // TODO review all ObjectExporter usages.
-            return ObjectExporter.export(vat, this);
+            return AHttpRequestProxyFactory.createProxy(vat, this);
         }
     }
 
@@ -508,7 +511,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
          */
         public Promise<AHttpRequest> start() {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Starting connection " + id + " to " + key);
+                LOG.debug(String.format("Starting connection %s to %s", id, key));
             }
             return nextRequest().flatMap(value -> {
                 if (!value) {
@@ -536,12 +539,9 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
         /**
          * run acquire loop.
          */
+        @SuppressWarnings("squid:S3776")
         private void run() {
-            List<ConnectionWrapper> connectionList = connections.get(key);
-            if (connectionList == null) {
-                connectionList = new LinkedList<>();
-                connections.put(key, connectionList);
-            }
+            List<ConnectionWrapper> connectionList = connections.computeIfAbsent(key, k -> new LinkedList<>());
             connectionList.add(this);
             aSeq(() -> requests.runSeqWhile(
                     () -> requests.suspend().thenFlatGet(() -> {
@@ -558,11 +558,11 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
             ).finallyDo(this::close).listen(resolution -> {
                 if (resolution.isSuccess()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Connection " + id + " to " + key + " finished");
+                        LOG.debug(String.format("Connection %s to %s finished", id, key));
                     }
                 } else {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Connection " + id + " to " + key + " failed", resolution.failure());
+                        LOG.debug(String.format("Connection %s to %s failed", id, key), resolution.failure());
                     }
                 }
             });

@@ -124,7 +124,7 @@ public class BufferBackedInput<B extends Buffer> extends CloseableBase implement
      * @param data the data
      * @return the wrapped array
      */
-    public static AInput<CharBuffer> wrap(final char[] data) { //NOPMD
+    public static AInput<CharBuffer> wrap(final char[] data) {
         return wrap(data, 0, data.length);
     }
 

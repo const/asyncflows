@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.net.blocking; // NOPMD
+package org.asyncflows.io.net.blocking;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
@@ -41,7 +41,7 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResource;
 /**
  * Export utilities for the socket.
  */
-public final class BlockingSocketExportUtil { // NOPMD
+public final class BlockingSocketExportUtil {
 
     /**
      * Private constructor for utility class.
@@ -148,7 +148,7 @@ public final class BlockingSocketExportUtil { // NOPMD
      * @param socket     the socket to wrap
      * @return a socket wrapped into the proxy.
      */
-    public static ADatagramSocket export(final Vat controlVat, final Vat receiveVat, final Vat sendVat, // NOPMD
+    public static ADatagramSocket export(final Vat controlVat, final Vat receiveVat, final Vat sendVat,
                                          final ADatagramSocket socket) {
         return new ADatagramSocket() {
             @Override

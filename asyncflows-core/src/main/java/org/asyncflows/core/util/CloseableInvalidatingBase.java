@@ -69,7 +69,7 @@ public class CloseableInvalidatingBase extends CloseableBase {
      *
      * @param throwable the invalidation reason
      */
-    protected void onInvalidation(final Throwable throwable) { // NOPMD
+    protected void onInvalidation(final Throwable throwable) {
         // it will be overridden in subclasses if needed
     }
 
@@ -104,6 +104,7 @@ public class CloseableInvalidatingBase extends CloseableBase {
     /**
      * If stream is closed, throw an exception.
      */
+    @Override
     protected void ensureOpen() {
         if (isClosed()) {
             throw new ResourceClosedException("The object is closed", invalidation);
@@ -115,6 +116,7 @@ public class CloseableInvalidatingBase extends CloseableBase {
      *
      * @throws Exception if there is in an invalidation
      */
+    @SuppressWarnings("squid:S00112")
     protected final void ensureValid() throws Exception {
         if (invalidation != null) {
             if (invalidation instanceof Error) {

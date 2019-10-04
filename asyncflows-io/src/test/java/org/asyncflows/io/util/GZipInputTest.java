@@ -85,7 +85,7 @@ public class GZipInputTest {
                     )
             ).andLast(() -> header);
         });
-        assertEquals(rc.getValue1().longValue(), 227);
+        assertEquals(227, rc.getValue1().longValue());
         return rc.getValue2();
     }
 }

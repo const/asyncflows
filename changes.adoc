@@ -3,12 +3,12 @@
 == 0.1.1 (in progress)
 
 * Added support for NIO.2 sockets and file interfaces
-* Added asynchronous proxy generator annotation processor
+* Added the asynchronous proxy generator annotation processor
 * Added PromiseTraceProvider that allows enriching exceptions with asynchronous stack traces
 * Some small renames, and bug fixes
 * Promise and BatchedVat now used wait-free structures based on AtomicReference
 * FailFast is renamed to Cancellation
-* TODO Changed to sonar for verification (default rule set)
+* Changed to sonar for verification (default rule set)
 
-== 0.1.0
+== 0.1.0 2018-09-14
 Initial version

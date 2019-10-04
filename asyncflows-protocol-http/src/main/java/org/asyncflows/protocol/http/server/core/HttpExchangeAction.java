@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.protocol.http.server.core; // NOPMD
+package org.asyncflows.protocol.http.server.core;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
@@ -54,6 +54,7 @@ import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.common.headers.TransferEncoding;
 import org.asyncflows.protocol.http.server.AHttpHandler;
+import org.asyncflows.protocol.http.server.HttpExchangeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,9 +90,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
      * Fake event indicating that stream was not created.
      */
     public static final Callable<StreamFinishedEvent> NOT_CREATED = () -> {
-        //CHECKSTYLE:OFF
         final long time = System.currentTimeMillis();
-        //CHECKSTYLE:ON
         return new StreamFinishedEvent(time, time, 0, null);
     };
     /**
@@ -290,7 +289,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
      * @return the listener
      */
     private Consumer<StreamFinishedEvent> countTo(final Scope.Key<StreamFinishedEvent> key) {
-        return FunctionExporter.exportConsumer((Consumer<StreamFinishedEvent>) event -> {
+        return FunctionExporter.exportConsumer(event -> {
             if (exchangeContext != null) {
                 exchangeContext.getExchangeScope().set(key, event);
             }
@@ -408,7 +407,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
     private void enrichReplyHeaders(final HttpResponseMessage message) {
         final HttpHeaders headers = message.getHeaders();
         // todo remove only some connection values
-        // headers.removeHeader(HttpHeadersUtil.CONNECTION_HEADER);
+        // TODO check if needed to remove HttpHeadersUtil.CONNECTION_HEADER
         headers.removeHeader(HttpHeadersUtil.CONTENT_LENGTH_HEADER);
         // todo trailers indication?
         headers.removeHeader(HttpHeadersUtil.TRANSFER_ENCODING_HEADER);
@@ -461,6 +460,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
      * @param encodings encodings
      * @return the provider for trailers
      */
+    @SuppressWarnings("squid:S3776")
     private ASupplier<HttpHeaders> trailersProvider(final List<TransferEncoding> encodings) {
 
         final List<TransferEncoding> te = TransferEncoding.parse(
@@ -490,7 +490,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                     actual.remove(HttpHeadersUtil.normalizeName(h));
                 }
                 if (!actual.isEmpty()) {
-                    LOG.debug("Undeclared trailers headers on exchange " + id() + ": " + actual);
+                    LOG.debug(String.format("Undeclared trailers headers on exchange %s: %s", id(), actual));
                 }
             }
         }));
@@ -527,7 +527,8 @@ class HttpExchangeAction extends CloseableInvalidatingBase
     }
 
     @Override
-    public Promise<AChannel<ByteBuffer>> switchProtocol(final int status, final String reason, // NOPMD
+    @SuppressWarnings("squid:S3776")
+    public Promise<AChannel<ByteBuffer>> switchProtocol(final int status, final String reason,
                                                         final HttpHeaders headers) {
         return responses.run(() -> {
             if (HttpStatusUtil.SWITCHING_PROTOCOLS != status
@@ -552,10 +553,12 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                 inputState = null;
                 return closed ? aVoid() : stream.close();
             }).thenDo(() -> {
-                if (exchangeContext.getExchangeScope().get(HttpServer.SWITCH_NO_REPLY)) {
+                final boolean switchWithoutReply = exchangeContext.getExchangeScope()
+                        .get(HttpServer.SWITCH_NO_REPLY, false);
+                if (switchWithoutReply) {
                     // This is for the case of switching to HTTP 2.0.
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Switching protocols " + id() + " without reply message");
+                        LOG.debug(String.format("Switching protocols %s without reply message", id()));
                     }
                     return aVoid();
                 } else {
@@ -574,13 +577,13 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                 inputInfo = ContentUtil.getInput(
                         HttpMethodUtil.GET, HttpStatusUtil.OK, connection.getInput(),
                         inputStateTracker(), null, countTo(CLIENT_TO_SERVER_SWITCHED),
-                        Collections.<TransferEncoding>emptyList(), null);
+                        Collections.emptyList(), null);
                 outputInfo = ContentUtil.getOutput(HttpMethodUtil.GET, HttpStatusUtil.OK,
                         connection.getOutput(),
                         outputTracker(),
-                        constantSupplier((HttpHeaders) null),
+                        constantSupplier(null),
                         countTo(SERVER_TO_CLIENT_SWITCHED),
-                        Collections.<TransferEncoding>emptyList(), null);
+                        Collections.emptyList(), null);
                 switchedProtocol = true;
                 return aValue(new SimpleChannel<>(
                         inputInfo.getStream(), outputInfo.getStream()).export());
@@ -627,9 +630,9 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                         responseMessage.getStatusMessage(),
                         exchangeContext.getExchangeScope().get(SERVER_TO_CLIENT),
                         exchangeContext.getExchangeScope().get(SERVER_TO_CLIENT_SWITCHED),
-                        exchangeContext.getExchangeScope().get(ExchangeFinishedEvent.REMOTE),
-                        exchangeContext.getExchangeScope().get(ExchangeFinishedEvent.SERVER_TO_REMOTE),
-                        exchangeContext.getExchangeScope().get(ExchangeFinishedEvent.REMOTE_TO_SERVER));
+                        exchangeContext.getExchangeScope().get(HttpExchangeUtil.REMOTE),
+                        exchangeContext.getExchangeScope().get(HttpExchangeUtil.SERVER_TO_REMOTE),
+                        exchangeContext.getExchangeScope().get(HttpExchangeUtil.REMOTE_TO_SERVER));
                 connection.getServer().fireExchangeFinished(event);
             }
             return aVoid();

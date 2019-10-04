@@ -28,17 +28,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ServiceLoader;
-import java.util.function.Supplier;
 
-/**
- * The trace provider for promises. The feature is experimental. The API could change w/o any notice.
- */
 @Experimental
-public interface PromiseTraceProvider {
+public class PromiseTrace {
     /**
      * The instance of trace provider.
      */
-    PromiseTraceProvider INSTANCE = ((Supplier<PromiseTraceProvider>) () -> {
+    static final PromiseTraceProvider INSTANCE = getPromiseTraceProvider();
+
+    @SuppressWarnings("squid:S3776")
+    private static PromiseTraceProvider getPromiseTraceProvider() {
         final String provider = System.getProperty("org.asyncflows.core.trace.provider");
         if ("EXCEPTION".equals(provider)) {
             return new ExceptionProvider();
@@ -63,25 +62,31 @@ public interface PromiseTraceProvider {
             }
             return new NopProvider();
         }
-    }).get();
+    }
 
     /**
-     * @return this method is used to get the current trace when promise is created.
+     * The trace provider for promises. The feature is experimental. The API could change w/o any notice.
      */
-    Object recordTrace();
+    public interface PromiseTraceProvider {
 
-    /**
-     * Merge trace into received exception.
-     *
-     * @param problem the problem received to promise.
-     * @param trace   the recorded trace
-     */
-    void mergeTrace(Throwable problem, Object trace);
+        /**
+         * @return this method is used to get the current trace when promise is created.
+         */
+        Object recordTrace();
+
+        /**
+         * Merge trace into received exception.
+         *
+         * @param problem the problem received to promise.
+         * @param trace   the recorded trace
+         */
+        void mergeTrace(Throwable problem, Object trace);
+    }
 
     /**
      * The no-op provider that just returns null.
      */
-    class NopProvider implements PromiseTraceProvider {
+    public static class NopProvider implements PromiseTraceProvider {
 
         @Override
         public Object recordTrace() {
@@ -94,12 +99,11 @@ public interface PromiseTraceProvider {
         }
     }
 
-
     /**
      * The very expensive provider that records context using exception.
      * Use it only for debug purposes.
      */
-    class ExceptionProvider implements PromiseTraceProvider {
+    public static class ExceptionProvider implements PromiseTraceProvider {
 
         @Override
         public Object recordTrace() {
@@ -115,6 +119,6 @@ public interface PromiseTraceProvider {
     /**
      * The exception used to record trace.
      */
-    final class PromiseTraceException extends Exception {
+    public static final class PromiseTraceException extends Exception {
     }
 }

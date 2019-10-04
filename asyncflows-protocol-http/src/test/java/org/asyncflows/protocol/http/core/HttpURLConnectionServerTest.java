@@ -43,7 +43,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * The server test. It use HttpUrlConnection on the separate thread.
  */
-public class HttpURLConnectionServerTest extends HttpServerTestBase { // NOPMD
+public class HttpURLConnectionServerTest extends HttpServerTestBase {
     /**
      * The logger.
      */

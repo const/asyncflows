@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.net.tls; // NOPMD
+package org.asyncflows.io.net.tls;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
@@ -365,8 +365,9 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         /**
          * @return the unwrap loop outcome
          */
-        private Promise<Void> doUnwraps() { // NOPMD
-            return unwraps.runSeqWhile(() -> { // NOPMD
+        @SuppressWarnings("squid:S3776")
+        private Promise<Void> doUnwraps() {
+            return unwraps.runSeqWhile(() -> {
                 ensureValid();
                 if (engine.isInboundDone()) {
                     eofUnwrapped = true;
@@ -512,7 +513,7 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                 unwraps.resume();
                 return reads.suspendThenEmpty();
             }).listen(resolution -> {
-                if (user == buffer) { // NOPMD
+                if (user == buffer) {
                     user = null;
                 }
             });
@@ -573,8 +574,9 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
         /**
          * @return the wrap loop outcome
          */
-        private Promise<Void> doWraps() { // NOPMD
-            return wraps.runSeqWhile(() -> { // NOPMD
+        @SuppressWarnings("squid:S3776")
+        private Promise<Void> doWraps() {
+            return wraps.runSeqWhile(() -> {
                 ensureValid();
                 if (engine.isOutboundDone()) {
                     return aFalse();
@@ -613,9 +615,7 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                     packet = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
                 }
                 final SSLEngineResult wrap = engine.wrap(user == null ? EMPTY : user, packet);
-                switch (wrap.getStatus()) { // NOPMD
-                    // PMD is confused by ifs, and thinks that break is missing
-                    // http://sourceforge.net/p/pmd/bugs/795/
+                switch (wrap.getStatus()) {
                     case CLOSED:
                     case OK:
                         if (user != null && !user.hasRemaining()) {
@@ -680,7 +680,7 @@ public class TlsChannel<T extends AChannel<ByteBuffer>> extends ChainedClosable<
                 wraps.resume();
                 return writes.suspendThenTrue();
             }).listen(resolution -> {
-                if (user == buffer) { // NOPMD
+                if (user == buffer) {
                     user = null;
                 }
             });

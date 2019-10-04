@@ -39,6 +39,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 
 public abstract class FunctionTracker<T> extends AbstractTracker<T> {
     private final RequestQueue requestQueue = new RequestQueue();
+    @SuppressWarnings("squid:S1450")
     private Object changeKey;
 
     public static <A, R> ATracker<R> track(AFunction<A, R> function, ATracker<A> argument) {
@@ -46,7 +47,7 @@ public abstract class FunctionTracker<T> extends AbstractTracker<T> {
             private final TrackerAdapter<A> listener = new TrackerAdapter<>(argument, this::changed);
 
             @Override
-            protected Stream<TrackerAdapter<?>> arguments() {
+            protected Stream<TrackerAdapter> arguments() {
                 return Stream.of(listener);
             }
 
@@ -63,7 +64,7 @@ public abstract class FunctionTracker<T> extends AbstractTracker<T> {
             private final TrackerAdapter<B> listenerB = new TrackerAdapter<>(argumentB, this::changed);
 
             @Override
-            protected Stream<TrackerAdapter<?>> arguments() {
+            protected Stream<TrackerAdapter> arguments() {
                 return Stream.of(listenerA, listenerB);
             }
 
@@ -81,7 +82,7 @@ public abstract class FunctionTracker<T> extends AbstractTracker<T> {
             private final TrackerAdapter<C> listenerC = new TrackerAdapter<>(argumentC, this::changed);
 
             @Override
-            protected Stream<TrackerAdapter<?>> arguments() {
+            protected Stream<TrackerAdapter> arguments() {
                 return Stream.of(listenerA, listenerB, listenerC);
             }
 
@@ -100,7 +101,7 @@ public abstract class FunctionTracker<T> extends AbstractTracker<T> {
             private final TrackerAdapter<D> listenerD = new TrackerAdapter<>(argumentD, this::changed);
 
             @Override
-            protected Stream<TrackerAdapter<?>> arguments() {
+            protected Stream<TrackerAdapter> arguments() {
                 return Stream.of(listenerA, listenerB, listenerC, listenerD);
             }
 
@@ -111,7 +112,7 @@ public abstract class FunctionTracker<T> extends AbstractTracker<T> {
         }.export();
     }
 
-    protected abstract Stream<TrackerAdapter<?>> arguments();
+    protected abstract Stream<TrackerAdapter> arguments();
 
     protected abstract Promise<T> evaluate();
 

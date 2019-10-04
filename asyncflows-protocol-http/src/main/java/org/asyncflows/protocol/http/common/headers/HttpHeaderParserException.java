@@ -28,6 +28,7 @@ import org.asyncflows.protocol.http.HttpException;
 /**
  * The exception related to header parser.
  */
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class HttpHeaderParserException extends HttpException {
     /**
      * The constructor.

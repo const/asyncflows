@@ -81,6 +81,7 @@ public interface AFileFactory {
      *
      * @param path    the path
      * @param options the open options
+     * @param attrs   the attributes
      * @return the promise for input
      */
     Promise<AOutput<ByteBuffer>> openOutput(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs);

@@ -86,7 +86,7 @@ public final class SelectorVatUtil {
     public static <T> T doAsyncIo(final AFunction<ASocketFactory, T> action) {
         try {
             return doAsyncIoThrowable(action);
-        } catch (Error | RuntimeException t) { // NOPMD
+        } catch (Error | RuntimeException t) {
             throw t;
         } catch (Throwable t) {
             throw new UndeclaredThrowableException(t, "A checked exception is received");

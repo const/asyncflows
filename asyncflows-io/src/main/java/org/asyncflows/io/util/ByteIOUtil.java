@@ -34,6 +34,7 @@ import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.adapters.blocking.Adapters;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
@@ -88,7 +89,7 @@ public final class ByteIOUtil {
      * @return the bytes
      */
     public static ByteBuffer putLatin1(final ByteBuffer buffer, final String text) {
-        return buffer.put(text.getBytes(CharIOUtil.ISO8859_1));
+        return buffer.put(text.getBytes(StandardCharsets.ISO_8859_1));
     }
 
     /**
@@ -113,9 +114,7 @@ public final class ByteIOUtil {
      * @return the char
      */
     public static char toChar(final int b1, final int b2) {
-        // CHECKSTYLE:OFF
         return (char) (((b1 & BYTE_MASK) << 8) | (b2 & BYTE_MASK));
-        // CHECKSTYLE:ON
     }
 
     /**
@@ -128,9 +127,7 @@ public final class ByteIOUtil {
      * @return the singed integer
      */
     public static int toInt(final int b1, final int b2, final int b3, final int b4) {
-        // CHECKSTYLE:OFF
         return ((b1 & BYTE_MASK) << 24) | ((b2 & BYTE_MASK) << 16) | ((b3 & BYTE_MASK) << 8) | (b4 & BYTE_MASK);
-        // CHECKSTYLE:ON
     }
 
     /**
@@ -156,6 +153,7 @@ public final class ByteIOUtil {
      * @param bufferSize the buffer size to use
      * @return the characters to generate
      */
+    @SuppressWarnings("squid:S3776")
     public static Promise<Void> charGen(final AOutput<ByteBuffer> output, final long length, final int bufferSize) {
         final ByteGeneratorContext context = new ByteGeneratorContext(output, bufferSize);
         final int count = '\u007f' - ' ';
@@ -176,7 +174,7 @@ public final class ByteIOUtil {
             private int state = BEFORE_LINE;
 
             @Override
-            public Promise<Boolean> get() throws Exception {
+            public Promise<Boolean> get() {
                 while (true) {
                     if (length <= generated) {
                         return aFalse();

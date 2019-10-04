@@ -42,6 +42,7 @@ import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
  *
  * @param <T> the current element type
  */
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class PushStreamBuilder<T> extends StreamBuilder<T> {
     /**
      * The connector to the next sink.
@@ -98,6 +99,7 @@ public class PushStreamBuilder<T> extends StreamBuilder<T> {
     }
 
 
+    @SuppressWarnings("squid:S3776")
     @Override
     public <N> PushStreamBuilder<N> flatMapMaybe(final AFunction<T, Maybe<N>> mapper) {
         return new PushStreamBuilder<>(nextSink -> connector.connect(new TransformSinkBase<N, T>(nextSink) {
@@ -143,39 +145,34 @@ public class PushStreamBuilder<T> extends StreamBuilder<T> {
 
     @Override
     public PushStreamBuilder<T> window(final int size) {
-        return new PushStreamBuilder<>(new SinkConnector<T>() {
+        return new PushStreamBuilder<>(nextSink -> connector.connect(new TransformSinkBase<T, T>(nextSink) {
+            private int active;
+            private final AResolver<Void> countdownObserver = outcome -> {
+                active--;
+                requestQueue().resume();
+            };
+
             @Override
-            public void connect(final ASink<T> nextSink) {
-                connector.connect(new TransformSinkBase<T, T>(nextSink) {
-                    private int active;
-                    private final AResolver<Void> countdownObserver = outcome -> {
-                        active--;
-                        requestQueue().resume();
-                    };
+            protected void onInvalidation(final Throwable throwable) {
+                active = Integer.MIN_VALUE;
+                requestQueue().resume();
+                super.onInvalidation(throwable);
+            }
 
-                    @Override
-                    protected void onInvalidation(final Throwable throwable) {
-                        active = Integer.MIN_VALUE;
-                        requestQueue().resume();
-                        super.onInvalidation(throwable);
+            @Override
+            public Promise<Void> put(final T value) {
+                return requestQueue().runSeqWhile(() -> {
+                    if (!isValidAndOpen()) {
+                        return invalidationPromise();
                     }
-
-                    @Override
-                    public Promise<Void> put(final T value) {
-                        return requestQueue().runSeqWhile(() -> {
-                            if (!isValidAndOpen()) {
-                                return invalidationPromise();
-                            }
-                            if (active < size) {
-                                aNow(() -> nextSink.put(value)).listen(outcomeChecker()).listen(countdownObserver);
-                                return aFalse();
-                            }
-                            return requestQueue().suspendThenTrue();
-                        });
+                    if (active < size) {
+                        aNow(() -> nextSink.put(value)).listen(outcomeChecker()).listen(countdownObserver);
+                        return aFalse();
                     }
+                    return requestQueue().suspendThenTrue();
                 });
             }
-        });
+        }));
     }
 
     @Override

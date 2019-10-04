@@ -23,14 +23,12 @@
 
 package org.asyncflows.io.net;
 
-import org.asyncflows.core.data.Tuple2;
-
 /**
  * Socket options. This class allows preparing options in the batch and to set them using
  * {@link ASocket#setOptions(SocketOptions)} and {@link ADatagramSocket#setOptions(SocketOptions)}.
  * The null value for the the property means that corresponding option is not set.
  */
-public final class SocketOptions implements Cloneable {
+public final class SocketOptions {
     /**
      * The option for {@link java.net.Socket#setTcpNoDelay(boolean)}.
      */
@@ -50,7 +48,7 @@ public final class SocketOptions implements Cloneable {
     /**
      * The option for {@link java.net.Socket#setSoLinger(boolean, int)}.
      */
-    private Tuple2<Boolean, Integer> linger;
+    private Integer linger;
     /**
      * The option for {@link java.net.Socket#setOOBInline(boolean)}.
      */
@@ -139,7 +137,7 @@ public final class SocketOptions implements Cloneable {
     /**
      * @return the option for {@link java.net.Socket#setSoLinger(boolean, int)}.
      */
-    public Tuple2<Boolean, Integer> getLinger() {
+    public Integer getLinger() {
         return linger;
     }
 
@@ -148,7 +146,7 @@ public final class SocketOptions implements Cloneable {
      *
      * @param linger the option value
      */
-    public void setLinger(final Tuple2<Boolean, Integer> linger) {
+    public void setLinger(Integer linger) {
         this.linger = linger;
     }
 
@@ -232,12 +230,18 @@ public final class SocketOptions implements Cloneable {
         this.reuseAddress = reuseAddress;
     }
 
-    @Override
-    public SocketOptions clone() {
-        try {
-            return (SocketOptions) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new IllegalStateException("Unexpected exception from clone", e);
-        }
+    public SocketOptions copy() {
+        final SocketOptions copy = new SocketOptions();
+        copy.broadcast = broadcast;
+        copy.keepAlive = keepAlive;
+        copy.linger = linger;
+        copy.oobInline = oobInline;
+        copy.receiveBufferSize = receiveBufferSize;
+        copy.sendBufferSize = sendBufferSize;
+        copy.reuseAddress = reuseAddress;
+        copy.timeout = timeout;
+        copy.tpcNoDelay = tpcNoDelay;
+        copy.trafficClass = trafficClass;
+        return copy;
     }
 }

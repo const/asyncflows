@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.protocol.http.common.headers; // NOPMD
+package org.asyncflows.protocol.http.common.headers;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ASupplier;
@@ -68,14 +68,14 @@ public final class HttpHeaders {
     /**
      * The collection of the headers.
      */
-    private final LinkedHashMap<String, List<String>> headers; // NOPMD
+    private final LinkedHashMap<String, List<String>> headers;
 
     /**
      * The private constructor.
      *
      * @param headers the headers.
      */
-    private HttpHeaders(final LinkedHashMap<String, List<String>> headers) { // NOPMD
+    private HttpHeaders(final LinkedHashMap<String, List<String>> headers) {
         this.headers = headers;
     }
 
@@ -91,6 +91,7 @@ public final class HttpHeaders {
      *
      * @param headers the headers
      */
+    @SuppressWarnings("CopyConstructorMissesField")
     public HttpHeaders(final HttpHeaders headers) {
         this(copy(headers.headers));
     }
@@ -101,10 +102,10 @@ public final class HttpHeaders {
      * @param headers the header map to copy
      * @return the copied headers
      */
-    private static LinkedHashMap<String, List<String>> copy(final Map<String, List<String>> headers) { // NOPMD
+    private static LinkedHashMap<String, List<String>> copy(final Map<String, List<String>> headers) {
         final LinkedHashMap<String, List<String>> map = new LinkedHashMap<>();
         for (final Map.Entry<String, List<String>> entry : headers.entrySet()) {
-            map.put(entry.getKey(), new ArrayList<>(entry.getValue())); // NOPMD
+            map.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
         return map;
     }
@@ -116,7 +117,8 @@ public final class HttpHeaders {
      * @param limit the limit for the total header size
      * @return the headers
      */
-    public static Promise<HttpHeaders> readHeaders(final ByteParserContext input, final int limit) { // NOPMD
+    @SuppressWarnings("squid:S3776")
+    public static Promise<HttpHeaders> readHeaders(final ByteParserContext input, final int limit) {
         final HttpHeaders headers = new HttpHeaders();
         return aSeqWhile(new ASupplier<Boolean>() {
             private static final int LINE_START = 0;
@@ -128,13 +130,13 @@ public final class HttpHeaders {
             private static final int LINE_SKIP = 7;
             private static final int LINE_SKIP_AFTER_CR = 8;
 
-            private final StringBuilder current = new StringBuilder(); // NOPMD
+            private final StringBuilder current = new StringBuilder();
             private int size;
             private int state = LINE_START;
-            private String name;
+            private String headerName;
 
             @Override
-            public Promise<Boolean> get() { // NOPMD
+            public Promise<Boolean> get() {
                 if (!input.hasRemaining()) {
                     if (input.isEofSeen()) {
                         throw new ProtocolStreamTruncatedException("EOF before headers ends");
@@ -151,15 +153,15 @@ public final class HttpHeaders {
                     size++;
                     if (state == LINE_START) {
                         if (HttpHeadersUtil.isLWSP(c)) {
-                            if (name == null) {
+                            if (headerName == null) {
                                 state = LINE_SKIP;
                             } else {
                                 state = VALUE;
                             }
                         } else {
-                            if (name != null) {
-                                headers.addHeader(name, current.toString().trim());
-                                name = null;
+                            if (headerName != null) {
+                                headers.addHeader(headerName, current.toString().trim());
+                                headerName = null;
                                 current.setLength(0);
                             }
                             if (c == CR) {
@@ -177,8 +179,8 @@ public final class HttpHeaders {
                             if (!HttpHeadersUtil.isFieldNameChar(c)) {
                                 if (c == ':') {
                                     current.setLength(current.length() - 1);
-                                    name = current.toString();
-                                    if (name.length() == 0) {
+                                    headerName = current.toString();
+                                    if (headerName.length() == 0) {
                                         throw new ProtocolException("Empty header is encountered");
                                     }
                                     current.setLength(0);
@@ -199,7 +201,7 @@ public final class HttpHeaders {
                                 current.setLength(current.length() - 2);
                                 state = LINE_START;
                             } else {
-                                throw new ProtocolException("CR must be followed by LF in header: " + name);
+                                throw new ProtocolException("CR must be followed by LF in header: " + headerName);
                             }
                             break;
                         case END_BEFORE_CR:
@@ -242,7 +244,7 @@ public final class HttpHeaders {
         final LinkedHashMap<String, List<String>> map = new LinkedHashMap<>();
         for (final Map.Entry<String, List<String>> entry : headers.entrySet()) {
             if (entry.getKey() != null) {
-                map.put(HttpHeadersUtil.normalizeName(entry.getKey()), new ArrayList<>(entry.getValue())); // NOPMD
+                map.put(HttpHeadersUtil.normalizeName(entry.getKey()), new ArrayList<>(entry.getValue()));
             }
         }
         return new HttpHeaders(map);

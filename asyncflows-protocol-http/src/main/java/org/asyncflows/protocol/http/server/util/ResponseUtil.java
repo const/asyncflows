@@ -26,7 +26,6 @@ package org.asyncflows.protocol.http.server.util;
 import org.asyncflows.core.Promise;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.IOUtil;
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.common.HttpLimits;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
@@ -34,6 +33,7 @@ import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.server.HttpExchange;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.asyncflows.core.util.CoreFlowsResource.aTry;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
@@ -77,7 +77,7 @@ public final class ResponseUtil {
      */
     public static Promise<Void> shortReply(final HttpExchange exchange, final int code, final String reason,
                                            final String text, final HttpHeaders headers) {
-        final byte[] data = text.getBytes(CharIOUtil.UTF8);
+        final byte[] data = text.getBytes(StandardCharsets.UTF_8);
         headers.setHeader(HttpHeadersUtil.CONTENT_TYPE_HEADER, HttpHeadersUtil.CONTENT_TYPE_HTML_UTF8);
         return aTry(exchange.respond(code, reason, headers, (long) data.length)).run(
                 output -> output.write(ByteBuffer.wrap(data)));

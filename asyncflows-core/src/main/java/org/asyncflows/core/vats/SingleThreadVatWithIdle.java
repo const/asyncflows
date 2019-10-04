@@ -94,7 +94,7 @@ public abstract class SingleThreadVatWithIdle extends BatchedVat {
      * @param stopKey the key used to stop the vat
      */
     public void stop(final Object stopKey) {
-        if (myStopKey != stopKey) { // NOPMD
+        if (myStopKey != stopKey) {
             throw new IllegalArgumentException("The stop key is invalid");
         }
         if (stopped.compareAndSet(false, true)) {

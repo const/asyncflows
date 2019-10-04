@@ -51,7 +51,7 @@ public class DeflateTest {
      *
      * @param compress   the compress stream transformer
      * @param decompress the decompress stream transformer
-     * @throws Throwable
+     * @throws Throwable in case of the problem
      */
     private static void checkCompression(final AFunction<AOutput<ByteBuffer>, AOutput<ByteBuffer>> compress,
                                          final AFunction<AInput<ByteBuffer>, AInput<ByteBuffer>> decompress)
@@ -67,7 +67,7 @@ public class DeflateTest {
                                 for (int i = 0; i < data.length; i++) {
                                     data[i] = (byte) (r.nextGaussian() * 20);
                                 }
-                                final Promise<byte[]> digest = new Promise<byte[]>();
+                                final Promise<byte[]> digest = new Promise<>();
                                 final AOutput<ByteBuffer> stream = DigestingOutput.digestOutput(
                                         deflate, digest.resolver()).sha1();
                                 return CoreFlowsResource.aTryResource(stream).run(
@@ -85,7 +85,7 @@ public class DeflateTest {
     }
 
     @Test
-    public void testDeflate() throws Throwable { // NOPMD
+    public void testDeflate() throws Throwable {
         checkCompression(
                 value -> aValue(DeflateOutput.deflated(value, 512)),
                 value -> aValue(InflateInput.inflated(value, 477))
@@ -93,7 +93,7 @@ public class DeflateTest {
     }
 
     @Test
-    public void tesGZip() throws Throwable { // NOPMD
+    public void tesGZip() throws Throwable {
         checkCompression(
                 value -> aValue(GZipOutput.gzip(value)),
                 value -> aValue(GZipInput.gunzip(value))

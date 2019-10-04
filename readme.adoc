@@ -813,6 +813,14 @@ public final class ATestQueueProxyFactory implements java.util.function.BiFuncti
 }
 ```
 
+The rules are the following:
+
+* The default methods are not delegated and the default implementation is just used.
+These methods are supposed to provide utility services.
+* The methods that are returning `Promise` are delegated to the Proxy's vat using aLater operator.
+* The methods that are returning void are delegated to the Proxy's vat using aOneWay operator.
+* Other methods just throw a `UnsupportedOperationException`
+
 === Garbage Collection Consideration
 
 The framework objects are generally garbage collected by Java. There is no need to perform explicit cleanup
@@ -1006,7 +1014,7 @@ java.lang.IllegalStateException: Test
 	at org.asyncflows.core.AsyncContext.doAsyncOutcome(AsyncContext.java:69)
 	at org.asyncflows.core.AsyncContext.doAsync(AsyncContext.java:82)
 	... 55 more
-	Suppressed: org.asyncflows.core.PromiseTraceProvider$ExceptionProvider$PromiseTraceException
+	Suppressed: org.asyncflows.core.PromiseTraceProvider$PromiseTraceException
 		at org.asyncflows.core.PromiseTraceProvider$ExceptionProvider.recordTrace(PromiseTraceProvider.java:102)
 		at org.asyncflows.core.Promise.<init>(Promise.java:92)
 		at org.asyncflows.core.CoreFlows.aResolver(CoreFlows.java:171)

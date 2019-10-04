@@ -37,6 +37,9 @@ import javax.swing.text.JTextComponent;
 public class FieldsTrackerUtil {
     private static final Logger LOG = LoggerFactory.getLogger(FieldsTrackerUtil.class);
 
+    private FieldsTrackerUtil() {
+    }
+
     public static ATracker<String> trackText(final JTextComponent text) {
         final Cell<DocumentListener> listenerCell = new Cell<>();
         final VariableTracker<String> tracker = new VariableTracker<>(subscriptionStatus -> {
@@ -48,7 +51,9 @@ public class FieldsTrackerUtil {
                     text.getDocument().addDocumentListener(listenerCell.getValue());
                     break;
                 default:
-                    LOG.error("Unknown status: " + subscriptionStatus);
+                    if (LOG.isErrorEnabled()) {
+                        LOG.error(String.format("Unknown status: %s", subscriptionStatus));
+                    }
                     break;
             }
         });

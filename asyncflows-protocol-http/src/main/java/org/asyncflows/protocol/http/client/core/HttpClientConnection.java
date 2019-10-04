@@ -27,7 +27,6 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.ObjectExporter;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
@@ -109,12 +108,11 @@ public class HttpClientConnection extends CloseableInvalidatingBase
      * @param remoteAddress the remote address of the hop
      * @param localAddress  the local address for the hop
      */
-    // CHECKSTYLE:OFF
+    @SuppressWarnings("squid:S00107")
     public HttpClientConnection(final String protocol, final String host, final ByteGeneratorContext output,
                                 final ByteParserContext input,
                                 final AChannel<ByteBuffer> channel, final String userAgent,
                                 final SocketAddress remoteAddress, final SocketAddress localAddress) {
-        // CHECKSTYLE:ON
         this.protocol = protocol;
         this.host = host;
         this.output = output;
@@ -167,7 +165,7 @@ public class HttpClientConnection extends CloseableInvalidatingBase
             final Promise<Maybe<AHttpRequest>> promise = new Promise<>();
             requestQueue.run(() -> {
                 if (finished) {
-                    notifySuccess(promise.resolver(), Maybe.<AHttpRequest>empty());
+                    notifySuccess(promise.resolver(), Maybe.empty());
                     return aVoid();
                 } else {
                     current = new HttpClientAction(HttpClientConnection.this);
@@ -215,7 +213,7 @@ public class HttpClientConnection extends CloseableInvalidatingBase
 
     @Override
     public AHttpConnection export(final Vat vat) {
-        return ObjectExporter.export(vat, this);
+        return AHttpConnectionProxyFactory.createProxy(vat, this);
     }
 
     @Override

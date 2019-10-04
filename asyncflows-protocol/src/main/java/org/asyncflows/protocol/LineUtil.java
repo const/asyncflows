@@ -145,6 +145,7 @@ public final class LineUtil {
      * @param allowLfEnding true if just LF without CR is also allowed ending
      * @return a promise with read string or null if EOF is encountered
      */
+    @SuppressWarnings("squid:S3776")
     public static Promise<String> readLineCRLF(final ByteParserContext input,
                                                final int limit, final boolean allowLfEnding) {
         final StringBuilder builder = new StringBuilder();
@@ -153,7 +154,7 @@ public final class LineUtil {
             private boolean eof = true;
 
             @Override
-            public Promise<Maybe<String>> get() throws Exception {
+            public Promise<Maybe<String>> get() {
                 if (!input.hasRemaining()) {
                     if (input.isEofSeen()) {
                         if (eof) {
@@ -216,7 +217,7 @@ public final class LineUtil {
             private int pos;
 
             @Override
-            public Promise<Boolean> get() throws Exception {
+            public Promise<Boolean> get() {
                 final ByteBuffer buffer = context.buffer();
                 while (pos < text.length() && buffer.hasRemaining()) {
                     final char ch = text.charAt(pos++);
@@ -247,7 +248,7 @@ public final class LineUtil {
             private int pos;
 
             @Override
-            public Promise<Boolean> get() throws Exception {
+            public Promise<Boolean> get() {
                 final ByteBuffer buffer = context.buffer();
                 while (pos < text.length() && buffer.hasRemaining()) {
                     final char ch = text.charAt(pos++);

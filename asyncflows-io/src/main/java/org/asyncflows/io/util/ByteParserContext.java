@@ -64,7 +64,7 @@ public class ByteParserContext {
     /**
      * true if the context is in process of reading.
      */
-    private boolean readMode;
+    private boolean readInProgress;
 
     /**
      * The constructor.
@@ -117,11 +117,11 @@ public class ByteParserContext {
         if (invalidation != null) {
             return aFailure(invalidation);
         }
-        readMode = true;
+        readInProgress = true;
         buffer.compact();
         return input.read(buffer).flatMapOutcome(value -> {
             buffer.flip();
-            readMode = false;
+            readInProgress = false;
             if (value.isSuccess()) {
                 if (IOUtil.isEof(value.value())) {
                     eofRead = true;
@@ -141,7 +141,7 @@ public class ByteParserContext {
      * @return the promise for empty value
      */
     public <T> Promise<Maybe<T>> readMoreEmpty() {
-        return readMore().thenPromise(CoreFlows.<T>aMaybeEmpty());
+        return readMore().thenPromise(CoreFlows.aMaybeEmpty());
     }
 
     /**
@@ -199,7 +199,7 @@ public class ByteParserContext {
         if (invalidation != null) {
             throw new IllegalStateException("The stream has been failed", invalidation);
         }
-        if (readMode) {
+        if (readInProgress) {
             throw new IllegalStateException("The method is called while read operation is in progress.");
         }
     }

@@ -49,6 +49,7 @@ public class BinaryReader {
      * @param <M>  the model
      * @return the reader builder.
      */
+    @SuppressWarnings("squid:S1172")
     public static <M> ReadSequenceBuilder<M> readSequence(Class<M> type, final ReaderAction<M> s) {
         return new ReadSequenceBuilder<>(s);
     }
@@ -72,6 +73,7 @@ public class BinaryReader {
      * @param <M>             the model type
      * @return the reader action
      */
+    @SuppressWarnings("squid:S5411")
     public static <M> ReaderAction<M> readOptional(final Predicate<M> predicate, final Supplier<ReaderAction<M>> actionASupplier) {
         return new ReaderAction<M>() {
             Boolean needsExecution;

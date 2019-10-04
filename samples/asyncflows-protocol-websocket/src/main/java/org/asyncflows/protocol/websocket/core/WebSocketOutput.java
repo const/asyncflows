@@ -35,13 +35,13 @@ import org.asyncflows.io.AOutputProxyFactory;
 import org.asyncflows.io.IOUtil;
 import org.asyncflows.io.text.EncoderOutput;
 import org.asyncflows.io.util.ByteGeneratorContext;
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.websocket.AWebSocketOutput;
 import org.asyncflows.protocol.websocket.WebSocketMessage;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -191,7 +191,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
             } else {
                 stream = new MessageOutputStream(voidPromise.resolver(), FrameHeader.OP_BINARY, length);
             }
-            final AOutput<CharBuffer> utfStream = EncoderOutput.encode(stream, CharIOUtil.UTF8);
+            final AOutput<CharBuffer> utfStream = EncoderOutput.encode(stream, StandardCharsets.UTF_8);
             notifySuccess(outputPromise.resolver(), utfStream);
             return voidPromise;
         });

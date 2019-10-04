@@ -29,6 +29,7 @@ import org.asyncflows.protocol.http.HttpException;
  * This exception is thrown when trace method with content is encountered.
  * This usually indicates some bug on the client side.
  */
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class TraceMethodWithContentException extends HttpException {
     /**
      * Constructs a new runtime exception with the specified detail message.

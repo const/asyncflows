@@ -85,7 +85,7 @@ public final class LogUtil {
                 if (resolution.isFailure()) {
                     logger.debug(message.get(), resolution.failure());
                 } else {
-                    logger.debug(message.get() + " = " + resolution.value());
+                    logger.debug(String.format("%s = %s", message.get(), resolution.value()));
                 }
             }
         };
@@ -105,7 +105,7 @@ public final class LogUtil {
                 if (resolution.isFailure()) {
                     logger.debug(message, resolution.failure());
                 } else {
-                    logger.debug(message + " = " + resolution.value());
+                    logger.debug(String.format("%s = %s", message, resolution.value()));
                 }
             }
         };

@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
@@ -76,14 +75,14 @@ public final class HttpClientMessageUtil {
             final String startLine = message.getMethod() + ' ' + message.getRequestTarget()
                     + ' ' + message.getVersion() + LineUtil.CRLF;
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Writing a message: " + startLine + message.getHeaders());
+                LOG.debug(String.format("Writing a message: %s%s", startLine, message.getHeaders()));
             }
             return LineUtil.writeLatin1(context, startLine);
         }).thenDo(
                 () -> message.getHeaders().write(context)
         ).thenDo(
                 () -> context.send().toVoid()
-        ).failedLast(HttpRuntimeUtil.<Void>toHttpException("Failed write request message"));
+        ).failedLast(HttpRuntimeUtil.toHttpException("Failed write request message"));
     }
 
     /**
@@ -91,10 +90,9 @@ public final class HttpClientMessageUtil {
      *
      * @param message        the message
      * @param connectionHost the host to which connection is connected
-     * @throws URISyntaxException if there is a problem with request
      */
-    public static void inferRequestTarget(final HttpRequestMessage message, final String connectionHost)
-            throws URISyntaxException {
+    @SuppressWarnings("squid:S3776")
+    public static void inferRequestTarget(final HttpRequestMessage message, final String connectionHost) {
         final URI uri = message.getEffectiveUri();
         if (!LineUtil.isEmpty(uri.getUserInfo())) {
             throw new HttpException("The URI contains user info component. It should be removed");

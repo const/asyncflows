@@ -23,7 +23,6 @@
 
 package org.asyncflows.protocol.http.server.core;
 
-import org.asyncflows.protocol.http.common.Scope;
 import org.asyncflows.protocol.http.common.content.StreamFinishedEvent;
 
 import java.net.SocketAddress;
@@ -33,20 +32,6 @@ import java.net.URI;
  * The exchange finished event (this event is used for reporting).
  */
 public final class ExchangeFinishedEvent {
-    /**
-     * Key used to report remote address.
-     */
-    public static final Scope.Key<String> REMOTE = new Scope.Key<>(ExchangeFinishedEvent.class, "remote");
-    /**
-     * The key used to report bytes transferred to remote server.
-     */
-    public static final Scope.Key<StreamFinishedEvent> REMOTE_TO_SERVER
-            = new Scope.Key<>(ExchangeFinishedEvent.class, "remoteToServer");
-    /**
-     * The key used to report bytes transferred from remote server.
-     */
-    public static final Scope.Key<StreamFinishedEvent> SERVER_TO_REMOTE
-            = new Scope.Key<>(ExchangeFinishedEvent.class, "serverToRemote");
     /**
      * The request id on the server.
      */
@@ -127,8 +112,8 @@ public final class ExchangeFinishedEvent {
      * @param serverToRemote         the amount sent from server to remote
      * @param remoteToServer         the amount set from remote to server
      */
-    // CHECKSTYLE:OFF
-    public ExchangeFinishedEvent(final String id, final SocketAddress clientAddress, // NOPMD
+    @SuppressWarnings("squid:S00107")
+    public ExchangeFinishedEvent(final String id, final SocketAddress clientAddress,
                                  final SocketAddress serverAddress,
                                  final String method, final URI request, final String version,
                                  final StreamFinishedEvent clientToServer,
@@ -138,7 +123,6 @@ public final class ExchangeFinishedEvent {
                                  final StreamFinishedEvent serverToClientSwitched,
                                  final String remote,
                                  final StreamFinishedEvent serverToRemote, final StreamFinishedEvent remoteToServer) {
-        // CHECKSTYLE:ON
         this.id = id;
         this.clientAddress = clientAddress;
         this.serverAddress = serverAddress;

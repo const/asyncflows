@@ -37,6 +37,7 @@ import org.asyncflows.io.util.DigestingOutput;
 import org.asyncflows.io.util.LimitedInput;
 import org.asyncflows.protocol.http.client.AHttpClient;
 import org.asyncflows.protocol.http.client.AHttpRequest;
+import org.asyncflows.protocol.http.client.HttpRequestUtil;
 import org.asyncflows.protocol.http.client.core.SimpleHttpClient;
 import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.Scope;
@@ -81,7 +82,7 @@ public class SimpleClientServerTest extends HttpServerTestBase {
         final SimpleHttpClient client = new SimpleHttpClient();
         client.setUserAgent("test-client/1.0");
         client.setSocketFactory(socketFactory);
-        return aTryResource(client.export()).run(action::apply);
+        return aTryResource(client.export()).run(action);
     }
 
     /**
@@ -125,7 +126,7 @@ public class SimpleClientServerTest extends HttpServerTestBase {
     private Promise<Void> doRequest(final Request request, final AHttpRequest exchange) {
         final Long length;
         if (request.getRequestContent() == null) {
-            length = AHttpRequest.NO_CONTENT;
+            length = HttpRequestUtil.NO_CONTENT;
         } else {
             if (request.isChunked()) {
                 length = null;

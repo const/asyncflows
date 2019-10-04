@@ -26,7 +26,6 @@ package org.asyncflows.core.util.sample;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.NeedsExport;
-import org.asyncflows.core.util.ObjectExporter;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.Deque;
@@ -51,9 +50,7 @@ public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
     public Promise<T> take() {
         invariantCheck();
         if (elements.isEmpty()) {
-            return aResolver(r -> {
-                resolvers.addLast(r);
-            });
+            return aResolver(resolvers::addLast);
         } else {
             return aValue(elements.removeFirst());
         }
@@ -71,6 +68,6 @@ public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
 
     @Override
     public ATestQueue<T> export(final Vat vat) {
-        return ObjectExporter.export(vat, this);
+        return ATestQueueProxyFactory.createProxy(vat, this);
     }
 }

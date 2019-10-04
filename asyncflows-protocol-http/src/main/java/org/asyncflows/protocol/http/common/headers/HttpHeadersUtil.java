@@ -207,7 +207,7 @@ public final class HttpHeadersUtil {
             } finally {
                 in.close();
             }
-        } catch (Exception ex) { // NOPMD
+        } catch (Exception ex) {
             return "";
         }
     }

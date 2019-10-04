@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.io.net.selector; // NOPMD
+package org.asyncflows.io.net.selector;
 
 import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
@@ -52,7 +52,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
@@ -209,6 +208,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
          */
         private boolean eofSeen;
 
+        @SuppressWarnings("squid:S3776")
         @Override
         public Promise<Integer> read(final ByteBuffer buffer) {
             return requests.runSeqUntilValue(new ASupplier<Maybe<Integer>>() {
@@ -216,7 +216,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
                 private int zeroCount;
 
                 @Override
-                public Promise<Maybe<Integer>> get() throws Exception {
+                public Promise<Maybe<Integer>> get() {
                     if (eofSeen) {
                         return IOUtil.EOF_MAYBE_PROMISE;
                     }
@@ -299,6 +299,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
          */
         private final RequestQueue requests = new RequestQueue();
 
+        @SuppressWarnings("squid:S3776")
         @Override
         public Promise<Void> write(final ByteBuffer buffer) {
             return requests.runSeqWhile(new ASupplier<Boolean>() {
@@ -335,7 +336,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
                                     return aTrue();
                                 }
                                 firstRun = true;
-                                return aBoolean(buffer.hasRemaining());
+                                return aTrue();
                             } else {
                                 return channelContext.waitForWrite();
                             }

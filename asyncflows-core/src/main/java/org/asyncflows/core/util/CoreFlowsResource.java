@@ -229,7 +229,7 @@ public final class CoreFlowsResource {
          * @return the next builder
          */
         public <C extends ACloseable> Try3<A, B, C> andChainBoth(final AFunction2<A, B, C> otherOpen) {
-            return new Try3<A, B, C>(this, otherOpen);
+            return new Try3<>(this, otherOpen);
         }
 
         /**
@@ -241,7 +241,7 @@ public final class CoreFlowsResource {
          * @return the next builder
          */
         public <C extends ACloseable> Try3<A, B, C> andChainSecond(final AFunction<B, C> otherOpen) {
-            return andChainBoth(AsyncFunctionUtil.<A, B, C>useSecondArg(otherOpen));
+            return andChainBoth(AsyncFunctionUtil.useSecondArg(otherOpen));
         }
 
         /**

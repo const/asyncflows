@@ -88,7 +88,7 @@ public final class CoreFlows {
      */
     @SuppressWarnings("unchecked")
     public static <T> Promise<T> aNull() {
-        return (Promise<T>) (Object) NULL;
+        return (Promise<T>) NULL;
     }
 
     /**
@@ -249,18 +249,17 @@ public final class CoreFlows {
      *
      * @param executor the vat
      * @param action   the action
+     * @return when action is finished to be executed
      */
     public static Promise<Void> aExecutorAction(final Executor executor, final AOneWayAction action) {
-        return aResolver(r -> {
-            executor.execute(() -> {
-                try {
-                    action.run();
-                    notifySuccess(r, null);
-                } catch (Throwable throwable) {
-                    notifyFailure(r, throwable);
-                }
-            });
-        });
+        return aResolver(r -> executor.execute(() -> {
+            try {
+                action.run();
+                notifySuccess(r, null);
+            } catch (Throwable throwable) {
+                notifyFailure(r, throwable);
+            }
+        }));
     }
 
     /**
@@ -296,9 +295,7 @@ public final class CoreFlows {
                 }
             }
         }
-        return aResolver(r -> {
-            stage.whenComplete((v, p) -> Outcome.notifyResolver(r, Outcome.of(v, p)));
-        });
+        return aResolver(r -> stage.whenComplete((v, p) -> Outcome.notifyResolver(r, Outcome.of(v, p))));
     }
 
 
@@ -311,9 +308,7 @@ public final class CoreFlows {
      * @return the promise for result
      */
     public static <T> Promise<T> aLater(final Vat vat, final ASupplier<T> action) {
-        return aResolver(r -> vat.execute(() -> {
-            aNow(action).listenSync(r);
-        }));
+        return aResolver(r -> vat.execute(() -> aNow(action).listenSync(r)));
     }
 
     /**

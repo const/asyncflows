@@ -41,10 +41,6 @@ import java.nio.ByteBuffer;
  * is supposed to be provided over it.
  */
 public interface HttpExchange extends ACloseable {
-    /**
-     * The key on server scope that allows getting the server address.
-     */
-    Scope.Key<SocketAddress> SERVER_ADDRESS = new Scope.Key<>(HttpExchange.class, "serverAddress");
 
     /**
      * Get request scope, the scope is available for the lifetime of the request. It could be used to store information

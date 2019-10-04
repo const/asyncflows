@@ -84,7 +84,7 @@ public final class HttpScopeUtil {
             final ASupplier<HttpHeaders> provider = scope.get(TRAILERS_PROVIDER);
             if (provider != null) {
                 final List<String> names = scope.get(TRAILERS_NAMES);
-                if (names != null) { // NOPMD
+                if (names != null) {
                     headers.setHeader(HttpHeadersUtil.TRAILER_HEADER, HttpHeadersUtil.listValue(names));
                 }
                 return provider;

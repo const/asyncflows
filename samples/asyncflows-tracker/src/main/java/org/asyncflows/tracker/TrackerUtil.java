@@ -35,7 +35,10 @@ import java.util.Objects;
 
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 
-public class TrackerUtil {
+public final class TrackerUtil {
+
+    private TrackerUtil() {
+    }
 
     public static <A> AStream<Outcome<A>> streamTracker(ATracker<A> tracker) {
         return new StreamBase<Outcome<A>>() {
@@ -48,7 +51,7 @@ public class TrackerUtil {
             }
 
             @Override
-            protected Promise<Maybe<Outcome<A>>> produce() throws Throwable {
+            protected Promise<Maybe<Outcome<A>>> produce() {
                 return requestQueue.runSeqUntilValue(() -> {
                     if (adapter == null) {
                         adapter = new TrackerAdapter<>(tracker, this::changed);

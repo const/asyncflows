@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
 import static org.asyncflows.core.CoreFlows.aValue;
@@ -52,19 +53,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class DecoderEncoderTest {
     @Test
     public void testSimple() {
-        final StringBuilder builder = new StringBuilder(); // NOPMD
+        final StringBuilder builder = new StringBuilder();
         builder.append("Test ");
         builder.appendCodePoint(0x405).appendCodePoint(0x1F648).appendCodePoint(0x1F649).appendCodePoint(0x1F64A);
         final String sample = builder.toString();
         final Tuple3<Void, String, Tuple2<byte[], byte[]>> result = doAsync(() -> {
-            final Promise<byte[]> inputDigest = new Promise<byte[]>();
-            final Promise<byte[]> outputDigest = new Promise<byte[]>();
+            final Promise<byte[]> inputDigest = new Promise<>();
+            final Promise<byte[]> outputDigest = new Promise<>();
             final AChannel<ByteBuffer> bytePipe = BufferedPipe.bytePipe(3);
             return aAll(
                     () -> aTry(bytePipe.getOutput().flatMap(value -> {
                         final AOutput<ByteBuffer> digested =
                                 digestOutput(value, outputDigest.resolver()).sha256();
-                        return aValue(EncoderOutput.encode(digested, CharIOUtil.UTF8, 4));
+                        return aValue(EncoderOutput.encode(digested, StandardCharsets.UTF_8, 4));
                     })).run(
                             value2 -> value2.write(CharBuffer.wrap(sample))
                     )
@@ -72,7 +73,7 @@ public class DecoderEncoderTest {
                     () -> aTry(bytePipe.getInput().flatMap(value -> {
                         final AInput<ByteBuffer> digested =
                                 digestInput(value, inputDigest.resolver()).sha256();
-                        return aValue(DecoderInput.decode(digested, CharIOUtil.UTF8, 5));
+                        return aValue(DecoderInput.decode(digested, StandardCharsets.UTF_8, 5));
                     })).run(
                             value -> CharIOUtil.getContent(value, CharBuffer.allocate(3))
                     )

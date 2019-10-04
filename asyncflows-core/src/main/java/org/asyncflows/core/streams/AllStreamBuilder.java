@@ -82,12 +82,12 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
                                     if (outcome.value().isEmpty()) {
                                         return aMaybeEmpty();
                                     } else {
-                                        return aMaybeValue(Outcome.<T>success(outcome.value().value()));
+                                        return aMaybeValue(Outcome.success(outcome.value().value()));
                                     }
 
                                 } else {
                                     eof = true;
-                                    return aMaybeValue(Outcome.<T>failure(outcome.failure()));
+                                    return aMaybeValue(Outcome.failure(outcome.failure()));
                                 }
                             });
                 });
@@ -148,7 +148,7 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
             if (value.isSuccess()) {
                 return evaluate(mapper, value.value()).toOutcomePromise();
             } else {
-                return aValue(Outcome.<N>failure(value.failure()));
+                return aValue(Outcome.failure(value.failure()));
             }
         }));
     }
@@ -163,19 +163,18 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
                                 if (outcome.value().isEmpty()) {
                                     return aMaybeEmpty();
                                 } else {
-                                    return aMaybeValue(Outcome.<N>success(outcome.value().value()));
+                                    return aMaybeValue(Outcome.success(outcome.value().value()));
                                 }
                             } else {
-                                return aMaybeValue(Outcome.<N>failure(outcome.failure()));
+                                return aMaybeValue(Outcome.failure(outcome.failure()));
                             }
                         });
             } else {
-                return aMaybeValue(Outcome.<N>failure(value.failure()));
+                return aMaybeValue(Outcome.failure(value.failure()));
             }
         }));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <N> AllStreamBuilder<N> flatMapStream(final AFunction<T, AStream<N>> mapper) {
         return new AllStreamBuilder<>(outcomeSink.flatMapStream(value -> {

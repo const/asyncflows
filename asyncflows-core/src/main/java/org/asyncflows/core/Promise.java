@@ -81,7 +81,7 @@ public final class Promise<T> {
      * Constructor of unresolved promise.
      */
     public Promise() {
-        this.trace = PromiseTraceProvider.INSTANCE.recordTrace();
+        this.trace = PromiseTrace.INSTANCE.recordTrace();
     }
 
 
@@ -173,7 +173,7 @@ public final class Promise<T> {
             final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(
                     new IllegalArgumentException("Notified with null outcome"));
             if (adjustedOutcome.isFailure() && trace != null) {
-                PromiseTraceProvider.INSTANCE.mergeTrace(adjustedOutcome.failure(), trace);
+                PromiseTrace.INSTANCE.mergeTrace(adjustedOutcome.failure(), trace);
             }
             while (true) {
                 Object currentState = state.get();

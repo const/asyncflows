@@ -94,9 +94,9 @@ public class ChunkedOutput extends MessageOutput {
     }
 
     @Override
+    @SuppressWarnings("squid:S3776")
     protected Promise<Void> closeAction() {
         if (isValid()) {
-            //noinspection Convert2MethodRef
             return writes.run(
                     () -> writeASCII(output, needsNewLine ? "\r\n0\r\n" : "0\r\n")).thenFlatGet(() -> {
                         if (trailersProvider == null) {
@@ -106,7 +106,7 @@ public class ChunkedOutput extends MessageOutput {
                                 if (value == null) {
                                     return writeASCII(output, CRLF);
                                 } else {
-                                    return value.write(output).thenFlatGet((ASupplier<Void>) () -> {
+                                    return value.write(output).thenFlatGet(() -> {
                                         stateChanged(OutputState.TRAILERS_ADDED);
                                         return aVoid();
                                     });
@@ -115,7 +115,7 @@ public class ChunkedOutput extends MessageOutput {
                         }
                     }
             ).thenFlatGet(
-                    () -> output.send()
+                    output::send
             ).listen(outcomeChecker()).flatMapOutcome(value -> {
                 if (value.isFailure()) {
                     invalidate(value.failure());

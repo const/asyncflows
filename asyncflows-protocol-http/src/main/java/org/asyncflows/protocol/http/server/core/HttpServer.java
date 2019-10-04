@@ -33,7 +33,7 @@ import org.asyncflows.protocol.http.common.HttpLimits;
 import org.asyncflows.protocol.http.common.Scope;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.asyncflows.protocol.http.server.AHttpHandler;
-import org.asyncflows.protocol.http.server.HttpExchange;
+import org.asyncflows.protocol.http.server.HttpExchangeUtil;
 import org.asyncflows.protocol.http.server.util.DelegatingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,16 +155,16 @@ public class HttpServer extends CloseableBase {
      */
     public Promise<Void> run() {
         return socket.getLocalSocketAddress().flatMap(socketAddress -> {
-            getServerScope().set(HttpExchange.SERVER_ADDRESS, socketAddress);
+            getServerScope().set(HttpExchangeUtil.SERVER_ADDRESS, socketAddress);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("HttpServer has started on " + socketAddress);
+                LOG.debug(String.format("HttpServer has started on %s", socketAddress));
             }
             return aSeqWhile(() -> socket.accept().flatMap(socket1 -> {
                 handleConnection(socket1);
                 return aTrue();
             })).flatMapOutcome(outcome -> {
                 if (LOG.isDebugEnabled() && isClosed()) {
-                    LOG.debug("HttpServer has been stopped: " + socketAddress);
+                    LOG.debug(String.format("HttpServer has been stopped: %s", socketAddress));
                 }
                 if (LOG.isDebugEnabled() && outcome.isFailure() && !isClosed()) {
                     LOG.debug("HttpServer has stopped with failure", outcome.failure());
@@ -193,14 +193,14 @@ public class HttpServer extends CloseableBase {
     public final void fireExchangeFinished(final ExchangeFinishedEvent event) {
         // TODO implement it
         if (LOG.isInfoEnabled()) {
-            LOG.info("Exchange finished: " + event);
+            LOG.info(String.format("Exchange finished: %s", event));
         }
     }
 
     @Override
     protected Promise<Void> closeAction() {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Stopping a server: " + getServerScope().get(HttpExchange.SERVER_ADDRESS));
+            LOG.debug(String.format("Stopping a server: %s", getServerScope().get(HttpExchangeUtil.SERVER_ADDRESS)));
         }
         return aAll(closeResourceAction(socket)).andLast(
                 () -> AsyncStreams.aForIterable(connections).consume(connection -> {

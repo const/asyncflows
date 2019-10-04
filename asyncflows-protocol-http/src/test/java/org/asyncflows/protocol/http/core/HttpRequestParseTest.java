@@ -28,7 +28,6 @@ import org.asyncflows.core.AsyncExecutionException;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.adapters.blocking.Adapters;
 import org.asyncflows.io.util.ByteParserContext;
-import org.asyncflows.io.util.CharIOUtil;
 import org.asyncflows.protocol.http.HttpStatusException;
 import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.HttpRequestMessage;
@@ -37,6 +36,7 @@ import org.asyncflows.protocol.http.server.core.HttpServerMessageUtil;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -58,7 +58,7 @@ public class HttpRequestParseTest {
         requestMessage.setServerAddress("localhost:80");
         try {
             AsyncContext.doAsyncThrowable(() -> {
-                final AInput<ByteBuffer> input = Adapters.getByteArrayInput(request.getBytes(CharIOUtil.ISO8859_1));
+                final AInput<ByteBuffer> input = Adapters.getByteArrayInput(request.getBytes(StandardCharsets.ISO_8859_1));
                 final ByteParserContext parserContext = new ByteParserContext(input);
                 return HttpServerMessageUtil.parseRequestMessage(parserContext, requestMessage);
             });

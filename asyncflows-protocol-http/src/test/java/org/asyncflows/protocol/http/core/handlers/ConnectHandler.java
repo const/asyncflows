@@ -40,8 +40,8 @@ import org.asyncflows.protocol.http.common.content.CountingInput;
 import org.asyncflows.protocol.http.common.content.CountingOutput;
 import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.server.HttpExchange;
+import org.asyncflows.protocol.http.server.HttpExchangeUtil;
 import org.asyncflows.protocol.http.server.HttpHandlerBase;
-import org.asyncflows.protocol.http.server.core.ExchangeFinishedEvent;
 import org.asyncflows.protocol.http.server.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,10 +96,10 @@ public class ConnectHandler extends HttpHandlerBase {
                     throw new HttpStatusException(HttpStatusUtil.BAD_GATEWAY,
                             "Unable to connect", exception);
                 }).thenDo(() -> {
-                    exchange.getExchangeScope().set(ExchangeFinishedEvent.REMOTE, uri.getAuthority());
+                    exchange.getExchangeScope().set(HttpExchangeUtil.REMOTE, uri.getAuthority());
                     return ResponseUtil.discardAndClose(exchange.getInput()).thenFlatGet(
                             closeResourceAction(exchange.getInput()));
-                }).thenDo(() -> IOUtil.BYTE.aTryChannel(
+                }).thenDo(() -> IOUtil.aTryChannel(
                         exchange.switchProtocol(HttpStatusUtil.OK, null, new HttpHeaders())).run(
                         (connection, input, output) -> aAll(
                                 copyAndClose(socket, connection,
@@ -129,7 +129,7 @@ public class ConnectHandler extends HttpHandlerBase {
      */
     private AInput<ByteBuffer> count(final HttpExchange exchange, final AInput<ByteBuffer> stream) {
         return new CountingInput<>(stream,
-                event -> exchange.getExchangeScope().set(ExchangeFinishedEvent.REMOTE_TO_SERVER, event));
+                event -> exchange.getExchangeScope().set(HttpExchangeUtil.REMOTE_TO_SERVER, event));
     }
 
     /**
@@ -140,8 +140,8 @@ public class ConnectHandler extends HttpHandlerBase {
      * @return proxy stream
      */
     private AOutput<ByteBuffer> count(final HttpExchange exchange, final AOutput<ByteBuffer> stream) {
-        return new CountingOutput<ByteBuffer>(stream,
-                event -> exchange.getExchangeScope().set(ExchangeFinishedEvent.SERVER_TO_REMOTE, event));
+        return new CountingOutput<>(stream,
+                event -> exchange.getExchangeScope().set(HttpExchangeUtil.SERVER_TO_REMOTE, event));
     }
 
 

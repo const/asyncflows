@@ -60,11 +60,11 @@ public class TlsSocketTest {
      * @throws Throwable in case of the problem
      */
     @Test
-    public void smokeTest() throws Throwable { // NOPMD
+    public void smokeTest() throws Throwable {
         final TlsTestData tlsTestData = new TlsTestData();
         final Random rnd = new Random();
         final long length = rnd.nextInt(10240) + 1024;
-        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.doAsyncIoThrowable(rawSocketFactory -> { // NOPMD
+        final Tuple2<Long, Tuple3<byte[], byte[], Long>> result = SelectorVatUtil.doAsyncIoThrowable(rawSocketFactory -> {
             TlsSocketFactory tlsFactory = new TlsSocketFactory();
             tlsFactory.setSocketFactory(rawSocketFactory);
             tlsFactory.setClientEngineFactory(value -> {
@@ -116,10 +116,8 @@ public class TlsSocketTest {
         final SocketAddress connectAddress = new InetSocketAddress("localhost", port);
         return socket.connect(connectAddress).thenFlatGet(() -> aAll(() -> {
             final Promise<byte[]> digest = new Promise<>();
-            return aTry(() -> {
-                return socket.getOutput().flatMap(
-                        socketOutput -> aValue(digestOutput(socketOutput, digest.resolver()).md5()));
-            }).run(output -> {
+            return aTry(() -> socket.getOutput().flatMap(
+                    socketOutput -> aValue(digestOutput(socketOutput, digest.resolver()).md5()))).run(output -> {
                 final byte[] data = new byte[(int) length];
                 rnd.nextBytes(data);
                 return output.write(ByteBuffer.wrap(data));

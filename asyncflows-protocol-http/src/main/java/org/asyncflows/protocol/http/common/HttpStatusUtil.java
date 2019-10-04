@@ -328,6 +328,7 @@ public final class HttpStatusUtil {
      * @param code the code
      * @return the default text or null if code does not have a corresponding RFC
      */
+    @SuppressWarnings("squid:S1479")
     public static String getDefaultText(final int code) {
         switch (code) {
             case CONTINUE:

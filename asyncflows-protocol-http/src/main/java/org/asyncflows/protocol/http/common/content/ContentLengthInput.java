@@ -71,7 +71,8 @@ public class ContentLengthInput extends MessageInput {
 
 
     @Override
-    public Promise<Integer> read(final ByteBuffer buffer) { // NOPMD
+    @SuppressWarnings("squid:S3776")
+    public Promise<Integer> read(final ByteBuffer buffer) {
         return reads.run(() -> {
             ensureValidAndOpen();
             if (readAmount > limit) {

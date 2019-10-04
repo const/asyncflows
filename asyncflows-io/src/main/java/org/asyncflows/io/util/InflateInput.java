@@ -110,6 +110,7 @@ public class InflateInput extends CloseableInvalidatingBase implements
         return new InflateInput(new Inflater(), input, buffer);
     }
 
+    @SuppressWarnings("squid:S3776")
     @Override
     public Promise<Integer> read(final ByteBuffer buffer) {
         return reads.runSeqUntilValue(() -> {
@@ -119,7 +120,7 @@ public class InflateInput extends CloseableInvalidatingBase implements
                     headerRead = true;
                     return handleHeader(input, compressed)
                             .listen(outcomeChecker())
-                            .thenValue(Maybe.<Integer>empty());
+                            .thenValue(Maybe.empty());
                 }
                 if (!buffer.hasRemaining()) {
                     throw new IllegalArgumentException("The buffer must have some bytes remaining.");

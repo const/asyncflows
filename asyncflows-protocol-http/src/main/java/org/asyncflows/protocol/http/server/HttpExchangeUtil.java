@@ -21,50 +21,36 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.util;
+package org.asyncflows.protocol.http.server;
 
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.annotations.Asynchronous;
-import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.protocol.http.common.Scope;
+import org.asyncflows.protocol.http.common.content.StreamFinishedEvent;
+
+import java.net.SocketAddress;
 
 /**
- * Semaphore.
+ * Utilities to support implementation of handlers.
  */
-@Asynchronous
-public interface ASemaphore {
+public final class HttpExchangeUtil {
     /**
-     * Release permits.
-     *
-     * @param permits the permits to release
+     * The key on server scope that allows getting the server address.
      */
-    void release(int permits);
+    public static final Scope.Key<SocketAddress> SERVER_ADDRESS = new Scope.Key<>(HttpExchange.class, "serverAddress");
+    /**
+     * Key used to report remote address.
+     */
+    public static final Scope.Key<String> REMOTE = new Scope.Key<>(HttpExchange.class, "remote");
+    /**
+     * The key used by a handler to report bytes transferred to remote server in a case of proxy or connect functionality.
+     */
+    public static final Scope.Key<StreamFinishedEvent> REMOTE_TO_SERVER
+            = new Scope.Key<>(HttpExchange.class, "remoteToServer");
+    /**
+     * The key used by a handler to report bytes transferred from remote server a case of proxy or connect functionality.
+     */
+    public static final Scope.Key<StreamFinishedEvent> SERVER_TO_REMOTE
+            = new Scope.Key<>(HttpExchange.class, "serverToRemote");
 
-    /**
-     * Release one permit.
-     */
-    void release();
-
-    /**
-     * @return acquire one permit
-     */
-    Promise<Void> acquire();
-
-    /**
-     * Acquire many permits.
-     *
-     * @param permits the permits to acquire
-     * @return acquire one permit
-     */
-    Promise<Void> acquire(int permits);
-
-    /**
-     * Execute action guarded by semaphore. The action is executed in the client context.
-     *
-     * @param action the action
-     * @param <T>    the result type
-     * @return the promise that resolves when action finishes to execute.
-     */
-    default <T> Promise<T> run(ASupplier<T> action) {
-        return acquire().thenFlatGet(action).listenSync(o -> release());
+    private HttpExchangeUtil() {
     }
 }

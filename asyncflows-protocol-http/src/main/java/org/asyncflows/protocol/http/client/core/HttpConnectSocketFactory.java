@@ -39,6 +39,7 @@ import org.asyncflows.io.net.ASocketProxyFactory;
 import org.asyncflows.io.net.SocketOptions;
 import org.asyncflows.protocol.http.client.AHttpClient;
 import org.asyncflows.protocol.http.client.AHttpRequest;
+import org.asyncflows.protocol.http.client.HttpRequestUtil;
 import org.asyncflows.protocol.http.common.HttpMethodUtil;
 import org.asyncflows.protocol.http.common.HttpStatusUtil;
 import org.asyncflows.protocol.http.common.HttpURIUtil;
@@ -147,16 +148,15 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
             remoteAddress = address;
             return aSeq(client::newRequest).map(request -> {
                 httpRequest = request;
-                scope.set(AHttpRequest.CONNECTION_HOST, proxyHost);
+                scope.set(HttpRequestUtil.CONNECTION_HOST, proxyHost);
                 return httpRequest.request(scope,
                         HttpMethodUtil.CONNECT,
                         new URI("http://" + HttpURIUtil.getHost(address)),
                         new HttpHeaders(),
-                        AHttpRequest.NO_CONTENT);
+                        HttpRequestUtil.NO_CONTENT);
             }).map(ACloseable::close).thenDo(() -> {
                 // TODO Http client and server options (NO_WAIT)
                 // TODO get local address from the scope
-                //noinspection Convert2MethodRef
                 return httpRequest.getResponse();
             }).map(response -> {
                 if (!HttpStatusUtil.isSuccess(response.getStatusCode())) {
@@ -188,15 +188,19 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
         @Override
         public Promise<SocketAddress> getRemoteAddress() {
             if (remoteAddress == null) {
-                return aFailure(new SocketException("Socket not connected"));
+                return socketNotConnected();
             }
             return aValue(remoteAddress);
+        }
+
+        private <T> Promise<T> socketNotConnected() {
+            return aFailure(new SocketException("Socket not connected"));
         }
 
         @Override
         public Promise<SocketAddress> getLocalAddress() {
             if (httpRequest == null) {
-                return aFailure(new SocketException("Socket not connected"));
+                return socketNotConnected();
             }
             return httpRequest.getLocalAddress();
         }
@@ -204,7 +208,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
         @Override
         public Promise<AInput<ByteBuffer>> getInput() {
             if (input == null) {
-                return aFailure(new SocketException("Socket not connected"));
+                return socketNotConnected();
             }
             return aValue(input);
         }
@@ -212,7 +216,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
         @Override
         public Promise<AOutput<ByteBuffer>> getOutput() {
             if (output == null) {
-                return aFailure(new SocketException("Socket not connected"));
+                return socketNotConnected();
             }
             return aValue(output);
         }

@@ -23,6 +23,7 @@
 
 package org.asyncflows.core.util;
 
+import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
@@ -194,6 +195,7 @@ public final class CoreFlowsSeq {
      * @param <T>      the returned value.
      * @return the promise for value
      */
+    @SuppressWarnings({"squid:S3776", "squid:S135"})
     public static <T> Promise<T> aSeqUntilValue(final ASupplier<Maybe<T>> loopBody) {
         final ASupplier<T> loop = () -> aResolver(new Consumer<AResolver<T>>() {
             private AResolver<T> resolver;
@@ -205,18 +207,37 @@ public final class CoreFlowsSeq {
             }
 
             private void iterate() {
-                aNow(loopBody).listen(o -> {
-                    if (o.isSuccess()) {
-                        Maybe<T> v = o.value();
-                        if (v.isEmpty()) {
-                            iterate();
-                        } else {
-                            notifySuccess(resolver, v.value());
-                        }
+                while (true) {
+                    final Promise<Maybe<T>> result = aNow(loopBody);
+                    final Outcome<Maybe<T>> outcome = result.getOutcome();
+                    if (outcome == null) {
+                        result.listen(o -> {
+                            if (checkStep(o)) {
+                                iterate();
+                            }
+                        });
+                        break;
                     } else {
-                        notifyFailure(resolver, o.failure());
+                        if (!checkStep(outcome)) {
+                            break;
+                        }
                     }
-                });
+                }
+            }
+
+            private boolean checkStep(Outcome<Maybe<T>> o) {
+                if (o.isSuccess()) {
+                    Maybe<T> v = o.value();
+                    if (v.isEmpty()) {
+                        return true;
+                    } else {
+                        notifySuccess(resolver, v.value());
+                        return false;
+                    }
+                } else {
+                    notifyFailure(resolver, o.failure());
+                    return false;
+                }
             }
         });
         return withDefaultContext((r, e) -> r.run(loop));
@@ -294,6 +315,7 @@ public final class CoreFlowsSeq {
          * @param <N>    the result type
          * @return a suppler for result
          */
+        @SuppressWarnings("UnnecessaryLocalVariable")
         private <N> ASupplier<N> mapSupplier(final ASupplier<T> body, final AFunction<T, N> mapper) {
             final Vat contextVat = this.vat;
             return () -> aNow(body).flatMap(contextVat, mapper);
@@ -305,6 +327,7 @@ public final class CoreFlowsSeq {
          * @param listener the the listener to be notified
          * @return the out
          */
+        @SuppressWarnings("UnnecessaryLocalVariable")
         public SeqBuilder<T> listen(final AResolver<T> listener) {
             final Vat currentVat = vat;
             final ASupplier<T> currentAction = this.action;
@@ -350,6 +373,7 @@ public final class CoreFlowsSeq {
          * @param catcher the action that handles exceptions
          * @return the builder
          */
+        @SuppressWarnings("UnnecessaryLocalVariable")
         public SeqBuilder<T> failed(final AFunction<Throwable, T> catcher) {
             final Vat currentVat = vat;
             final ASupplier<T> currentAction = this.action;
@@ -382,6 +406,7 @@ public final class CoreFlowsSeq {
          * @param finallyAction an action to execute
          * @return a promise for the sequence result
          */
+        @SuppressWarnings("squid:S3776")
         public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
             final Vat currentVat = this.vat;
             return runner.run(() -> aNow(action).flatMapOutcome(currentVat,
