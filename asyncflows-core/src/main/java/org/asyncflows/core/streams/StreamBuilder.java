@@ -57,7 +57,21 @@ import static org.asyncflows.core.util.NeedsExport.exportIfNeeded;
  *
  * @param <T> the current stream element type
  */
+@SuppressWarnings("squid:S1610")
 public abstract class StreamBuilder<T> {
+
+    /**
+     * Transform method, that allows grouping some operations.
+     *
+     * @param body the body
+     * @param <R>  the result type
+     * @return the result
+     */
+    public <R> R transform(Function<StreamBuilder<T>, R> body) {
+        Objects.requireNonNull(body);
+        return body.apply(this);
+    }
+
     /**
      * @return the build stream that returns elements one by one (the stream is exported).
      */

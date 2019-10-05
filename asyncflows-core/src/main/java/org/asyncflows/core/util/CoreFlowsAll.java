@@ -42,6 +42,7 @@ import org.asyncflows.core.vats.Vats;
 
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -414,6 +415,18 @@ public final class CoreFlowsAll {
         }
 
         /**
+         * Transform method, that allows grouping some operations.
+         *
+         * @param body the body
+         * @param <R>  the result type
+         * @return the result
+         */
+        public <R> R transform(Function<AllBuilder<T1>, R> body) {
+            Objects.requireNonNull(body);
+            return body.apply(this);
+        }
+
+        /**
          * Add new branch.
          *
          * @param otherAction other action
@@ -466,6 +479,18 @@ public final class CoreFlowsAll {
                 this.context = context;
                 this.action1 = action1;
                 this.action2 = action2;
+            }
+
+            /**
+             * Transform method, that allows grouping some operations.
+             *
+             * @param body the body
+             * @param <R>  the result type
+             * @return the result
+             */
+            public <R> R transform(Function<AllBuilder2<T1, T2>, R> body) {
+                Objects.requireNonNull(body);
+                return body.apply(this);
             }
 
             /**
@@ -573,6 +598,18 @@ public final class CoreFlowsAll {
                 this.action1 = action1;
                 this.action2 = action2;
                 this.action3 = action3;
+            }
+
+            /**
+             * Transform method, that allows grouping some operations.
+             *
+             * @param body the body
+             * @param <R>  the result type
+             * @return the result
+             */
+            public <R> R transform(Function<AllBuilder3<T1, T2, T3>, R> body) {
+                Objects.requireNonNull(body);
+                return body.apply(this);
             }
 
             /**
@@ -700,6 +737,17 @@ public final class CoreFlowsAll {
             this.action4 = action4;
         }
 
+        /**
+         * Transform method, that allows grouping some operations.
+         *
+         * @param body the body
+         * @param <R>  the result type
+         * @return the result
+         */
+        public <R> R transform(Function<AllBuilder4<T1, T2, T3, T4>, R> body) {
+            Objects.requireNonNull(body);
+            return body.apply(this);
+        }
         /**
          * Map result.
          *

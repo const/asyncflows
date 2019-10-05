@@ -33,7 +33,9 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -287,6 +289,18 @@ public final class CoreFlowsSeq {
          */
         private static <A, N> AFunction<A, N> toFunction(final ASupplier<N> nextAction) {
             return t -> nextAction.get();
+        }
+
+        /**
+         * Transform method, that allows grouping some operations.
+         *
+         * @param body the body
+         * @param <R>  the result type
+         * @return the result
+         */
+        public <R> R transform(Function<SeqBuilder<T>, R> body) {
+            Objects.requireNonNull(body);
+            return body.apply(this);
         }
 
         /**

@@ -31,6 +31,8 @@ import org.asyncflows.core.function.ASupplier;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
+import java.util.function.Function;
 
 import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.Outcome.notifyFailure;
@@ -64,6 +66,18 @@ public final class RequestQueue {
             notifySuccess(queue.remove(), null);
         }
     };
+
+    /**
+     * Transform method, that allows grouping some operations.
+     *
+     * @param body the body
+     * @param <R>  the result type
+     * @return the result
+     */
+    public <R> R transform(Function<RequestQueue, R> body) {
+        Objects.requireNonNull(body);
+        return body.apply(this);
+    }
 
     /**
      * Awake the {@link #suspend()} method.

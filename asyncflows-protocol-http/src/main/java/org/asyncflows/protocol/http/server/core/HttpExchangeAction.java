@@ -420,7 +420,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                                                 final HttpHeaders headers, final Long length) {
         return responses.run(() -> {
             if (HttpStatusUtil.isSwitchProtocol(requestMessage.getMethod(), status)) {
-                throw new HttpException("User switchProtocol(...) for switching protocol");
+                throw new HttpException("Use switchProtocol(...) for switching protocol");
             }
             if (HttpStatusUtil.isInformational(status)) {
                 throw new HttpException("Use intermediateResponse(...) for informational responses");

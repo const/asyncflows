@@ -84,6 +84,17 @@ public final class Promise<T> {
         this.trace = PromiseTrace.INSTANCE.recordTrace();
     }
 
+    /**
+     * Transform method, that allows grouping some operations.
+     *
+     * @param body the body
+     * @param <R>  the result type
+     * @return the result
+     */
+    public <R> R transform(Function<Promise<T>, R> body) {
+        Objects.requireNonNull(body);
+        return body.apply(this);
+    }
 
     /**
      * Add synchronous listener to promise.

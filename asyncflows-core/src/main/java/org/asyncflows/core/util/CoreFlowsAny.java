@@ -31,7 +31,9 @@ import org.asyncflows.core.vats.Vat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aNow;
@@ -120,6 +122,18 @@ public final class CoreFlowsAny {
         public AnyBuilder(final boolean preferSuccess) {
             Vat.current(); // ensure asynchronous context
             this.preferSuccess = preferSuccess;
+        }
+
+        /**
+         * Transform method, that allows grouping some operations.
+         *
+         * @param body the body
+         * @param <R>  the result type
+         * @return the result
+         */
+        public <R> R transform(Function<AnyBuilder<T>, R> body) {
+            Objects.requireNonNull(body);
+            return body.apply(this);
         }
 
         /**
