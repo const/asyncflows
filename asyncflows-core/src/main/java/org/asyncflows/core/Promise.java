@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import static org.asyncflows.core.CoreFlows.aOutcome;
@@ -187,7 +188,7 @@ public final class Promise<T> {
                 PromiseTrace.INSTANCE.mergeTrace(adjustedOutcome.failure(), trace);
             }
             while (true) {
-                Object currentState = state.get();
+                final Object currentState = state.get();
                 if (currentState instanceof Outcome) {
                     break;
                 }
@@ -195,11 +196,10 @@ public final class Promise<T> {
                     continue;
                 }
                 if (currentState != null) {
-                    Cell<AResolver<? super T>> cell =
-                            ((Cell<AResolver<? super T>>) currentState).reverse();
-                    for (; cell != null; cell = cell.next) {
-                        Outcome.notifyResolver(cell.value, o);
-
+                    final Cell<AResolver<? super T>> cell = (Cell<AResolver<? super T>>) currentState;
+                    final AResolver<? super T>[] listeners = cell.toReversedArray(AResolver[]::new);
+                    for (AResolver<? super T> listener : listeners) {
+                        Outcome.notifyResolver(listener, o);
                     }
                     break;
                 }
@@ -494,20 +494,21 @@ public final class Promise<T> {
         }
 
         /**
-         * Reverse list. This method should be called only after cell is removed from {@link AtomicReference}.
+         * Convert cells to reversed array.
          *
-         * @return the reversed list.
+         * @param constructor the array constructor
+         * @return the array of elements
          */
-        private Cell<E> reverse() {
-            Cell<E> previous = null;
-            Cell<E> current = this;
-            while (current != null) {
-                Cell<E> savedNext = current.next;
-                current.next = previous;
-                previous = current;
-                current = savedNext;
+        private E[] toReversedArray(IntFunction<E[]> constructor) {
+            int count = 0;
+            for (Cell<E> c = this; c != null; c = c.next) {
+                count++;
             }
-            return previous;
+            final E[] array = constructor.apply(count);
+            for (Cell<E> c = this; c != null; c = c.next) {
+                array[--count] = c.value;
+            }
+            return array;
         }
 
         /**
