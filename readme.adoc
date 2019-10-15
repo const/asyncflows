@@ -1,11 +1,11 @@
 = AsyncFlows Framework {current-version}
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
-0.1.1, 2019-10-15
+0.1.2-SNAPSHOT, 2019-??-??
 :toc:
 :toclevels: 5
 :toc-placement!:
 :stable-version: 0.1.1
-:current-version: 0.1.1
+:current-version: 0.1.2-SNAPSHOT
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.
@@ -866,26 +866,16 @@ The AsyncFlows framework includes annotation processor for generating proxies.
 This annotation
 processor is used for generating proxies for all asynchronous interfaces in the framework.
 
-To enable annotation processor, add it to compiler like the following:
+To enable annotation processor, add it as optional dependency like the following:
 
 [source, xml, subs="attributes,verbatim"]
 ----
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <annotationProcessorPaths>
-                        <annotationProcessorPath>
-                            <groupId>org.asyncflows</groupId>
-                            <artifactId>asyncflows-apt</artifactId>
-                            <version>{current-version}</version>
-                        </annotationProcessorPath>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
+        <dependency>
+            <groupId>org.asyncflows</groupId>
+            <artifactId>asyncflows-apt</artifactId>
+            <version>{stable-version}</version>
+            <optional>true</optional>
+        </dependency>
 ----
 
 The annotation processor will generate proxies for all interfaces with `@Asynchronous`

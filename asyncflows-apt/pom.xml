@@ -30,13 +30,13 @@
     <parent>
         <groupId>org.asyncflows</groupId>
         <artifactId>asyncflows-parent</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>asyncflows-apt</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Annotation processor that generates proxy interfaces.</description>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <build>
         <plugins>

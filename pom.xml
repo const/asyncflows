@@ -29,7 +29,7 @@
 
     <groupId>org.asyncflows</groupId>
     <artifactId>asyncflows-parent</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>The framework provides DSL for easy and modular construction
