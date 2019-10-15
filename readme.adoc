@@ -1,11 +1,11 @@
 = AsyncFlows Framework {current-version}
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
-0.1.1-SNAPSHOT, 2019-??-??
+0.1.1, 2019-10-15
 :toc:
 :toclevels: 5
 :toc-placement!:
-:stable-version: 0.1.0
-:current-version: 0.1.1-SNAPSHOT
+:stable-version: 0.1.1
+:current-version: 0.1.1
 
 The framework provides DSL for easy and modular construction of asynchronous processes from simpler constructs.
 The framework is mostly targeted to IO-bound processes and it is not intended for CPU-bound processes.

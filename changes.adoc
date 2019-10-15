@@ -1,6 +1,6 @@
 = Change History
 
-== 0.1.1 (in progress)
+== 0.1.1 2019-10-15
 
 * Added support for NIO.2 sockets and file interfaces
 * Added the asynchronous proxy generator annotation processor

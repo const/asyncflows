@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.asyncflows</groupId>
         <artifactId>asyncflows-samples-parent</artifactId>
-        <version>0.1.1-SNAPSHOT</version>
+        <version>0.1.1</version>
     </parent>
 
     <artifactId>asyncflows-protocol-websocket</artifactId>
