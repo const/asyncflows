@@ -57,6 +57,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * The server tests based on Apache HTTP client.
  */
+@SuppressWarnings("squid:S2187")
 public class HttpClientServerTest extends HttpServerTestBase {
     /**
      * The logger.

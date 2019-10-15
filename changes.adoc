@@ -5,10 +5,11 @@
 * Added support for NIO.2 sockets and file interfaces
 * Added the asynchronous proxy generator annotation processor
 * Added PromiseTraceProvider that allows enriching exceptions with asynchronous stack traces
-* Some small renames, and bug fixes
-* Promise and BatchedVat now used wait-free structures based on AtomicReference
+* Some small renames, improvements, and bug fixes
+* Promise and BatchedVat now use wait-free structures based on AtomicReference
 * FailFast is renamed to Cancellation
-* Changed to sonar for verification (default rule set)
+* Changed to Sonar for verification
+* Added an experimental version of the context propagation API modelled after Project Reactor and Kotlin contexts
 
 == 0.1.0 2018-09-14
 Initial version

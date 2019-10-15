@@ -31,6 +31,7 @@ import java.lang.annotation.Target;
 
 /**
  * The annotation means that this framework class is public only because of java inter-package visibility limitations.
+ * These classes should not be used in client code and they are not part of API.
  */
 @Documented
 @Target(value = {

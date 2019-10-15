@@ -21,21 +21,19 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.annotations;
+package org.asyncflows.core.context.spi;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.asyncflows.core.annotations.Experimental;
 
 /**
- * The class marked by this annotation is safe to use from different threads.
+ * The active context entry that also provide a value to be used.
+ *
+ * @param <T> the value type
  */
-@Documented
-@Target(value = {
-        ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PACKAGE, ElementType.FIELD
-})
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface ThreadSafe {
+@Experimental
+public interface ActiveContextValue<T> extends ActiveContextEntry {
+    /**
+     * @return the current value usable by application.
+     */
+    T value();
 }

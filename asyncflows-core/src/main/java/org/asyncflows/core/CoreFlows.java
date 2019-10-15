@@ -23,6 +23,7 @@
 
 package org.asyncflows.core;
 
+import org.asyncflows.core.context.Context;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AOneWayAction;
 import org.asyncflows.core.function.AResolver;
@@ -71,6 +72,17 @@ public final class CoreFlows {
      */
     private CoreFlows() {
         // do nothing
+    }
+
+    /**
+     * Return runnable that propagates the specified context.
+     *
+     * @param context  the context.
+     * @param runnable the runnable.
+     * @return new runnable
+     */
+    public static Runnable propagatingContext(Context context, Runnable runnable) {
+        return () -> context.run(runnable);
     }
 
     /**
@@ -216,7 +228,7 @@ public final class CoreFlows {
      * @param action the action
      */
     public static void aSend(final Vat vat, final Runnable action) {
-        vat.execute(action);
+        vat.execute(propagatingContext(Context.current(), action));
     }
 
     /**
@@ -225,7 +237,7 @@ public final class CoreFlows {
      * @param action the action
      */
     public static void aSend(final Runnable action) {
-        defaultVat().execute(action);
+        aSend(defaultVat(), action);
     }
 
     /**
@@ -235,13 +247,13 @@ public final class CoreFlows {
      * @param action the action
      */
     public static void aOneWay(final Vat vat, final AOneWayAction action) {
-        vat.execute(() -> {
+        vat.execute(propagatingContext(Context.current(), () -> {
             try {
                 action.run();
             } catch (Throwable throwable) {
                 LOGGER.error("One-way action failed", throwable);
             }
-        });
+        }));
     }
 
     /**
@@ -252,14 +264,15 @@ public final class CoreFlows {
      * @return when action is finished to be executed
      */
     public static Promise<Void> aExecutorAction(final Executor executor, final AOneWayAction action) {
-        return aResolver(r -> executor.execute(() -> {
+        final Context context = Context.current();
+        return aResolver(r -> executor.execute(propagatingContext(context, () -> {
             try {
                 action.run();
                 notifySuccess(r, null);
             } catch (Throwable throwable) {
                 notifyFailure(r, throwable);
             }
-        }));
+        })));
     }
 
     /**
@@ -308,7 +321,8 @@ public final class CoreFlows {
      * @return the promise for result
      */
     public static <T> Promise<T> aLater(final Vat vat, final ASupplier<T> action) {
-        return aResolver(r -> vat.execute(() -> aNow(action).listenSync(r)));
+        final Context context = Context.current();
+        return aResolver(r -> vat.execute(propagatingContext(context, () -> aNow(action).listenSync(r))));
     }
 
     /**

@@ -114,7 +114,7 @@ public class Timer implements ATimer, AsynchronousService {
     public Promise<Long> sleep(final long delay) {
         final Promise<Long> rc = new Promise<>();
         final AResolver<Long> resolver = rc.resolver();
-        timer.schedule(getOneshotTask(resolver), delay);
+        timer.schedule(getRunOnceTask(resolver), delay);
         return rc;
     }
 
@@ -122,7 +122,7 @@ public class Timer implements ATimer, AsynchronousService {
     public Promise<Long> waitFor(final Instant time) {
         final Promise<Long> rc = new Promise<>();
         final AResolver<Long> resolver = rc.resolver();
-        timer.schedule(getOneshotTask(resolver), Date.from(time));
+        timer.schedule(getRunOnceTask(resolver), Date.from(time));
         return rc;
     }
 
@@ -132,7 +132,7 @@ public class Timer implements ATimer, AsynchronousService {
      * @param resolver a resolver
      * @return the task
      */
-    private TimerTask getOneshotTask(final AResolver<Long> resolver) {
+    private TimerTask getRunOnceTask(final AResolver<Long> resolver) {
         return new TimerTask() {
             private final AtomicBoolean done = new AtomicBoolean(false);
 
@@ -170,12 +170,12 @@ public class Timer implements ATimer, AsynchronousService {
             private boolean first = true;
 
             @Override
-            public Promise<Maybe<Long>> get() throws Exception {
+            public Promise<Maybe<Long>> get() {
                 if (first) {
                     first = false;
-                    return waitFor(firstTime).flatMap(AsyncFunctionUtil.<Long>maybeMapper());
+                    return waitFor(firstTime).flatMap(AsyncFunctionUtil.maybeMapper());
                 } else {
-                    return sleep(delay).flatMap(AsyncFunctionUtil.<Long>maybeMapper());
+                    return sleep(delay).flatMap(AsyncFunctionUtil.maybeMapper());
 
                 }
             }

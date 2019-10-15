@@ -43,6 +43,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * The server test. It use HttpUrlConnection on the separate thread.
  */
+@SuppressWarnings("squid:S2187")
 public class HttpURLConnectionServerTest extends HttpServerTestBase {
     /**
      * The logger.

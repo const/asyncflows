@@ -83,6 +83,7 @@ public class SemaphoreTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testReflection() {
         final Void t = doAsync(() -> {
             final Semaphore object = new Semaphore(0);

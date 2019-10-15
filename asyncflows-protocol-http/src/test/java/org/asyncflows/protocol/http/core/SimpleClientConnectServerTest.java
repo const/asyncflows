@@ -37,6 +37,7 @@ import static org.asyncflows.core.util.CoreFlowsResource.aTryResource;
 /**
  * The same test as {@link SimpleClientServerTest}, but uses the test server with connect proxy.
  */
+@SuppressWarnings("squid:S2187")
 public class SimpleClientConnectServerTest extends SimpleClientServerTest {
 
     @Override

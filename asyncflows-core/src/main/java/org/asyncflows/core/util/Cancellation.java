@@ -83,6 +83,32 @@ public class Cancellation implements ARunner {
     }
 
     /**
+     * Run action on cancel. The action is executed on arbitrary thread.
+     *
+     * @param action the action
+     * @return a runnable that could be used to remove listener
+     */
+    public Runnable onCancel(Runnable action) {
+        return onCancel(t -> action.run());
+    }
+
+    /**
+     * Run action on cancel with exception.
+     *
+     * @param action the action
+     * @return a runnable that could be used to remove listener
+     */
+    public Runnable onCancel(Consumer<Throwable> action) {
+        final AResolver<Void> listener = o -> {
+            if (o.isFailure()) {
+                action.accept(o.failure());
+            }
+        };
+        failPromise.listenSync(listener);
+        return () -> failPromise.forget(listener);
+    }
+
+    /**
      * Run with cleanup.
      *
      * @param action  the action

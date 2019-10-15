@@ -23,6 +23,8 @@
 
 package org.asyncflows.core;
 
+import org.asyncflows.core.annotations.ThreadSafe;
+import org.asyncflows.core.context.Context;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
@@ -52,6 +54,7 @@ import static org.asyncflows.core.vats.Vats.defaultVat;
  *
  * @param <T> the parameter types.
  */
+@ThreadSafe
 public final class Promise<T> {
     /**
      * The trace.
@@ -98,7 +101,8 @@ public final class Promise<T> {
     }
 
     /**
-     * Add synchronous listener to promise.
+     * Add synchronous listener to promise. Note, this operation is low-level and it does not save a {@link Context},
+     * and does not propagate it to listeners.
      *
      * @param listener the listener.
      * @return this promise
@@ -133,7 +137,7 @@ public final class Promise<T> {
      * @param listener the listener
      * @return this promise
      */
-    @SuppressWarnings({"unchecked", "squid:S135"})
+    @SuppressWarnings({"unchecked", "squid:S135", "UnusedReturnValue"})
     public Promise<T> forget(final AResolver<? super T> listener) {
         while (true) {
             final Object currentState = state.get();
@@ -168,7 +172,12 @@ public final class Promise<T> {
      * @return this promise
      */
     public Promise<T> listen(final Vat vat, final AResolver<? super T> listener) {
-        return listenSync(o -> vat.execute(() -> Outcome.notifyResolver(listener, o)));
+        final Context context = Context.current();
+        return listenSync(o -> vat.execute(() -> {
+            try (Context.Cleanup ignored = context.setContext()) {
+                Outcome.notifyResolver(listener, o);
+            }
+        }));
     }
 
     /**
@@ -478,6 +487,10 @@ public final class Promise<T> {
          */
         private final E value;
         /**
+         * The size.
+         */
+        private int size;
+        /**
          * The next cell.
          */
         private Cell<E> next;
@@ -491,6 +504,7 @@ public final class Promise<T> {
         private Cell(E value, Cell<E> next) {
             this.value = value;
             this.next = next;
+            this.size = next == null ? 1 : next.size + 1;
         }
 
         /**
@@ -500,11 +514,8 @@ public final class Promise<T> {
          * @return the array of elements
          */
         private E[] toReversedArray(IntFunction<E[]> constructor) {
-            int count = 0;
-            for (Cell<E> c = this; c != null; c = c.next) {
-                count++;
-            }
-            final E[] array = constructor.apply(count);
+            final E[] array = constructor.apply(size);
+            int count = size;
             for (Cell<E> c = this; c != null; c = c.next) {
                 array[--count] = c.value;
             }
@@ -520,6 +531,7 @@ public final class Promise<T> {
          */
         private Cell<E> copyWithoutElement(E element) {
             Cell<E> cellWithElement = null;
+            // find cell with element
             for (Cell<E> c = this; c != null; c = c.next) {
                 if (c.value == element) {
                     cellWithElement = c;
@@ -532,14 +544,17 @@ public final class Promise<T> {
             if (cellWithElement == this) {
                 return next;
             }
+
             Cell<E> newHead = null;
             Cell<E> previous = null;
             for (Cell<E> c = this; c != null; c = c.next) {
                 if (c == cellWithElement) {
                     previous.next = c.next;
+                    previous.size = c.size - 1;
                     break;
                 }
                 final Cell<E> n = new Cell<>(c.value, null);
+                n.size = c.size - 1;
                 if (previous == null) {
                     newHead = n;
                 } else {

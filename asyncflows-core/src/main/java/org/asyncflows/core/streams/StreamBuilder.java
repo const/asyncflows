@@ -317,7 +317,7 @@ public abstract class StreamBuilder<T> {
      * @param windowSize the window size
      * @return the builder
      */
-    public AllStreamBuilder<T> all(final int windowSize) {
+    public StreamBuilder<T> all(final int windowSize) {
         return new AllStreamBuilder<>(AsyncStreams.aForStream(
                 AllStreamBuilder.outcomeStream(localStream())).push().window(windowSize));
     }
@@ -327,7 +327,7 @@ public abstract class StreamBuilder<T> {
      *
      * @return the builder
      */
-    public AllStreamBuilder<T> all() {
+    public StreamBuilder<T> all() {
         return all(Integer.MAX_VALUE);
     }
 }

@@ -21,21 +21,30 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.annotations;
+package org.asyncflows.core.context.spi;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.asyncflows.core.annotations.Experimental;
+import org.asyncflows.core.context.Context;
 
 /**
- * The class marked by this annotation is safe to use from different threads.
+ * The active context entry helps to establish and remove context from the current thread. The cases include:
+ * <ul>
+ *     <li>Logging context</li>
+ *     <li>Transactions</li>
+ * </ul>
+ * The context entries are assumed to be independent of each other and might be established in any order.
+ * The current implementation tries to keep order of entries, but his could change later. If you need several
+ * entries in the specific order like: security context, logging, transactions. Then use single entry
+ * in the context for this.
  */
-@Documented
-@Target(value = {
-        ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PACKAGE, ElementType.FIELD
-})
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface ThreadSafe {
+@Experimental
+public interface ActiveContextEntry {
+
+    /**
+     * Set context of the entry in the current thread. The returned {@link Context.Cleanup}s are executed
+     * when operation is finished in reverse order they have been created.
+     *
+     * @return a cleanup action that is needed to clean up entries, or null if nothing should be done.
+     */
+    Context.Cleanup setContextInTheCurrentThread();
 }

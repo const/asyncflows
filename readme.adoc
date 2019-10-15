@@ -1,6 +1,6 @@
-= AsyncFlows Framework 0.1.1
+= AsyncFlows Framework {current-version}
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
-0.1.1, 2019-08-??
+0.1.1-SNAPSHOT, 2019-??-??
 :toc:
 :toclevels: 5
 :toc-placement!:
@@ -568,13 +568,163 @@ we would like to consumer to fail as well. For example:
         });
         assertEquals(Arrays.asList(1, 2), list);
 ```
-If we do queue reading like in commented out line, the test will hang up, because the consumer will never
-receive the value, because supplier failed. But in uncommented line, we wrap call to `queue.take()` into cancellation runner.
+If we do queue reading like in commented out line, the test will hang up, because the consumer will never receive the value, because supplier failed.
+But in uncommented line, we wrap call to `queue.take()` into cancellation runner.
 This allows us to fail all executions of cancellation that are active or will be active.
 Inside the call of `cancellation.run(...)` there is any operator against common promise, if any of the
 `cancellation.run(...)` fails, that promise fails as well.
 Otherwise it stays in unresolved state.
 
+=== Context Propagation
+
+Some API requires propagation of the context and setting the context for action execution.
+The best option would be passing it via implicit or explicit arguments, but in some cases it is not practical, particularly in case of integration with different frameworks that rely on thread local variables to keep contextual information.
+
+To simplify handling of such cases AsyncFlows provides Context API. The context API allows is automatic propagation of context ot most actions.
+Basic operation `aLater(...)` and `aSend(...)` support such propagation.
+So it is recommended to rely on them when you are creating own DSL.
+
+==== Context Object
+
+The class link:asyncflows-core/src/main/java/org/asyncflows/core/context/Context.java[Context] is basic element of the context propagation functionality.
+The context construction starts with `Context.empty()` then elements could be added with `context.with(...)` and `context.withPrivate(...)` entries, and removed with `context.without(...)` entries.
+
+The context has two operators for establishing the context: `context.setContext()` that returns `Context.Cleanup`
+that could be used in try with resources statement.
+
+```java
+final Context test = ...;
+try (Cleanup ignored = test.setContext()) {
+    action.doIt();
+}
+```
+
+And `context.run(...)` that set context runs runnable and then close context cleanup.
+
+```java
+test.run(() -> {
+    action.doIt();
+});
+```
+There are private and public entries in the context.
+The public entries are added using `context.with(...)` operator, and they could be later removed with `context.without(...)` operation.
+Each such entry is associated with key of the type `ContextKey`.
+The context values could be added later with the method `context.getOrNull(...)` and other get methods.
+
+The keys are created as the following:
+
+```java
+    private static final ContextKey<String> TEST_KEY = ContextKey.get(ContextTest.class, "test");
+```
+The type parameter of key is the type of the value associated with context.
+Then the key could be used to access and add context values.
+
+```java
+final Context test = Context.empty().with(TEST_KEY, "test");
+assertNull(Context.current().getOrNull(TEST_KEY));
+test.run(() -> {
+    assertEquals("test", Context.current().getOrNull(TEST_KEY));
+    test.without(TEST_KEY).run(() -> {
+        assertNull(Context.current().getOrNull(TEST_KEY));
+    });
+    assertEquals("test", Context.current().getOrNull(TEST_KEY));
+});
+assertNull(Context.current().getOrNull(TEST_KEY));
+```
+
+Context is immutable object, and each modification of the context return a new instance of the context.
+When new instance of the cotenxt is established, the old instance is completely rolled back.
+
+==== Active Context Entries
+
+Some context entries require modification of the thread when context is established: setting thread local state, modifying security context, setting context class loader, joining or leaving transactions, etc.
+
+To support such contextual entries an interface
+link:asyncflows-core/src/main/java/org/asyncflows/core/context/spi/ActiveContextEntry.java[ActiveContextEntry]
+was introduced.
+When context with such value is activated, the method `Context.Cleanup setContextInTheCurrentThread()` is invoked.
+The returned value is used to return to the previous state of the context.
+The convention is that such state should be equal to the previous sate, for example, the preivous state of `ThreadLocal` should be set.
+
+See the definition of
+link:asyncflows-core/src/main/java/org/asyncflows/core/context/util/ContextClassLoaderEntry.java[ContextClassLoaderEntry]
+for example of typical ActiveContextEntry.
+As a convention, such entries should provide the static `with*(...)`
+methods that return `UnaryOperator<Context>` that could be passed to `context.transform(...)` method, instead of requiring adding such entries explicitly.
+This allows hiding implementation details like keys and initialization of initial values.
+For example:
+
+```java
+public static UnaryOperator<Context> withSavedContextClassloader() {
+    return withContextClassloader(Thread.currentThread().getContextClassLoader());
+}
+
+public static UnaryOperator<Context> withContextClassloader(ClassLoader newClassLoader) {
+    return c -> c.with(KEY, new ContextClassLoaderEntry(newClassLoader));
+}
+```
+Such method could be used later as the following:
+```java
+final Context test1 = Context.empty().transform(withContextClassloader(classLoader));
+```
+
+Sometimes it is not practical or possible to require creation of the seaparate key for context entries, as context entries could have own identity (for example, ThreadLocal).
+Such entries exists only for establishing the thread context, and there is no meaningful textual names for such objects.
+To support such entries, the interface
+link:asyncflows-core/src/main/java/org/asyncflows/core/context/spi/PrivateContextEntry.java[PrivateContextEntry]
+was introduced.
+It is possible to add it context (or replace with in new instance of context), but it is not possible to create a context with such entry removed.
+
+Instead of the explicit key, such entries should implement the method  `Object identity()` that returns identity object for context entry, this identity object will be used as a key (it will be compared by the operator `==`).
+For thread local context entry, such entry will return a reference to thread local itself.
+See
+link:asyncflows-core/src/main/java/org/asyncflows/core/context/util/ThreadLocalEntry.java[ThreadLocalEntry]
+as an example of such context entry.
+
+The package link:asyncflows-core/src/main/java/org/asyncflows/core/context/util[org.asyncflows.core.context.util]
+contains a number of useful active context entries that could be used as examples.
+
+==== Asynchronous Operations
+
+While context framework does not depend on the rest of AsyncFlows framework and it could be used independetnly, the AsyncFlows framework integrates with it and provide some ready to use control constructs.
+
+There are two versions of the contextual execution, one that gets ready to use context, and one that updates the context.
+```java
+doAsync(() -> {
+    assertNull(MDC.get("k"));
+    return inContext(withMdcEntry("k", "v"), () -> { // updates current context using
+        assertEquals("v", MDC.get("k"));             // the function return from withMdcEntry
+        return inContext(Context.empty(), () -> { // explicitly passed context
+            assertNull(MDC.get("k")); // value is not set, because it is running in empty context
+            return aVoid();
+        });
+    }).thenGet(() -> {
+        assertNull(MDC.get("k"));
+        return null;
+    });
+});
+```
+It is also possible to create contexts asynchrnously, if estabilishing context requires contacting some external service.
+The same sample in asynchronous version:
+
+```java
+doAsync(() -> {
+    assertNull(MDC.get("k"));
+    return inContext(c -> aValue(c.transform(withMdcEntry("k", "v")))).run(() -> aLater(() -> {
+        assertEquals("v", MDC.get("k"));
+        return inContext(() -> aValue(Context.empty())).run(() -> {
+            assertNull(MDC.get("k"));
+            return aVoid();
+        }).thenGet(() -> {
+            assertEquals("v", MDC.get("k"));
+            return aVoid();
+        });
+    })).thenGet(() -> {
+        assertNull(MDC.get("k"));
+        return null;
+    });
+});
+```
 === Safety frames
 
 The asynchronous operations generally do not own data and many changes could happen to data
@@ -1509,8 +1659,8 @@ to organize inter-process communications. However, the libraries could be used t
 For example, JAX-RS 2.0 supports asynchronous invocations on client and server. The provided HTTP library could
 be used as foundation of some generic, completely asynchronous REST API library.
 
-The inter-process communication is currently focused on the language and application independent meta-protocols,
-where exact choices it depends on the context. Most popular now are HTTP based protocols, so additional transports
+The inter-process communication is currently focused on the language and application independent meta-protocols, where exact choices it depends on the context.
+Most popular now are HTTP based protocols, and additional transports
 like Web Sockets are also getting popular in some contexts. As for message formats, there is a wide range of them
 starting from XML and JSON to ASN.1 and protobuf. Prescribing a specific solution is not practical in the current
 situation.

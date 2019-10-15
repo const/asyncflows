@@ -20,22 +20,8 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-package org.asyncflows.core.annotations;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * The class marked by this annotation is safe to use from different threads.
+ * The generic context API. The API does not depend on the rest of AsyncFlows framework.
+ * The core component of API is the class {@link org.asyncflows.core.context.Context}.
  */
-@Documented
-@Target(value = {
-        ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PACKAGE, ElementType.FIELD
-})
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface ThreadSafe {
-}
+package org.asyncflows.core.context;
