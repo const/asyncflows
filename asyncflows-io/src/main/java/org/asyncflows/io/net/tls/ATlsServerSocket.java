@@ -26,35 +26,21 @@ package org.asyncflows.io.net.tls;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.AFunction;
-import org.asyncflows.io.net.ASocket;
+import org.asyncflows.io.net.AServerSocket;
 
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import java.net.SocketAddress;
 
 /**
- * SSL socket interface.
+ * A TLS server socket interface.
  */
 @Asynchronous
-public interface ATlsSocket extends ASocket {
+public interface ATlsServerSocket extends AServerSocket {
     /**
-     * Set engine factory for the connection.
+     * Set engine factory for the incoming connection.
      *
      * @param engineFactory the engine factory
-     * @return when operation complete
+     * @return when finished
      */
     Promise<Void> setEngineFactory(AFunction<SocketAddress, SSLEngine> engineFactory);
-
-    /**
-     * Starts a handshake if it is not in progress. If handshake is in progress, just returns a promise that resolves
-     * when handshake is finished.
-     *
-     * @return a promise for the handshake result
-     */
-    Promise<Void> handshake();
-
-    /**
-     * @return the SSL session
-     */
-    Promise<SSLSession> getSession();
 }

@@ -32,6 +32,9 @@ import org.asyncflows.io.net.SocketOptions;
 
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
+import java.util.Objects;
+
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The SSL socket.
@@ -40,7 +43,7 @@ public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsE
     /**
      * The engine factory.
      */
-    private final AFunction<SocketAddress, SSLEngine> engineFactory;
+    private AFunction<SocketAddress, SSLEngine> engineFactory;
 
     /**
      * The constructor from the underlying object.
@@ -51,6 +54,13 @@ public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsE
     public TlsSocket(final ASocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
         super(wrapped);
         this.engineFactory = engineFactory;
+    }
+
+    @Override
+    public Promise<Void> setEngineFactory(AFunction<SocketAddress, SSLEngine> engineFactory) {
+        Objects.requireNonNull(engineFactory);
+        this.engineFactory = engineFactory;
+        return aVoid();
     }
 
     @Override

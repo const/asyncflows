@@ -29,24 +29,25 @@ import org.asyncflows.core.util.ChainedClosable;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.AServerSocket;
-import org.asyncflows.io.net.AServerSocketProxyFactory;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketOptions;
 
 import javax.net.ssl.SSLEngine;
 import java.net.SocketAddress;
+import java.util.Objects;
 
 import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 
 /**
  * The server socket for TLS.
  */
 public class TlsServerSocket extends ChainedClosable<AServerSocket>
-        implements AServerSocket, NeedsExport<AServerSocket> {
+        implements ATlsServerSocket, NeedsExport<ATlsServerSocket> {
     /**
      * The engine factory.
      */
-    private final AFunction<SocketAddress, SSLEngine> engineFactory;
+    private AFunction<SocketAddress, SSLEngine> engineFactory;
     /**
      * The local address.
      */
@@ -61,6 +62,14 @@ public class TlsServerSocket extends ChainedClosable<AServerSocket>
     public TlsServerSocket(final AServerSocket wrapped, final AFunction<SocketAddress, SSLEngine> engineFactory) {
         super(wrapped);
         this.engineFactory = engineFactory;
+    }
+
+
+    @Override
+    public Promise<Void> setEngineFactory(AFunction<SocketAddress, SSLEngine> engineFactory) {
+        Objects.requireNonNull(engineFactory);
+        this.engineFactory = engineFactory;
+        return aVoid();
     }
 
     @Override
@@ -99,12 +108,12 @@ public class TlsServerSocket extends ChainedClosable<AServerSocket>
     public Promise<ASocket> accept() {
         return wrapped.accept().flatMap(socket -> engineFactory.apply(localAddress).flatMap(engine -> {
             final TlsSocket sslSocket = new TlsSocket(socket, engineFactory);
-            return sslSocket.init(engine).thenValue((ASocket) sslSocket.export());
+            return sslSocket.init(engine).thenValue(sslSocket.export());
         }));
     }
 
     @Override
-    public AServerSocket export(final Vat vat) {
-        return AServerSocketProxyFactory.createProxy(vat, this);
+    public ATlsServerSocket export(final Vat vat) {
+        return ATlsServerSocketProxyFactory.createProxy(vat, this);
     }
 }
