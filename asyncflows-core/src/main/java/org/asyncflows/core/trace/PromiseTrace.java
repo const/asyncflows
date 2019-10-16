@@ -21,28 +21,44 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core;
+package org.asyncflows.core.trace;
 
 import org.asyncflows.core.annotations.Experimental;
+import org.asyncflows.core.annotations.Internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ServiceLoader;
 
+/**
+ * This internal class is not supposed to be used directly.
+ */
 @Experimental
+@Internal
 public class PromiseTrace {
     /**
      * The instance of trace provider.
      */
-    static final PromiseTraceProvider INSTANCE = getPromiseTraceProvider();
+    @Internal
+    public static final PromiseTraceProvider INSTANCE = getPromiseTraceProvider();
 
+    /**
+     * The private constructor for utility class
+     */
+    private PromiseTrace() {
+        // do nothing
+    }
+
+    /**
+     * @return a configured trace provider
+     */
     @SuppressWarnings("squid:S3776")
     private static PromiseTraceProvider getPromiseTraceProvider() {
         final String provider = System.getProperty("org.asyncflows.core.trace.provider");
         if ("EXCEPTION".equals(provider)) {
-            return new ExceptionProvider();
+            return new PromiseTraceExceptionProvider();
         } else if (provider == null || "NOP".equals(provider)) {
-            return new NopProvider();
+            return new PromiseTraceNopProvider();
         } else {
             Logger logger = LoggerFactory.getLogger(PromiseTraceProvider.class);
             try {
@@ -60,65 +76,7 @@ public class PromiseTrace {
                     logger.error(String.format("The trace provider: %s not found.", provider));
                 }
             }
-            return new NopProvider();
+            return new PromiseTraceNopProvider();
         }
-    }
-
-    /**
-     * The trace provider for promises. The feature is experimental. The API could change w/o any notice.
-     */
-    public interface PromiseTraceProvider {
-
-        /**
-         * @return this method is used to get the current trace when promise is created.
-         */
-        Object recordTrace();
-
-        /**
-         * Merge trace into received exception.
-         *
-         * @param problem the problem received to promise.
-         * @param trace   the recorded trace
-         */
-        void mergeTrace(Throwable problem, Object trace);
-    }
-
-    /**
-     * The no-op provider that just returns null.
-     */
-    public static class NopProvider implements PromiseTraceProvider {
-
-        @Override
-        public Object recordTrace() {
-            return null;
-        }
-
-        @Override
-        public void mergeTrace(final Throwable problem, final Object trace) {
-            // do nothing
-        }
-    }
-
-    /**
-     * The very expensive provider that records context using exception.
-     * Use it only for debug purposes.
-     */
-    public static class ExceptionProvider implements PromiseTraceProvider {
-
-        @Override
-        public Object recordTrace() {
-            return new PromiseTraceException();
-        }
-
-        @Override
-        public void mergeTrace(final Throwable problem, final Object trace) {
-            problem.addSuppressed((PromiseTraceException) trace);
-        }
-    }
-
-    /**
-     * The exception used to record trace.
-     */
-    public static final class PromiseTraceException extends Exception {
     }
 }

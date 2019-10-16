@@ -1154,8 +1154,8 @@ java.lang.IllegalStateException: Test
 	at org.asyncflows.core.AsyncContext.doAsyncOutcome(AsyncContext.java:69)
 	at org.asyncflows.core.AsyncContext.doAsync(AsyncContext.java:82)
 	... 55 more
-	Suppressed: org.asyncflows.core.PromiseTraceProvider$PromiseTraceException
-		at org.asyncflows.core.PromiseTraceProvider$ExceptionProvider.recordTrace(PromiseTraceProvider.java:102)
+	Suppressed: org.asyncflows.core.trace.PromiseTraceExceptionProvider$PromiseTraceException
+		at org.asyncflows.core.PromiseTraceExceptionProvider.recordTrace(PromiseTraceExceptionProvider.java:102)
 		at org.asyncflows.core.Promise.<init>(Promise.java:92)
 		at org.asyncflows.core.CoreFlows.aResolver(CoreFlows.java:171)
 		at org.asyncflows.core.CoreFlows.aLater(CoreFlows.java:255)
@@ -1165,13 +1165,13 @@ java.lang.IllegalStateException: Test
 		at org.asyncflows.core.AsyncContext.lambda$doAsyncOutcome$1(AsyncContext.java:65)
 		... 59 more
 ```
-The exception `org.asyncflows.core.PromiseTraceProvider$ExceptionProvider$PromiseTraceException`
+The exception `org.asyncflows.core.PromiseTraceExceptionProvider$PromiseTraceException`
 is entry created by the exception trace provider. This provider is quite expensive from CPU
 perspective as it creates an exception for each unresolved promise, so it is suggested to use
 it only during problem investigation.
 
 This feature is experimental. It is also possible to write own trace providers. Refer to interface
-link:asyncflows-core/src/main/java/org/asyncflows/core/PromiseTraceProvider.java[PromiseTraceProvider]
+link:asyncflows-core/src/main/java/org/asyncflows/core/trace/PromiseTraceProvider.java[PromiseTraceProvider]
 for more information.
 
 === Debugging Considerations

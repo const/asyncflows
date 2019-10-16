@@ -91,7 +91,6 @@
         <dependency>
             <groupId>org.asyncflows</groupId>
             <artifactId>asyncflows-apt</artifactId>
-            <version>${project.version}</version>
             <optional>true</optional>
         </dependency>
     </dependencies>
@@ -109,6 +108,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

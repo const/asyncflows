@@ -29,6 +29,7 @@ import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
+import org.asyncflows.core.trace.PromiseTrace;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.Objects;

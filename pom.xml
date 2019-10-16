@@ -42,11 +42,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <slf4j.version>1.7.25</slf4j.version>
-        <junit.version>5.3.1</junit.version>
+        <slf4j.version>1.7.28</slf4j.version>
+        <junit.version>5.5.2</junit.version>
         <logback.version>1.2.3</logback.version>
         <commons-io.verions>2.6</commons-io.verions>
-        <verify.config.base>${project.basedir}/../src/config/checks</verify.config.base>
     </properties>
 
     <modules>
@@ -114,6 +113,12 @@
             </dependency>
             <dependency>
                 <groupId>org.asyncflows</groupId>
+                <artifactId>asyncflows-apt</artifactId>
+                <version>${project.version}</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.asyncflows</groupId>
                 <artifactId>asyncflows-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -151,6 +156,29 @@
                         <source>1.8</source>
                         <target>1.8</target>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.moditect</groupId>
+                    <artifactId>moditect-maven-plugin</artifactId>
+                    <version>1.0.0.Beta2</version>
+                    <executions>
+                        <execution>
+                            <id>add-module-infos</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>add-module-info</goal>
+                            </goals>
+                            <configuration>
+                                <jvmVersion>11</jvmVersion>
+                                <overwriteExistingFiles>true</overwriteExistingFiles>
+                                <module>
+                                    <moduleInfoFile>
+                                        ${basedir}/src/main/java-mr/11/module-info.java
+                                    </moduleInfoFile>
+                                </module>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
