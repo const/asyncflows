@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Konstantin Plotnikov
+ * Copyright (c) 2018-2020 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -37,8 +37,8 @@ class GroovySampleTest {
     @Test
     void testSuppressed() {
         def t = doAsync {
-            def failure = new Promise<Throwable>();
-            def suppressed = new Promise<Integer>();
+            def failure = new Promise<Throwable>()
+            def suppressed = new Promise<Integer>()
             aAll {
                 aAny(true) {
                     aLater { aValue(1) }
@@ -49,7 +49,7 @@ class GroovySampleTest {
                 } suppressed {
                     notifySuccess(suppressed.resolver(), it)
                 } suppressedFailureLast {
-                    notifySuccess(failure.resolver(), it);
+                    notifySuccess(failure.resolver(), it)
                 }
             } and {
                 failure
@@ -57,9 +57,9 @@ class GroovySampleTest {
                 suppressed
             }
         }
-        assertEquals(2, t.getValue1().intValue());
-        assertEquals(RuntimeException.class, t.getValue2().getClass());
-        assertEquals(1, t.getValue3().intValue());
+        assertEquals(2, t.getValue1().intValue())
+        assertEquals(RuntimeException.class, t.getValue2().getClass())
+        assertEquals(1, t.getValue3().intValue())
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Konstantin Plotnikov
+ * Copyright (c) 2018-2020 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -71,7 +71,7 @@ public class EchoUpgradeHandler extends HttpHandlerBase {
         final HttpHeaders headers = new HttpHeaders();
         headers.setHeader(HttpHeadersUtil.UPGRADE_HEADER, protocol);
         headers.addHeader(HttpHeadersUtil.CONNECTION_HEADER, HttpHeadersUtil.UPGRADE_HEADER);
-        return IOUtil.BYTE.aTryChannel(exchange.switchProtocol(HttpStatusUtil.SWITCHING_PROTOCOLS, null, headers)).run(
+        return IOUtil.aTryChannel(exchange.switchProtocol(HttpStatusUtil.SWITCHING_PROTOCOLS, null, headers)).run(
                 (channel, input, output) -> IOUtil.BYTE.copy(input, output, false,
                         ByteBuffer.allocate(HttpLimits.DEFAULT_BUFFER_SIZE)).toVoid()
         );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Konstantin Plotnikov
+ * Copyright (c) 2018-2020 Konstantin Plotnikov
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -47,7 +47,7 @@ public class PromiseTest {
                     vat.stop(null); // stop vat
                 });
             } catch (Throwable t) {
-                cell.setValue(Outcome.<String>failure(t)); // save failure
+                cell.setValue(Outcome.failure(t)); // save failure
                 vat.stop(null); // stop vat
             }
         });
