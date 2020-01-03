@@ -155,6 +155,7 @@ public class Timer implements ATimer, AsynchronousService {
 
     @Override
     public Promise<AStream<Long>> fixedRate(final Instant firstTime, final long period) {
+        // TODO refactor it to use fixed memory.
         final SimpleQueue<Outcome<Long>> queue = new SimpleQueue<>();
         final AResolver<Long> putResolver = FunctionExporter.exportResolver(queue::put);
         final FixedRateTask task = new FixedRateTask(putResolver);

@@ -24,6 +24,7 @@
 package org.asyncflows.core;
 
 import org.asyncflows.core.context.Context;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AOneWayAction;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
@@ -136,7 +137,7 @@ public final class AsyncContext {
     public static Promise<Void> aDaemonRun(final Runnable action) {
         final Context context = Context.current();
         return aResolver(resolver -> Vats.DAEMON_EXECUTOR.execute(() -> {
-            try (final Context.Cleanup ignored = context.setContext()) {
+            try (final Subcription ignored = context.setContext()) {
                 action.run();
                 Outcome.notifySuccess(resolver, null);
             } catch (Throwable t) {
@@ -156,7 +157,7 @@ public final class AsyncContext {
     public static Promise<Void> aDaemonOneWay(final AOneWayAction action) {
         final Context context = Context.current();
         return aResolver(resolver -> Vats.DAEMON_EXECUTOR.execute(() -> {
-            try (final Context.Cleanup ignored = context.setContext()) {
+            try (final Subcription ignored = context.setContext()) {
                 action.run();
                 Outcome.notifySuccess(resolver, null);
             } catch (Throwable t) {
@@ -191,7 +192,7 @@ public final class AsyncContext {
         return aResolver(resolver -> {
             final Context context = Context.current();
             executor.execute(() -> {
-                try (final Context.Cleanup ignored = context.setContext()) {
+                try (final Subcription ignored = context.setContext()) {
                     Outcome.notifySuccess(resolver, action.get());
                 } catch (Throwable t) {
                     Outcome.notifyFailure(resolver, t);

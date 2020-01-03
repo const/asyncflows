@@ -27,6 +27,7 @@ package org.asyncflows.core.context.util;
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.context.ContextKey;
 import org.asyncflows.core.context.spi.ActiveContextValue;
+import org.asyncflows.core.data.Subcription;
 
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -78,7 +79,7 @@ public class ContextClassLoaderEntry implements ActiveContextValue<ClassLoader> 
     }
 
     @Override
-    public Context.Cleanup setContextInTheCurrentThread() {
+    public Subcription setContextInTheCurrentThread() {
         final Thread thread = Thread.currentThread();
         final ClassLoader previous = thread.getContextClassLoader();
         thread.setContextClassLoader(classLoader);

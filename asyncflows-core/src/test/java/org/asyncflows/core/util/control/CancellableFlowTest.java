@@ -21,30 +21,31 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.context.spi;
+package org.asyncflows.core.util.control;
 
-import org.asyncflows.core.annotations.Experimental;
-import org.asyncflows.core.data.Subcription;
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.util.Cancellation;
+import org.junit.jupiter.api.Test;
 
-/**
- * The active context entry helps to establish and remove context from the current thread. The cases include:
- * <ul>
- *     <li>Logging context</li>
- *     <li>Transactions</li>
- * </ul>
- * The context entries are assumed to be independent of each other and might be established in any order.
- * The current implementation tries to keep order of entries, but his could change later. If you need several
- * entries in the specific order like: security context, logging, transactions. Then use single entry
- * in the context for this.
- */
-@Experimental
-public interface ActiveContextEntry {
+import static org.asyncflows.core.AsyncContext.doAsyncOutcome;
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aLater;
+import static org.asyncflows.core.util.CancellableFlows.aWithLocalCancellation;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    /**
-     * Set context of the entry in the current thread. The returned {@link Subcription}s are executed
-     * when operation is finished in reverse order they have been created.
-     *
-     * @return a cleanup action that is needed to clean up entries, or null if nothing should be done.
-     */
-    Subcription setContextInTheCurrentThread();
+public class CancellableFlowTest {
+
+    @Test
+    public void testLocalCancellable() {
+        final Outcome<Void> o = doAsyncOutcome(() -> aWithLocalCancellation(c -> aAll(
+                () -> c.run(Promise::new)
+        ).andLast(
+                () -> aLater(() -> Cancellation.currentOrNull().run(() -> aFailure(new RuntimeException("test"))))
+        ).toVoid()));
+        assertTrue(o.isFailure());
+        assertEquals("test", o.failure().getMessage());
+    }
 }

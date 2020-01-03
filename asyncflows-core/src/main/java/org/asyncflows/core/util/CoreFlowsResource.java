@@ -40,6 +40,7 @@ import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.supplierToFunction;
 import static org.asyncflows.core.function.AsyncFunctionUtil.useFirstArg;
 import static org.asyncflows.core.function.AsyncFunctionUtil.useSecondArg;
+import static org.asyncflows.core.util.CancellableFlows.aNonCancellable;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
@@ -97,7 +98,7 @@ public final class CoreFlowsResource {
             if (resourceCell.isEmpty()) {
                 return aVoid();
             } else {
-                return resourceCell.getValue().close();
+                return aNonCancellable(() -> resourceCell.getValue().close());
             }
         };
     }

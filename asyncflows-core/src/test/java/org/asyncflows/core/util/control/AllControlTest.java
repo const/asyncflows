@@ -79,7 +79,6 @@ public class AllControlTest {
         assertEquals(Tuple2.of("The answer", 42), rc);
     }
 
-
     @Test
     public void testAll2Failures() {
         final Outcome<Tuple2<String, Integer>> rc1 = doAsync(() ->
@@ -106,7 +105,7 @@ public class AllControlTest {
     public void testAll2SelectZip() {
         final Tuple2<String, Integer> rc = doAsync(new ASupplier<Tuple2<String, Integer>>() {
             @Override
-            public Promise<Tuple2<String, Integer>> get() throws Exception {
+            public Promise<Tuple2<String, Integer>> get() {
                 return aAll(
                         () -> partialAll().selectValue1()
                 ).and(
@@ -130,7 +129,7 @@ public class AllControlTest {
     public void testAll3SelectZip() {
         final Tuple3<String, Integer, Boolean> rc = doAsync(new ASupplier<Tuple3<String, Integer, Boolean>>() {
             @Override
-            public Promise<Tuple3<String, Integer, Boolean>> get() throws Exception {
+            public Promise<Tuple3<String, Integer, Boolean>> get() {
                 return aAll(() -> partialAll().selectValue1()
                 ).and(
                         () -> partialAll().selectValue2()

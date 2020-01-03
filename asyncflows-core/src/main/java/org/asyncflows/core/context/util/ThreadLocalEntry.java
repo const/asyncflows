@@ -26,6 +26,7 @@ package org.asyncflows.core.context.util;
 
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.context.spi.PrivateContextEntry;
+import org.asyncflows.core.data.Subcription;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -101,7 +102,7 @@ public class ThreadLocalEntry<T> implements PrivateContextEntry {
     }
 
     @Override
-    public Context.Cleanup setContextInTheCurrentThread() {
+    public Subcription setContextInTheCurrentThread() {
         final T previous = threadLocal.get();
         if (previous == value) {
             return null;

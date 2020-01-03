@@ -26,6 +26,7 @@ package org.asyncflows.core.context.util;
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.context.ContextKey;
 import org.asyncflows.core.context.spi.PrivateContextEntry;
+import org.asyncflows.core.data.Subcription;
 import org.slf4j.MDC;
 
 import java.util.Objects;
@@ -89,7 +90,7 @@ public class MdcContextKeyEntry implements PrivateContextEntry {
     }
 
     @Override
-    public Context.Cleanup setContextInTheCurrentThread() {
+    public Subcription setContextInTheCurrentThread() {
         final String previous = MDC.get(key);
         if (Objects.equals(value, previous)) {
             return null;

@@ -27,6 +27,7 @@ import org.asyncflows.core.annotations.Experimental;
 import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.context.spi.ActiveContextEntry;
 import org.asyncflows.core.context.spi.PrivateContextEntry;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.data.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,8 @@ import java.util.stream.StreamSupport;
  */
 @Experimental
 @ThreadSafe
-public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>> {
+@SuppressWarnings("squid:S1452")
+public abstract class Context implements Iterable<Map.Entry<ContextKey<?>, Object>> {
     /**
      * The logger.
      */
@@ -62,7 +64,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
     /**
      * The current context.
      */
-    private static final ThreadLocal<Tuple2<Context, Cleanup>> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<Tuple2<Context, Subcription>> CURRENT = new ThreadLocal<>();
     /**
      * Empty context.
      */
@@ -82,7 +84,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      * @return the current context.
      */
     public static Context current() {
-        final Tuple2<Context, Cleanup> current = CURRENT.get();
+        final Tuple2<Context, Subcription> current = CURRENT.get();
         return current == null ? EMPTY : current.getValue1();
     }
 
@@ -93,7 +95,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      * @return the replaced context or null
      */
     private static Context replaceContext(Context context) {
-        final Tuple2<Context, Cleanup> previous = CURRENT.get();
+        final Tuple2<Context, Subcription> previous = CURRENT.get();
         if (previous != null) {
             if (previous.getValue1() == context) {
                 return context;
@@ -112,7 +114,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
         if (context == null) {
             CURRENT.remove();
         } else {
-            Cleanup cleanup = null;
+            Subcription cleanup = null;
             try {
                 cleanup = context.activateContext();
             } catch (Throwable t) {
@@ -126,7 +128,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
     /**
      * @return the stream of entries
      */
-    public Stream<Map.Entry<ContextKey, Object>> stream() {
+    public Stream<Map.Entry<ContextKey<?>, Object>> stream() {
         return StreamSupport.stream(spliterator(), false);
     }
 
@@ -135,7 +137,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      *
      * @param action the action
      */
-    public abstract void forEach(BiConsumer<ContextKey, Object> action);
+    public abstract void forEach(BiConsumer<ContextKey<?>, Object> action);
 
     /**
      * @return true if context is empty
@@ -235,7 +237,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
     protected abstract Context withIdentity(Object key, Object value);
 
     /**
-     * Set context in the current thread. The returned {@link Cleanup} action must be executed on the same thread
+     * Set context in the current thread. The returned {@link Subcription} action must be executed on the same thread
      * to restore context back. The operation is supposed to be used in try/finally block like the following:
      * <pre>{@code
      *  try (final Context.Cleanup ignored = context.setContext()) {
@@ -246,7 +248,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      * @return action that restores previous context, the returned value is never null.
      * @see #run(Runnable)
      */
-    public final Cleanup setContext() {
+    public final Subcription setContext() {
         final Context previous = replaceContext(this);
         return () -> replaceContext(previous);
     }
@@ -256,7 +258,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      *
      * @return the runnable that undo activation
      */
-    protected abstract Cleanup activateContext();
+    protected abstract Subcription activateContext();
 
     /**
      * Run action within context.
@@ -265,7 +267,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      */
     public void run(Runnable action) {
         Objects.requireNonNull(action, "action");
-        try (Cleanup ignored = setContext()) {
+        try (Subcription ignored = setContext()) {
             action.run();
         }
     }
@@ -274,15 +276,6 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
      * @return the context size
      */
     public abstract int size();
-
-    /**
-     * The cleanup interface.
-     */
-    @FunctionalInterface
-    public interface Cleanup extends AutoCloseable {
-        @Override
-        void close();
-    }
 
     /**
      * Empty context that does not contain any entries.
@@ -305,7 +298,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
         }
 
         @Override
-        protected Cleanup activateContext() {
+        protected Subcription activateContext() {
             return null;
         }
 
@@ -315,7 +308,7 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
         }
 
         @Override
-        public void forEach(BiConsumer<ContextKey, Object> action) {
+        public void forEach(BiConsumer<ContextKey<?>, Object> action) {
             // do nothing
         }
 
@@ -325,15 +318,15 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
          * @return an Iterator.
          */
         @Override
-        public Iterator<Map.Entry<ContextKey, Object>> iterator() {
-            return new Iterator<Map.Entry<ContextKey, Object>>() {
+        public Iterator<Map.Entry<ContextKey<?>, Object>> iterator() {
+            return new Iterator<Map.Entry<ContextKey<?>, Object>>() {
                 @Override
                 public boolean hasNext() {
                     return false;
                 }
 
                 @Override
-                public Map.Entry<ContextKey, Object> next() {
+                public Map.Entry<ContextKey<?>, Object> next() {
                     throw new NoSuchElementException();
                 }
             };
@@ -441,17 +434,17 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
 
         @SuppressWarnings("squid:S3776")
         @Override
-        protected Cleanup activateContext() {
+        protected Subcription activateContext() {
             if (activeCount == 0) {
                 return null;
             }
-            Cleanup[] deactivation = new Cleanup[activeCount];
+            Subcription[] deactivation = new Subcription[activeCount];
             int count = 0;
             for (int i = 1; i < data.length; i += 2) {
                 Object entry = data[i];
                 if (entry instanceof ActiveContextEntry) {
                     try {
-                        final Cleanup rollback = ((ActiveContextEntry) entry).setContextInTheCurrentThread();
+                        final Subcription rollback = ((ActiveContextEntry) entry).setContextInTheCurrentThread();
                         if (rollback != null) {
                             deactivation[count++] = rollback;
                         }
@@ -496,8 +489,8 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
         }
 
         @Override
-        public Iterator<Map.Entry<ContextKey, Object>> iterator() {
-            return new Iterator<Map.Entry<ContextKey, Object>>() {
+        public Iterator<Map.Entry<ContextKey<?>, Object>> iterator() {
+            return new Iterator<Map.Entry<ContextKey<?>, Object>>() {
                 private int i = 0;
 
                 @Override
@@ -506,16 +499,16 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
                 }
 
                 @Override
-                public Map.Entry<ContextKey, Object> next() {
+                public Map.Entry<ContextKey<?>, Object> next() {
                     if (!hasNext()) {
                         throw new NoSuchElementException("position = " + i);
                     }
                     Object value = data[i + 1];
-                    ContextKey key = value instanceof PrivateContextEntry ? null : (ContextKey) data[i];
+                    ContextKey<?> key = value instanceof PrivateContextEntry ? null : (ContextKey<?>) data[i];
                     i += 2;
-                    return new Map.Entry<ContextKey, Object>() {
+                    return new Map.Entry<ContextKey<?>, Object>() {
                         @Override
-                        public ContextKey getKey() {
+                        public ContextKey<?> getKey() {
                             return key;
                         }
 
@@ -534,11 +527,11 @@ public abstract class Context implements Iterable<Map.Entry<ContextKey, Object>>
         }
 
         @Override
-        public void forEach(BiConsumer<ContextKey, Object> action) {
+        public void forEach(BiConsumer<ContextKey<?>, Object> action) {
             for (int i = 0; i < data.length - 1; i += 2) {
                 Object key = data[i];
                 Object value = data[i + 1];
-                action.accept((ContextKey) (value instanceof PrivateContextEntry ? null : key), value);
+                action.accept((ContextKey<?>) (value instanceof PrivateContextEntry ? null : key), value);
             }
         }
     }

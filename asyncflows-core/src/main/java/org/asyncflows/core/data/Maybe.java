@@ -24,9 +24,11 @@
 package org.asyncflows.core.data;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * The optional value type. It is intentionally named differently from the JDK8 Optional and Scala Option types.
+ * Also null and empty states are different.
  *
  * @param <T> the value type
  */
@@ -89,6 +91,28 @@ public final class Maybe<T> {
      */
     public boolean isEmpty() {
         return !valuePresent;
+    }
+
+    /**
+     * Map empty to empty or transform vale.
+     *
+     * @param mapper the mapper
+     * @param <R>    the result type
+     * @return the result.
+     */
+    public <R> Maybe<R> map(Function<T, R> mapper) {
+        return isEmpty() ? empty() : value(mapper.apply(value));
+    }
+
+    /**
+     * Flat map the value.
+     *
+     * @param mapper the mapper
+     * @param <R>    the result type
+     * @return teh result
+     */
+    public <R> Maybe<R> flatMap(Function<T, Maybe<R>> mapper) {
+        return isEmpty() ? empty() : mapper.apply(value);
     }
 
     /**

@@ -24,6 +24,7 @@
 package org.asyncflows.core.data;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * The tuple of two values.
@@ -77,6 +78,17 @@ public final class Tuple2<T1, T2> {
      */
     public T1 getValue1() {
         return value1;
+    }
+
+    /**
+     * Map tuple.
+     *
+     * @param body body
+     * @param <R>  the result type
+     * @return the result
+     */
+    public <R> R map(BiFunction<T1, T2, R> body) {
+        return body.apply(getValue1(), getValue2());
     }
 
     @Override

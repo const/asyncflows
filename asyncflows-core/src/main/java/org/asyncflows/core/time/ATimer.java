@@ -28,7 +28,9 @@ import org.asyncflows.core.annotations.Asynchronous;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.streams.AStream;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The timer interface.
@@ -42,6 +44,17 @@ public interface ATimer extends ACloseable {
      * @return promise for the time when sleep was scheduled to awake
      */
     Promise<Long> sleep(long delay);
+
+    /**
+     * Sleep for the specified duration.
+     *
+     * @param duration the duration
+     * @return when sleep finishes
+     */
+    default Promise<Long> sleep(Duration duration) {
+        long delay = TimeUnit.SECONDS.toMillis(duration.getSeconds()) + TimeUnit.NANOSECONDS.toMillis(duration.getNano());
+        return sleep(delay);
+    }
 
     /**
      * Wait until the specified time.

@@ -135,7 +135,7 @@ public final class CoreFlows {
      */
     @SuppressWarnings("unchecked")
     public static <T> Promise<Maybe<T>> aMaybeEmpty() {
-        return (Promise<Maybe<T>>) (Promise) EMPTY_VALUE;
+        return (Promise<Maybe<T>>) (Object) EMPTY_VALUE;
     }
 
     /**
@@ -334,18 +334,5 @@ public final class CoreFlows {
      */
     public static <T> Promise<T> aLater(final ASupplier<T> action) {
         return aLater(defaultVat(), action);
-    }
-
-    /**
-     * Operation that never completes. The promise will accumulate listeners that listenSync to it.
-     * So do not share it between contexts.
-     *
-     * @param <T> the supposed result
-     * @return the promise
-     */
-    public static <T> Promise<T> aNever() {
-        final Promise<T> promise = new Promise<>();
-        promise.resolver();
-        return promise;
     }
 }

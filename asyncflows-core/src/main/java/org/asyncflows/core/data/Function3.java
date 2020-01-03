@@ -21,30 +21,24 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.asyncflows.core.context.spi;
-
-import org.asyncflows.core.annotations.Experimental;
-import org.asyncflows.core.data.Subcription;
+package org.asyncflows.core.data;
 
 /**
- * The active context entry helps to establish and remove context from the current thread. The cases include:
- * <ul>
- *     <li>Logging context</li>
- *     <li>Transactions</li>
- * </ul>
- * The context entries are assumed to be independent of each other and might be established in any order.
- * The current implementation tries to keep order of entries, but his could change later. If you need several
- * entries in the specific order like: security context, logging, transactions. Then use single entry
- * in the context for this.
+ * Three argument function.
+ *
+ * @param <A> the argument type
+ * @param <B> the argument type
+ * @param <C> the argument type
+ * @param <R> the result type
  */
-@Experimental
-public interface ActiveContextEntry {
-
+public interface Function3<A, B, C, R> {
     /**
-     * Set context of the entry in the current thread. The returned {@link Subcription}s are executed
-     * when operation is finished in reverse order they have been created.
+     * Invoke the function
      *
-     * @return a cleanup action that is needed to clean up entries, or null if nothing should be done.
+     * @param a the argument
+     * @param b the argument
+     * @param c the argument
+     * @return the result
      */
-    Subcription setContextInTheCurrentThread();
+    R apply(A a, B b, C c);
 }

@@ -25,6 +25,7 @@ package org.asyncflows.core;
 
 import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.context.Context;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
@@ -34,7 +35,6 @@ import org.asyncflows.core.vats.Vat;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -65,10 +65,6 @@ public final class Promise<T> {
      * State of the promise. It is either {@code null}, {@link Cell} with listeners, or {@link Outcome}.
      */
     private final AtomicReference<Object> state = new AtomicReference<>();
-    /**
-     * True if resolver has been already acquired.
-     */
-    private final AtomicBoolean resolverAcquired = new AtomicBoolean(false);
 
     /**
      * Constructor of resolved promise from outcome.
@@ -77,7 +73,6 @@ public final class Promise<T> {
      */
     public Promise(final Outcome<T> outcome) {
         Objects.requireNonNull(outcome);
-        this.resolverAcquired.set(true);
         state.set(outcome);
         this.trace = null;
     }
@@ -103,7 +98,11 @@ public final class Promise<T> {
 
     /**
      * Add synchronous listener to promise. Note, this operation is low-level and it does not save a {@link Context},
-     * and does not propagate it to listeners.
+     * and does not propagate it to listeners. The execution context is completely arbitrary.
+     * The listener should be executed very fast and never block, prefer wait-free operations.
+     * If there is a need for some processing, just create an event and send it to some executor.
+     * Also if you could have a long chain of promises, use {@link #listen(AResolver)} instead,
+     * as this method could create a chain reaction of promise resolution.
      *
      * @param listener the listener.
      * @return this promise
@@ -121,7 +120,7 @@ public final class Promise<T> {
                 if (listenerCell == null) {
                     listenerCell = new Cell<>(listener, next);
                 } else {
-                    listenerCell.next = next;
+                    listenerCell.setNext(next);
                 }
                 if (state.compareAndSet(next, listenerCell)) {
                     break;
@@ -132,8 +131,9 @@ public final class Promise<T> {
     }
 
     /**
-     * There are rare cases when control construct does not care about listener anymore,
+     * There are rare cases when control construct does not care about promise anymore,
      * so it is better to forget anyway in order to reduce memory usage and linked state.
+     * Only listeners added with {@link #listenSync(AResolver)} could be forgotten.
      *
      * @param listener the listener
      * @return this promise
@@ -175,22 +175,19 @@ public final class Promise<T> {
     public Promise<T> listen(final Vat vat, final AResolver<? super T> listener) {
         final Context context = Context.current();
         return listenSync(o -> vat.execute(() -> {
-            try (Context.Cleanup ignored = context.setContext()) {
+            try (Subcription ignored = context.setContext()) {
                 Outcome.notifyResolver(listener, o);
             }
         }));
     }
 
     /**
-     * Get resolver. To ensure that consistency in resolution process, the resolver could be got only once.
+     * Get resolver. The resolver should be normally got only once and distributed to downstream services.
      *
      * @return the resolver
      */
     @SuppressWarnings({"unchecked", "squid:S3776", "squid:S135"})
     public AResolver<T> resolver() {
-        if (!resolverAcquired.compareAndSet(false, true)) {
-            throw new IllegalStateException("Resolver is already acquired");
-        }
         return o -> {
             final Outcome<T> adjustedOutcome = o != null ? o : Outcome.failure(
                     new IllegalArgumentException("Notified with null outcome"));
@@ -478,7 +475,7 @@ public final class Promise<T> {
 
     /**
      * The cell used in the listener list. It is designed to be kept in {@link AtomicReference},
-     * so some operations are designed not to corrupt values while it is being removed.
+     * so its operations are designed not to corrupt values while it is being removed.
      *
      * @param <E>
      */
@@ -504,6 +501,15 @@ public final class Promise<T> {
          */
         private Cell(E value, Cell<E> next) {
             this.value = value;
+            setNext(next);
+        }
+
+        /**
+         * Set next cell.
+         *
+         * @param next the next cell
+         */
+        private void setNext(Cell<E> next) {
             this.next = next;
             this.size = next == null ? 1 : next.size + 1;
         }

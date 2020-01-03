@@ -26,6 +26,9 @@ package org.asyncflows.core.util;
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.annotations.ThreadSafe;
+import org.asyncflows.core.context.Context;
+import org.asyncflows.core.context.ContextKey;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
@@ -44,6 +47,10 @@ import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 @ThreadSafe
 public class Cancellation implements ARunner {
     /**
+     * Context key to be used with cancellation.
+     */
+    public static final ContextKey<Cancellation> CONTEXT_KEY = ContextKey.get(Cancellation.class);
+    /**
      * Failure promise.
      */
     private final Promise<Void> failPromise = new Promise<>();
@@ -55,8 +62,12 @@ public class Cancellation implements ARunner {
     /**
      * @return a new cancellation runner that
      */
-    public static Cancellation cancellation() {
+    public static Cancellation newCancellation() {
         return new Cancellation();
+    }
+
+    public static Cancellation currentOrNull() {
+        return Context.current().getOrNull(CONTEXT_KEY);
     }
 
     @Override
@@ -83,22 +94,29 @@ public class Cancellation implements ARunner {
     }
 
     /**
+     * For scoped cancellable actions, use this method to indicate the end of the scope.
+     */
+    public void finish() {
+        fail(new OutOfScopeException("cancellation"));
+    }
+
+    /**
      * Run action on cancel. The action is executed on arbitrary thread.
      *
      * @param action the action
      * @return a runnable that could be used to remove listener
      */
-    public Runnable onCancel(Runnable action) {
-        return onCancel(t -> action.run());
+    public Subcription onCancelSync(Runnable action) {
+        return onCancelSync(t -> action.run());
     }
 
     /**
-     * Run action on cancel with exception.
+     * Run action on cancel with exception. The action is executed on arbitrary thread.
      *
      * @param action the action
      * @return a runnable that could be used to remove listener
      */
-    public Runnable onCancel(Consumer<Throwable> action) {
+    public Subcription onCancelSync(Consumer<Throwable> action) {
         final AResolver<Void> listener = o -> {
             if (o.isFailure()) {
                 action.accept(o.failure());

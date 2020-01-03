@@ -95,6 +95,17 @@ public final class Tuple3<T1, T2, T3> {
         return value3;
     }
 
+    /**
+     * Map tuple.
+     *
+     * @param body body
+     * @param <R>  the result type
+     * @return the result
+     */
+    public <R> R map(Function3<T1, T2, T3, R> body) {
+        return body.apply(getValue1(), getValue2(), getValue3());
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

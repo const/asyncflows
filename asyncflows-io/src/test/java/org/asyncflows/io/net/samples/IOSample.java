@@ -24,7 +24,6 @@
 package org.asyncflows.io.net.samples;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.Cancellation;
 import org.asyncflows.core.util.SimpleQueue;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
@@ -34,7 +33,7 @@ import java.nio.ByteBuffer;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aValue;
-import static org.asyncflows.core.util.Cancellation.cancellation;
+import static org.asyncflows.core.util.CancellableFlows.aWithLocalCancellation;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.io.IOUtil.isEof;
@@ -56,7 +55,7 @@ public class IOSample {
                     if (isEof(value)) {
                         return aFalse();
                     } else {
-                        result[0] += +value;
+                        result[0] += value;
                         buffer.flip();
                         return output.write(buffer).thenFlatGet(() -> {
                             buffer.compact();
@@ -77,41 +76,42 @@ public class IOSample {
     public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int bufferSize, int buffers) {
         final SimpleQueue<ByteBuffer> readQueue = new SimpleQueue<>();
         final SimpleQueue<ByteBuffer> writeQueue = new SimpleQueue<>();
-        final Cancellation cancellation = cancellation();
-        for (int i = 0; i < buffers; i++) {
-            readQueue.put(ByteBuffer.allocate(bufferSize));
-        }
-        final long[] result = new long[1];
-        return aAll(
-                () -> aSeqWhile(
-                        () -> cancellation.run(readQueue::take).flatMap(
-                                b -> cancellation.run(() -> input.read(b)).flatMap(c -> {
-                                    if (isEof(c)) {
-                                        writeQueue.put(null);
-                                        return aFalse();
-                                    } else {
-                                        result[0] += c;
-                                        writeQueue.put(b);
-                                        return aTrue();
-                                    }
-                                }))
-                )
-        ).and(
-                () -> aSeqWhile(
-                        () -> cancellation.run(writeQueue::take).flatMap(b -> {
-                            if (b == null) {
-                                return aFalse();
-                            } else {
-                                b.flip();
-                                return cancellation.run(() -> output.write(b)).thenGet(() -> {
-                                    b.compact();
-                                    readQueue.put(b);
-                                    return true;
-                                });
-                            }
-                        })
-                )
-        ).map((a, b) -> aValue(result[0]));
+        return aWithLocalCancellation(cancellation -> {
+            for (int i = 0; i < buffers; i++) {
+                readQueue.put(ByteBuffer.allocate(bufferSize));
+            }
+            final long[] result = new long[1];
+            return aAll(
+                    () -> aSeqWhile(
+                            () -> cancellation.run(readQueue::take).flatMap(
+                                    b -> cancellation.run(() -> input.read(b)).flatMap(c -> {
+                                        if (isEof(c)) {
+                                            writeQueue.put(null);
+                                            return aFalse();
+                                        } else {
+                                            result[0] += c;
+                                            writeQueue.put(b);
+                                            return aTrue();
+                                        }
+                                    }))
+                    )
+            ).and(
+                    () -> aSeqWhile(
+                            () -> cancellation.run(writeQueue::take).flatMap(b -> {
+                                if (b == null) {
+                                    return aFalse();
+                                } else {
+                                    b.flip();
+                                    return cancellation.run(() -> output.write(b)).thenGet(() -> {
+                                        b.compact();
+                                        readQueue.put(b);
+                                        return true;
+                                    });
+                                }
+                            })
+                    )
+            ).map((a, b) -> aValue(result[0]));
+        });
     }
 
 

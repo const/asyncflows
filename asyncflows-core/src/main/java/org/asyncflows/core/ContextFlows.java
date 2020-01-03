@@ -24,6 +24,7 @@
 package org.asyncflows.core;
 
 import org.asyncflows.core.context.Context;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.ASupplier;
 
@@ -52,7 +53,7 @@ public class ContextFlows {
      * @return the result of action execution.
      */
     public static <R> Promise<R> inContext(Context context, ASupplier<R> action) {
-        try (Context.Cleanup ignored = context.setContext()) {
+        try (Subcription ignored = context.setContext()) {
             return aNow(action);
         }
     }
