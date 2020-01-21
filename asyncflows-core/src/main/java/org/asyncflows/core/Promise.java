@@ -557,7 +557,6 @@ public final class Promise<T> {
             for (Cell<E> c = this; c != null; c = c.next) {
                 if (c == cellWithElement) {
                     previous.next = c.next;
-                    previous.size = c.size - 1;
                     break;
                 }
                 final Cell<E> n = new Cell<>(c.value, null);

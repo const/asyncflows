@@ -32,11 +32,15 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
 import static org.asyncflows.core.AsyncContext.doAsync;
 import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.core.streams.AsyncStreams.aForStream;
+import static org.asyncflows.core.util.CancellableFlows.aWithLocalCancellation;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +60,18 @@ public class TimerTest {
                     });
                 }));
         assertTrue(r.getValue1() + TimeUnit.MILLISECONDS.toNanos(10) <= r.getValue2());
+    }
+
+    @Test
+    public void sleepCancelTest() {
+        doAsync(() -> aWithLocalCancellation(c -> CoreFlowsResource.aTryResource(new Timer()).run(timer -> aAll(() ->
+                timer.sleep(10).listen(o -> c.cancel())
+        ).andLast(() -> timer.sleep(TimeUnit.HOURS.toMillis(1)).flatMapOutcome(o -> {
+                    assertTrue(o.isFailure());
+                    assertEquals(CancellationException.class, o.failure().getClass());
+                    return aVoid();
+                })
+        ))));
     }
 
     @Test

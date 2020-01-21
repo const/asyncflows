@@ -99,7 +99,7 @@ public class ContextTest {
         assertNull(context.getOrNull(TEST_KEY2));
         assertEquals("test2", context.getOrDefault(TEST_KEY2, "test2"));
         assertEquals(5, context.size());
-        final List<Map.Entry<ContextKey, Object>> entries = context.stream().collect(Collectors.toList());
+        final List<Map.Entry<ContextKey<?>, Object>> entries = context.stream().collect(Collectors.toList());
         assertEquals(TEST_KEY, entries.get(0).getKey());
         assertEquals("test", entries.get(0).getValue());
         assertNull(entries.get(1).getKey());

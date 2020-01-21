@@ -23,22 +23,19 @@
 
 package org.asyncflows.core.time;
 
-import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
-import org.asyncflows.core.function.FunctionExporter;
 import org.asyncflows.core.streams.AStream;
 import org.asyncflows.core.streams.AsyncStreams;
-import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.util.AsynchronousService;
-import org.asyncflows.core.util.SimpleQueue;
+import org.asyncflows.core.util.Cancellation;
+import org.asyncflows.core.util.RequestQueue;
 
-import java.lang.ref.PhantomReference;
-import java.lang.ref.ReferenceQueue;
 import java.time.Instant;
 import java.util.Date;
 import java.util.TimerTask;
@@ -46,7 +43,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
@@ -69,17 +65,9 @@ public class Timer implements ATimer, AsynchronousService {
      */
     private static final AtomicInteger ANONYMOUS_TIMER_COUNT = new AtomicInteger(0);
     /**
-     * The interval to check stale streams.
-     */
-    private static final long QUEUE_CHECK = 1000L;
-    /**
      * The timer to use.
      */
     private final java.util.Timer timer;
-    /**
-     * The reference queue that is periodically checked.
-     */
-    private final ReferenceQueue<AStream<Long>> referenceQueue = new ReferenceQueue<>();
 
     /**
      * The constructor. Note that the timer is owned by the thread.
@@ -88,19 +76,6 @@ public class Timer implements ATimer, AsynchronousService {
      */
     public Timer(final java.util.Timer timer) {
         this.timer = timer;
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                while (true) {
-                    final PhantomStreamReference ref = (PhantomStreamReference) referenceQueue.poll();
-                    if (ref != null) {
-                        ref.getTask().cancel();
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }, QUEUE_CHECK, QUEUE_CHECK);
     }
 
     /**
@@ -133,12 +108,21 @@ public class Timer implements ATimer, AsynchronousService {
      * @return the task
      */
     private TimerTask getRunOnceTask(final AResolver<Long> resolver) {
-        return new TimerTask() {
+        class CancellableTimerTask extends TimerTask {
             private final AtomicBoolean done = new AtomicBoolean(false);
+            private final Subcription cancellationRegistration;
+
+            private CancellableTimerTask() {
+                Cancellation c = Cancellation.currentOrNull();
+                cancellationRegistration = c == null ? null : c.onCancelSync(this::cancel);
+            }
 
             @Override
             public void run() {
                 if (done.compareAndSet(false, true)) {
+                    if (cancellationRegistration != null) {
+                        cancellationRegistration.close();
+                    }
                     notifySuccess(resolver, this.scheduledExecutionTime());
                 }
             }
@@ -146,23 +130,40 @@ public class Timer implements ATimer, AsynchronousService {
             @Override
             public boolean cancel() {
                 if (done.compareAndSet(false, true)) {
+                    if (cancellationRegistration != null) {
+                        cancellationRegistration.close();
+                    }
                     notifyFailure(resolver, new CancellationException("The task has been cancelled."));
                 }
                 return super.cancel();
             }
-        };
+        }
+        return new CancellableTimerTask();
     }
 
     @Override
     public Promise<AStream<Long>> fixedRate(final Instant firstTime, final long period) {
-        // TODO refactor it to use fixed memory.
-        final SimpleQueue<Outcome<Long>> queue = new SimpleQueue<>();
-        final AResolver<Long> putResolver = FunctionExporter.exportResolver(queue::put);
-        final FixedRateTask task = new FixedRateTask(putResolver);
-        final AStream<Long> stream = new TimerStream(task, queue).export();
-        task.reference = new PhantomStreamReference(stream, task, referenceQueue);
-        timer.scheduleAtFixedRate(task, Date.from(firstTime), period);
-        return aValue(stream);
+        ASupplier<Maybe<Long>> producer = new ASupplier<Maybe<Long>>() {
+            private final RequestQueue requests = new RequestQueue();
+            private long next = firstTime.toEpochMilli();
+
+            @Override
+            public Promise<Maybe<Long>> get() {
+                return requests.run(() -> {
+                    if (next < System.currentTimeMillis()) {
+                        return produce();
+                    }
+                    return waitFor(Instant.ofEpochMilli(next)).thenFlatGet(this::produce);
+                });
+            }
+
+            private Promise<Maybe<Long>> produce() {
+                long r = this.next;
+                next = r + period;
+                return aMaybeValue(r);
+            }
+        };
+        return aValue(AsyncStreams.aForProducer(producer).stream());
     }
 
     @Override
@@ -197,120 +198,5 @@ public class Timer implements ATimer, AsynchronousService {
     public Promise<Void> close() {
         timer.cancel();
         return aVoid();
-    }
-
-    /**
-     * The reference used to cancel tasks if their streams are garbage collected.
-     */
-    private static final class PhantomStreamReference extends PhantomReference<AStream<Long>> {
-        /**
-         * The task to cancel..
-         */
-        private final TimerTask task;
-
-        /**
-         * The constructor.
-         *
-         * @param referent the referent
-         * @param task     the task
-         * @param q        the queue
-         */
-        private PhantomStreamReference(final AStream<Long> referent, final TimerTask task,
-                                       final ReferenceQueue<? super AStream<Long>> q) {
-            super(referent, q);
-            this.task = task;
-        }
-
-        /**
-         * @return the task to cancel if reference is lost
-         */
-        private TimerTask getTask() {
-            return task;
-        }
-    }
-
-    /**
-     * The fixed rate task.
-     */
-    private static final class FixedRateTask extends TimerTask {
-        /**
-         * Resolver used for the notification.
-         */
-        private final AResolver<Long> queue;
-        /**
-         * The reference to track if someone still cares about the stream.
-         */
-        private PhantomStreamReference reference;
-
-        /**
-         * The constructor.
-         *
-         * @param queue the queue to notify
-         */
-        private FixedRateTask(final AResolver<Long> queue) {
-            this.queue = queue;
-        }
-
-        @Override
-        public void run() {
-            try {
-                queue.resolve(Outcome.success(scheduledExecutionTime()));
-            } catch (Throwable t) {
-                cancel();
-            }
-        }
-
-        @Override
-        public boolean cancel() {
-            if (reference != null) {
-                reference.clear();
-            }
-            notifyFailure(queue, new IllegalStateException("The timer is cancelled!"));
-            return super.cancel();
-        }
-    }
-
-    /**
-     * The buffered stream that is notified by resolver.
-     */
-    private static final class TimerStream extends StreamBase<Long> {
-        /**
-         * The timer task that produces values.
-         */
-        private final TimerTask task;
-        /**
-         * The queue of values.
-         */
-        private final SimpleQueue<Outcome<Long>> queue;
-
-        /**
-         * The constructor.
-         *
-         * @param task  the task to use
-         * @param queue the queue to read from
-         */
-        private TimerStream(final TimerTask task, final SimpleQueue<Outcome<Long>> queue) {
-            this.task = task;
-            this.queue = queue;
-        }
-
-        @Override
-        protected Promise<Maybe<Long>> produce() throws Throwable {
-            ensureValidAndOpen();
-            return queue.take().flatMap(value -> {
-                ensureValidAndOpen();
-                if (value.isSuccess()) {
-                    return aMaybeValue(value.value());
-                } else {
-                    return aFailure(value.failure());
-                }
-            });
-        }
-
-        @Override
-        protected Promise<Void> closeAction() {
-            task.cancel();
-            return super.closeAction();
-        }
     }
 }
