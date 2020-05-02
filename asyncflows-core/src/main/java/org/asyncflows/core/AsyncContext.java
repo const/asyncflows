@@ -116,7 +116,7 @@ public final class AsyncContext {
         if (current != null) {
             return function.apply(CoreFlows::aNow, current);
         } else {
-            final Vat vat = Vats.defaultVat();
+            final Vat vat = Vat.current();
             return function.apply(new ARunner() {
                 @Override
                 public <T> Promise<T> run(final ASupplier<T> a) {

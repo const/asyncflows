@@ -70,12 +70,4 @@ public final class Vats {
     public static ExecutorVat forkJoinVat() {
         return new ExecutorVat(ForkJoinPool.commonPool());
     }
-
-    /**
-     * @return the default executor
-     */
-    public static Vat defaultVat() {
-        final Vat current = Vat.currentOrNull();
-        return current != null ? current : daemonVat();
-    }
 }

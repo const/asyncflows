@@ -25,7 +25,6 @@ package org.asyncflows.core.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.vats.Vats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +44,10 @@ import static org.asyncflows.core.CoreFlows.aSend;
 
 /**
  * Create a reflection based proxy for the class. Class is deprecated in favor of manual proxies
- * or asynchronous proxy generator.
+ * or asynchronous proxy generator. (for removal)
  *
- * @deprecated
  * @see org.asyncflows.core.annotations.Asynchronous
+ * @deprecated
  */
 @Deprecated
 public final class ObjectExporter {
@@ -101,7 +100,7 @@ public final class ObjectExporter {
      * @return the exported object
      */
     public static <T> T export(final NeedsExport<T> object) {
-        return export(Vats.defaultVat(), object);
+        return export(Vat.current(), object);
     }
 
     /**

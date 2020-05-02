@@ -26,8 +26,6 @@ package org.asyncflows.core.function;
 import org.asyncflows.core.util.AsynchronousService;
 import org.asyncflows.core.vats.Vat;
 
-import static org.asyncflows.core.vats.Vats.defaultVat;
-
 /**
  * The helper interface that provides some functionality for exporting lambdas in place.
  * Use this interface only for functional interfaces that are not supposed to be extended.
@@ -39,7 +37,7 @@ public interface AsynchronousFunction<T> {
      * @return exported function
      */
     default T export() {
-        return export(defaultVat());
+        return export(Vat.current());
     }
 
     /**

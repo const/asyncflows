@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
-import static org.asyncflows.core.vats.Vats.defaultVat;
 
 /**
  * Basic asynchronous control constructs.
@@ -237,7 +236,7 @@ public final class CoreFlows {
      * @param action the action
      */
     public static void aSend(final Runnable action) {
-        aSend(defaultVat(), action);
+        aSend(Vat.current(), action);
     }
 
     /**
@@ -281,7 +280,7 @@ public final class CoreFlows {
      * @param action the action
      */
     public static void aOneWay(final AOneWayAction action) {
-        aOneWay(defaultVat(), action);
+        aOneWay(Vat.current(), action);
     }
 
     /**
@@ -333,6 +332,6 @@ public final class CoreFlows {
      * @return the promise for result
      */
     public static <T> Promise<T> aLater(final ASupplier<T> action) {
-        return aLater(defaultVat(), action);
+        return aLater(Vat.current(), action);
     }
 }

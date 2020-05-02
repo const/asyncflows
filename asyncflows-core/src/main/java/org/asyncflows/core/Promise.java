@@ -43,7 +43,6 @@ import java.util.function.Supplier;
 import static org.asyncflows.core.CoreFlows.aOutcome;
 import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.toAsyncFunction;
-import static org.asyncflows.core.vats.Vats.defaultVat;
 
 /**
  * Promise class, it is different from future that it is final, does not support
@@ -162,7 +161,7 @@ public final class Promise<T> {
      * @return this promise
      */
     public Promise<T> listen(final AResolver<? super T> listener) {
-        return listen(defaultVat(), listener);
+        return listen(Vat.current(), listener);
     }
 
     /**
@@ -233,7 +232,7 @@ public final class Promise<T> {
      * @return the result promise
      */
     public <R> Promise<R> flatMapOutcome(final AFunction<Outcome<T>, R> mapper) {
-        return flatMapOutcome(defaultVat(), mapper);
+        return flatMapOutcome(Vat.current(), mapper);
     }
 
     /**
@@ -295,7 +294,7 @@ public final class Promise<T> {
      * @return the promise for mapped result.
      */
     public <R> Promise<R> flatMap(final AFunction<T, R> mapper) {
-        return flatMap(defaultVat(), mapper);
+        return flatMap(Vat.current(), mapper);
     }
 
 
@@ -329,7 +328,7 @@ public final class Promise<T> {
      * @return the promise for action result
      */
     public Promise<T> flatMapFailure(final AFunction<Throwable, T> action) {
-        return flatMapFailure(defaultVat(), action);
+        return flatMapFailure(Vat.current(), action);
     }
 
 
@@ -380,7 +379,7 @@ public final class Promise<T> {
      * @return the promise that resolves when after current promise resolves and action is executed.
      */
     public <R> Promise<R> thenFlatGet(final ASupplier<R> supplier) {
-        return flatMap(defaultVat(), t -> supplier.get());
+        return flatMap(Vat.current(), t -> supplier.get());
     }
 
     /**

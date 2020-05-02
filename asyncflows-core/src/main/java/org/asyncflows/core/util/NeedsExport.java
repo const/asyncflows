@@ -25,8 +25,6 @@ package org.asyncflows.core.util;
 
 import org.asyncflows.core.vats.Vat;
 
-import static org.asyncflows.core.vats.Vats.defaultVat;
-
 /**
  * The marker interface that indicate that service needs to be exported to be safely used.
  *
@@ -43,7 +41,7 @@ public interface NeedsExport<T> {
     @SuppressWarnings("unchecked")
     static <R> R exportIfNeeded(final R object) {
         if (object instanceof NeedsExport) {
-            return (R) ((NeedsExport) object).export();
+            return (R) ((NeedsExport<Object>) object).export();
         }
         return object;
     }
@@ -52,7 +50,7 @@ public interface NeedsExport<T> {
      * @return the service exported to a default vat.
      */
     default T export() {
-        return export(defaultVat());
+        return export(Vat.current());
     }
 
     /**

@@ -30,7 +30,6 @@ import org.asyncflows.core.util.ASubscription;
 import org.asyncflows.core.util.ASubscriptionProxyFactory;
 import org.asyncflows.core.util.NeedsExport;
 import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.vats.Vats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +89,7 @@ public class AbstractTracker<T> implements ATracker<T>, NeedsExport<ATracker<T>>
         if (subscriptions.size() == 1) {
             subscriptionStarted();
         }
-        return aValue(ASubscriptionProxyFactory.createProxy(Vats.defaultVat(), () -> {
+        return aValue(ASubscriptionProxyFactory.createProxy(Vat.current(), () -> {
             subscriptions.remove(listener);
             if (subscriptions.isEmpty()) {
                 value = null;

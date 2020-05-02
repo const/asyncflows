@@ -25,6 +25,7 @@ package org.asyncflows.protocol.http.common.content;
 
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
+import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AInputProxyFactory;
 import org.asyncflows.io.AOutput;
@@ -52,7 +53,6 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import static org.asyncflows.core.Outcome.notifySuccess;
-import static org.asyncflows.core.vats.Vats.defaultVat;
 
 /**
  * The content utilities.
@@ -144,7 +144,7 @@ public final class ContentUtil {
      */
     private static AOutput<ByteBuffer> export(final Consumer<StreamFinishedEvent> listener,
                                               final AOutput<ByteBuffer> stream) {
-        return AOutputProxyFactory.createProxy(defaultVat(), CountingOutput.countIfNeeded(stream, listener));
+        return AOutputProxyFactory.createProxy(Vat.current(), CountingOutput.countIfNeeded(stream, listener));
     }
 
 
@@ -339,7 +339,7 @@ public final class ContentUtil {
      */
     private static AInput<ByteBuffer> export(final Consumer<StreamFinishedEvent> listener,
                                              final AInput<ByteBuffer> stream) {
-        return AInputProxyFactory.createProxy(defaultVat(), CountingInput.countIfNeeded(stream, listener));
+        return AInputProxyFactory.createProxy(Vat.current(), CountingInput.countIfNeeded(stream, listener));
     }
 
 

@@ -24,7 +24,6 @@
 package org.asyncflows.core.function;
 
 import org.asyncflows.core.vats.Vat;
-import org.asyncflows.core.vats.Vats;
 
 import java.util.function.Consumer;
 
@@ -50,7 +49,7 @@ public final class FunctionExporter {
      * @return the exported listener
      */
     public static <T> Consumer<T> exportConsumer(final Consumer<T> listener) {
-        return exportConsumer(Vats.defaultVat(), listener);
+        return exportConsumer(Vat.current(), listener);
     }
 
     /**
@@ -61,7 +60,7 @@ public final class FunctionExporter {
      * @return the wrapper resolver
      */
     public static <T> AResolver<T> exportResolver(final AResolver<T> resolver) {
-        return exportResolver(Vats.defaultVat(), resolver);
+        return exportResolver(Vat.current(), resolver);
     }
 
 
@@ -85,7 +84,7 @@ public final class FunctionExporter {
      * @return the exported function
      */
     public static <T> ASupplier<T> exportSupplier(final ASupplier<T> supplier) {
-        return exportSupplier(Vats.defaultVat(), supplier);
+        return exportSupplier(Vat.current(), supplier);
     }
 
 
