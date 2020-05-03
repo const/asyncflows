@@ -25,7 +25,7 @@ package org.asyncflows.io.net.async;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.adapters.nio.ByteChannelAdapter;
 import org.asyncflows.io.net.ASocket;
@@ -50,7 +50,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 import static org.asyncflows.io.adapters.nio.AsyncNioFlows.aCompletionHandler;
 
-class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implements ASocket, NeedsExport<ASocket> {
+class AsyncSocket extends ByteChannelAdapter<AsynchronousSocketChannel> implements ASocket, ExportableComponent<ASocket> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncSocket.class);
     private Integer timeoutMillis;
 

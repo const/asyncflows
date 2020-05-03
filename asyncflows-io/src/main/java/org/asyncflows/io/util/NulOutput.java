@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.AOutputProxyFactory;
@@ -41,7 +41,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  *
  * @param <B> the buffer type
  */
-public class NulOutput<B extends Buffer> extends CloseableBase implements AOutput<B>, NeedsExport<AOutput<B>> {
+public class NulOutput<B extends Buffer> extends CloseableBase implements AOutput<B>, ExportableComponent<AOutput<B>> {
     /**
      * @return null output for bytes
      */

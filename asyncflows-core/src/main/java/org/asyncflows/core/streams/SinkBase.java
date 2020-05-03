@@ -25,7 +25,7 @@ package org.asyncflows.core.streams;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aVoid;
@@ -37,7 +37,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  *
  * @param <A> the element type
  */
-public abstract class SinkBase<A> extends CloseableInvalidatingBase implements ASink<A>, NeedsExport<ASink<A>> {
+public abstract class SinkBase<A> extends CloseableInvalidatingBase implements ASink<A>, ExportableComponent<ASink<A>> {
     /**
      * The finished promise.
      */

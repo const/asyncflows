@@ -28,7 +28,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.ASubscription;
 import org.asyncflows.core.util.ASubscriptionProxyFactory;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 
-public class AbstractTracker<T> implements ATracker<T>, NeedsExport<ATracker<T>> {
+public class AbstractTracker<T> implements ATracker<T>, ExportableComponent<ATracker<T>> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractTracker.class);
     private final List<Consumer<Outcome<T>>> subscriptions = new LinkedList<>();
     private Outcome<T> value;

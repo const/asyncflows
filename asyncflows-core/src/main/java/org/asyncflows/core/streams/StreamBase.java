@@ -27,7 +27,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
@@ -37,7 +37,7 @@ import static org.asyncflows.core.CoreFlows.aFailure;
  *
  * @param <A> the element type
  */
-public abstract class StreamBase<A> extends CloseableInvalidatingBase implements AStream<A>, NeedsExport<AStream<A>> {
+public abstract class StreamBase<A> extends CloseableInvalidatingBase implements AStream<A>, ExportableComponent<AStream<A>> {
 
     /**
      * The observer for the stream outcome.

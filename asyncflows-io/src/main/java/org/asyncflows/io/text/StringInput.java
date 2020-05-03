@@ -25,7 +25,7 @@ package org.asyncflows.io.text;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AInputProxyFactory;
@@ -39,7 +39,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * The input over character sequence.
  */
-public class StringInput extends CloseableBase implements AInput<CharBuffer>, NeedsExport<AInput<CharBuffer>> {
+public class StringInput extends CloseableBase implements AInput<CharBuffer>, ExportableComponent<AInput<CharBuffer>> {
     /**
      * The buffer with data.
      */

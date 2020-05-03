@@ -25,7 +25,7 @@ package org.asyncflows.protocol.http.common.content;
 
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
@@ -41,7 +41,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  * The base class for the message body input.
  */
 public abstract class MessageInput extends CloseableInvalidatingBase
-        implements AInput<ByteBuffer>, NeedsExport<AInput<ByteBuffer>> {
+        implements AInput<ByteBuffer>, ExportableComponent<AInput<ByteBuffer>> {
     /**
      * Read requests.
      */

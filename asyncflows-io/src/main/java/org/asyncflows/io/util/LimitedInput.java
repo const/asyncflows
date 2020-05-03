@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
@@ -42,7 +42,7 @@ import static org.asyncflows.io.IOUtil.isEof;
  * @param <B> the buffer type
  */
 public class LimitedInput<B extends Buffer>
-        extends CloseableInvalidatingBase implements AInput<B>, NeedsExport<AInput<B>> {
+        extends CloseableInvalidatingBase implements AInput<B>, ExportableComponent<AInput<B>> {
     /**
      * Read requests.
      */

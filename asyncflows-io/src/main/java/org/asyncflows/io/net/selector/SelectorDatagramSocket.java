@@ -25,7 +25,7 @@ package org.asyncflows.io.net.selector;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.ADatagramSocket;
@@ -49,7 +49,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 /**
  * The datagram socket for the selector vat.
  */
-class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, NeedsExport<ADatagramSocket> {
+class SelectorDatagramSocket extends CloseableBase implements ADatagramSocket, ExportableComponent<ADatagramSocket> {
     /**
      * Amount unready receives without result.
      */

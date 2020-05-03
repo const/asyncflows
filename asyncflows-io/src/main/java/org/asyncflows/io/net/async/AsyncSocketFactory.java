@@ -24,7 +24,7 @@
 package org.asyncflows.io.net.async;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
@@ -39,7 +39,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.CoreFlows.aValue;
 
-public class AsyncSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class AsyncSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     private AsynchronousChannelGroup channelGroup;
 
     public void setChannelGroup(AsynchronousChannelGroup channelGroup) {

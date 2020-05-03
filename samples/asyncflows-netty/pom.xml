@@ -50,6 +50,11 @@
             <groupId>org.asyncflows</groupId>
             <artifactId>asyncflows-io</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.asyncflows</groupId>
+            <artifactId>asyncflows-apt</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 </project>

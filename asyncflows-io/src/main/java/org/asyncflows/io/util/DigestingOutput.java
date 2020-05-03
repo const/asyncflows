@@ -27,7 +27,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CoreFlowsResource;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
@@ -43,7 +43,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  * The digesting output.
  */
 public class DigestingOutput extends AbstractDigestingStream<AOutput<ByteBuffer>>
-        implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+        implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
     /**
      * The request queue.
      */

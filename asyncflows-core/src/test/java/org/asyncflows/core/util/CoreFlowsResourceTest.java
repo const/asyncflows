@@ -61,7 +61,7 @@ public class CoreFlowsResourceTest {
     /**
      * The sample resource.
      */
-    public static class SampleResource implements ACloseable, NeedsExport<ACloseable> {
+    public static class SampleResource implements ACloseable, ExportableComponent<ACloseable> {
         /**
          * The closed cell.
          */

@@ -25,7 +25,7 @@ package org.asyncflows.io.file.nio;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.adapters.nio.AsyncNioFlows;
 import org.asyncflows.io.file.ARandomAccessFile;
@@ -47,7 +47,7 @@ import static org.asyncflows.io.adapters.nio.AsyncNioFlows.aCompletionHandler;
 /**
  * File channel.
  */
-class RandomAccessFile extends CloseableBase implements ARandomAccessFile, NeedsExport<ARandomAccessFile> {
+class RandomAccessFile extends CloseableBase implements ARandomAccessFile, ExportableComponent<ARandomAccessFile> {
     /**
      * The wrapped channel.
      */

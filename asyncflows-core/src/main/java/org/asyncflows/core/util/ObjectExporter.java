@@ -77,7 +77,7 @@ public final class ObjectExporter {
      *               for ExportSelf, not only T.
      * @return the exported object
      */
-    public static <T> T export(final Vat vat, final NeedsExport<T> object) {
+    public static <T> T export(final Vat vat, final ExportableComponent<T> object) {
         Factory factory;
         synchronized (FACTORIES) {
             final WeakReference<Factory> reference = FACTORIES.get(object.getClass());
@@ -99,7 +99,7 @@ public final class ObjectExporter {
      *               for ExportSelf, not only T.
      * @return the exported object
      */
-    public static <T> T export(final NeedsExport<T> object) {
+    public static <T> T export(final ExportableComponent<T> object) {
         return export(Vat.current(), object);
     }
 
@@ -129,7 +129,7 @@ public final class ObjectExporter {
                 nameList.append('[');
                 final Class<?>[] interfaces = c.getInterfaces();
                 for (final Class<?> type : interfaces) {
-                    if (!NeedsExport.class.isAssignableFrom(type)) {
+                    if (!ExportableComponent.class.isAssignableFrom(type)) {
                         filtered.add(type);
                         if (nameList.length() != 1) {
                             nameList.append('&');
@@ -159,7 +159,7 @@ public final class ObjectExporter {
          * @return the created proxy
          */
         @SuppressWarnings("unchecked")
-        public <T> T create(final Vat vat, final NeedsExport<T> object) {
+        public <T> T create(final Vat vat, final ExportableComponent<T> object) {
             try {
                 return (T) constructor.newInstance(new Handler(this, vat, object));
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {

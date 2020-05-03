@@ -26,7 +26,7 @@ package org.asyncflows.io.adapters.nio;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
@@ -158,7 +158,7 @@ public class ByteChannelAdapter<C extends AsynchronousByteChannel> extends Close
     /**
      * The input.
      */
-    protected class ByteChannelInputAdapter extends CloseableBase implements AInput<ByteBuffer>, NeedsExport<AInput<ByteBuffer>> {
+    protected class ByteChannelInputAdapter extends CloseableBase implements AInput<ByteBuffer>, ExportableComponent<AInput<ByteBuffer>> {
         /**
          * Request queue.
          */
@@ -183,7 +183,7 @@ public class ByteChannelAdapter<C extends AsynchronousByteChannel> extends Close
     /**
      * The output.
      */
-    protected class Output extends CloseableBase implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+    protected class Output extends CloseableBase implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
         /**
          * The request queue.
          */

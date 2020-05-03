@@ -44,7 +44,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
  *
  * @param <T> the element type
  */
-public class Rendezvous<T> implements AQueue<T>, NeedsExport<AQueue<T>> {
+public class Rendezvous<T> implements AQueue<T>, ExportableComponent<AQueue<T>> {
     private final RequestQueue reads = new RequestQueue();
     private final RequestQueue writes = new RequestQueue();
     private AResolver<T> takeResolver;

@@ -26,7 +26,7 @@ package org.asyncflows.io.net.tls;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.AServerSocket;
 import org.asyncflows.io.net.ASocket;
@@ -43,7 +43,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  * The server socket for TLS.
  */
 public class TlsServerSocket extends ChainedClosable<AServerSocket>
-        implements ATlsServerSocket, NeedsExport<ATlsServerSocket> {
+        implements ATlsServerSocket, ExportableComponent<ATlsServerSocket> {
     /**
      * The engine factory.
      */

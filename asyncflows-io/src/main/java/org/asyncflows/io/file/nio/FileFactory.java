@@ -24,7 +24,7 @@
 package org.asyncflows.io.file.nio;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 import org.asyncflows.io.AInput;
@@ -54,7 +54,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * Factory for asynchronous files.
  */
-public class FileFactory implements AFileFactory, NeedsExport<AFileFactory> {
+public class FileFactory implements AFileFactory, ExportableComponent<AFileFactory> {
     /**
      * Default write options
      */

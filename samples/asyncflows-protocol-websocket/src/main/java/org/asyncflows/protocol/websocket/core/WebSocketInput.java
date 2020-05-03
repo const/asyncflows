@@ -29,7 +29,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.streams.AStream;
 import org.asyncflows.core.streams.AStreamProxyFactory;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.IOUtil;
@@ -44,7 +44,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  * The web socket input.
  */
 public class WebSocketInput extends CloseableInvalidatingBase
-        implements AStream<WebSocketMessage>, NeedsExport<AStream<WebSocketMessage>> {
+        implements AStream<WebSocketMessage>, ExportableComponent<AStream<WebSocketMessage>> {
     /**
      * The queue for the next requests.
      */

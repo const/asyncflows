@@ -25,7 +25,7 @@ package org.asyncflows.io.text;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
@@ -52,7 +52,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
  * operation.
  */
 public class EncoderOutput extends ChainedClosable<AOutput<ByteBuffer>>
-        implements AOutput<CharBuffer>, NeedsExport<AOutput<CharBuffer>> {
+        implements AOutput<CharBuffer>, ExportableComponent<AOutput<CharBuffer>> {
     /**
      * Additional bytes added to byte buffer.
      */

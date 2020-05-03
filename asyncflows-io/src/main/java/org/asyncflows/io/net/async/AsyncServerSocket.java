@@ -25,7 +25,7 @@ package org.asyncflows.io.net.async;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.adapters.nio.AsyncNioFlows;
 import org.asyncflows.io.net.AServerSocket;
@@ -43,7 +43,7 @@ import static org.asyncflows.core.CoreFlows.aNow;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.CoreFlows.aVoid;
 
-class AsyncServerSocket extends CloseableInvalidatingBase implements AServerSocket, NeedsExport<AServerSocket> {
+class AsyncServerSocket extends CloseableInvalidatingBase implements AServerSocket, ExportableComponent<AServerSocket> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncServerSocket.class);
     private final AsynchronousServerSocketChannel channel;
     private SocketOptions defaultOptions;

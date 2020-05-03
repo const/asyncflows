@@ -24,7 +24,7 @@
 package org.asyncflows.io.net.selector;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
@@ -40,7 +40,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * Selector based socket factory.
  */
-public class SelectorSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class SelectorSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     /**
      * The selector vat to use.
      */
@@ -68,8 +68,7 @@ public class SelectorSocketFactory implements ASocketFactory, NeedsExport<ASocke
     private static SelectorVat getCurrentSelectorVat() {
         final Vat current = Vat.current();
         if (!(current instanceof SelectorVat)) {
-            throw new IllegalStateException("SelectorVatFactory could be used only on SelectorVat: "
-                    + (current == null ? null : current.getClass().getName()));
+            throw new IllegalStateException("SelectorVatFactory could be used only on SelectorVat: " + current.getClass().getName());
         }
         return (SelectorVat) current;
     }

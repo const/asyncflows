@@ -28,7 +28,7 @@ import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aFailure;
@@ -40,7 +40,7 @@ import static org.asyncflows.core.CoreFlows.aFailure;
  * @param <I> the type of underlying resource
  */
 public abstract class ChainedStreamBase<O, I extends ACloseable>
-        extends ChainedClosable<I> implements AStream<O>, NeedsExport<AStream<O>> {
+        extends ChainedClosable<I> implements AStream<O>, ExportableComponent<AStream<O>> {
     /**
      * The observer for the stream outcome.
      */

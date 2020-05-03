@@ -28,7 +28,7 @@ import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 
@@ -97,7 +97,7 @@ public final class RandevuQueue<T> {
     /**
      * This is a bit special sink implementation that provides a feed at the stream.
      */
-    private final class RandevuSink extends CloseableInvalidatingBase implements ASink<T>, NeedsExport<ASink<T>> {
+    private final class RandevuSink extends CloseableInvalidatingBase implements ASink<T>, ExportableComponent<ASink<T>> {
         /**
          * The request queue for the promise.
          */

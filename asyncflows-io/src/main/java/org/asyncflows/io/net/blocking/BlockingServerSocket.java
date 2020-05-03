@@ -25,7 +25,7 @@ package org.asyncflows.io.net.blocking;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 import org.asyncflows.io.net.AServerSocket;
@@ -46,7 +46,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  * The blocking server socket implementation. Note that by default it exports on the daemon vat.
  */
 public class BlockingServerSocket extends CloseableInvalidatingBase
-        implements AServerSocket, NeedsExport<AServerSocket> {
+        implements AServerSocket, ExportableComponent<AServerSocket> {
     /**
      * The wrapped socket.
      */

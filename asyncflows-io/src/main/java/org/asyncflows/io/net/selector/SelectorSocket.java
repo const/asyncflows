@@ -28,7 +28,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
@@ -63,7 +63,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 /**
  * The selector socket.
  */
-class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASocket> {
+class SelectorSocket extends CloseableBase implements ASocket, ExportableComponent<ASocket> {
     /**
      * The logger.
      */
@@ -194,7 +194,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
     /**
      * The socket input stream.
      */
-    private class SocketInput extends CloseableBase implements AInput<ByteBuffer>, NeedsExport<AInput<ByteBuffer>> {
+    private class SocketInput extends CloseableBase implements AInput<ByteBuffer>, ExportableComponent<AInput<ByteBuffer>> {
         /**
          * Limit for zero reads.
          */
@@ -293,7 +293,7 @@ class SelectorSocket extends CloseableBase implements ASocket, NeedsExport<ASock
     /**
      * The socket output stream.
      */
-    private class SocketOutput extends CloseableBase implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+    private class SocketOutput extends CloseableBase implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
         /**
          * Requests for the stream.
          */

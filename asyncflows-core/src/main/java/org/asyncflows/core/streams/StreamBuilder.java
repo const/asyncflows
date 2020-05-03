@@ -48,7 +48,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.booleanSupplier;
 import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
 import static org.asyncflows.core.function.AsyncFunctionUtil.supplierToFunction;
-import static org.asyncflows.core.util.NeedsExport.exportIfNeeded;
+import static org.asyncflows.core.util.ExportableComponent.exportIfNeeded;
 
 /**
  * The forward builder for the data streams and sinks. It starts with some data source and adds additional downstream

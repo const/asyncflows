@@ -24,7 +24,7 @@
 package org.asyncflows.io.net.blocking;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 import org.asyncflows.io.net.ADatagramSocket;
@@ -45,7 +45,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 /**
  * The blocking datagram socket.
  */
-public class BlockingDatagramSocket implements ADatagramSocket, NeedsExport<ADatagramSocket> {
+public class BlockingDatagramSocket implements ADatagramSocket, ExportableComponent<ADatagramSocket> {
     /**
      * The socket.
      */

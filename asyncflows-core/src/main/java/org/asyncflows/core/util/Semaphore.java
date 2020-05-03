@@ -32,7 +32,7 @@ import static org.asyncflows.core.CoreFlows.aFalse;
 /**
  * Asynchronous semaphore class.
  */
-public final class Semaphore implements ASemaphore, NeedsExport<ASemaphore> {
+public final class Semaphore implements ASemaphore, ExportableComponent<ASemaphore> {
     /**
      * The acquire requests.
      */

@@ -25,7 +25,7 @@ package org.asyncflows.io.text;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
@@ -49,7 +49,7 @@ import static org.asyncflows.io.IOUtil.isEof;
  * The character decoder input.
  */
 public class DecoderInput extends ChainedClosable<AInput<ByteBuffer>>
-        implements AInput<CharBuffer>, NeedsExport<AInput<CharBuffer>> {
+        implements AInput<CharBuffer>, ExportableComponent<AInput<CharBuffer>> {
     /**
      * The request queue.
      */

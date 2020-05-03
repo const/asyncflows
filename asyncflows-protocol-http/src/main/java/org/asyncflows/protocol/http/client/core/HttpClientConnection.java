@@ -26,7 +26,7 @@ package org.asyncflows.protocol.http.client.core;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
@@ -48,7 +48,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
  * The client connection for HTTP 1.x.
  */
 public class HttpClientConnection extends CloseableInvalidatingBase
-        implements AHttpConnection, NeedsExport<AHttpConnection> {
+        implements AHttpConnection, ExportableComponent<AHttpConnection> {
     // TODO connection ids, propagate to requests
     /**
      * The protocol.

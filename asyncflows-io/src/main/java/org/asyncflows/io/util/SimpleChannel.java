@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AChannelProxyFactory;
@@ -43,7 +43,7 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
  *
  * @param <B> the buffer type
  */
-public class SimpleChannel<B extends Buffer> extends CloseableBase implements AChannel<B>, NeedsExport<AChannel<B>> {
+public class SimpleChannel<B extends Buffer> extends CloseableBase implements AChannel<B>, ExportableComponent<AChannel<B>> {
     /**
      * Input for the channel.
      */
@@ -60,8 +60,8 @@ public class SimpleChannel<B extends Buffer> extends CloseableBase implements AC
      * @param output the output
      */
     public SimpleChannel(final AInput<B> input, final AOutput<B> output) {
-        this.input = NeedsExport.exportIfNeeded(input);
-        this.output = NeedsExport.exportIfNeeded(output);
+        this.input = ExportableComponent.exportIfNeeded(input);
+        this.output = ExportableComponent.exportIfNeeded(output);
     }
 
     @Override

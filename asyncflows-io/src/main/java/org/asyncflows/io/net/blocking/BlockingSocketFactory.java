@@ -24,7 +24,7 @@
 package org.asyncflows.io.net.blocking;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
 import org.asyncflows.io.net.ADatagramSocket;
@@ -41,7 +41,7 @@ import static org.asyncflows.core.CoreFlows.aValue;
 /**
  * Blocking socket factory.
  */
-public class BlockingSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class BlockingSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     @Override
     public Promise<ASocket> makeSocket() {
         return aValue(new BlockingSocket().export());

@@ -24,12 +24,13 @@
 package org.asyncflows.netty;
 
 import org.asyncflows.core.Promise;
+import org.asyncflows.core.annotations.Asynchronous;
+import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.core.streams.ASink;
-import org.asyncflows.core.streams.AStream;
 
+@Asynchronous
 public interface ANettyChannel<I, O> extends ACloseable {
-    Promise<AStream<I>> getInput();
+    Promise<Maybe<I>> read();
 
-    Promise<ASink<O>> getOutput();
+    Promise<Void> write(O data);
 }

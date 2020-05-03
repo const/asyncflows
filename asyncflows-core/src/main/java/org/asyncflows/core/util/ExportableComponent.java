@@ -30,7 +30,7 @@ import org.asyncflows.core.vats.Vat;
  *
  * @param <T> the service type.
  */
-public interface NeedsExport<T> {
+public interface ExportableComponent<T> {
     /**
      * Export service if needed.
      *
@@ -40,8 +40,8 @@ public interface NeedsExport<T> {
      */
     @SuppressWarnings("unchecked")
     static <R> R exportIfNeeded(final R object) {
-        if (object instanceof NeedsExport) {
-            return (R) ((NeedsExport<Object>) object).export();
+        if (object instanceof ExportableComponent) {
+            return (R) ((ExportableComponent<Object>) object).export();
         }
         return object;
     }

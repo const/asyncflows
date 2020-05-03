@@ -26,7 +26,7 @@ package org.asyncflows.core.streams;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aVoid;
@@ -39,7 +39,7 @@ import static org.asyncflows.core.Outcome.notifyFailure;
  * @param <U> the underlying resource type
  */
 public abstract class ChainedSinkBase<I, U extends ACloseable> extends ChainedClosable<U>
-        implements ASink<I>, NeedsExport<ASink<I>> {
+        implements ASink<I>, ExportableComponent<ASink<I>> {
     /**
      * The finished promise.
      */

@@ -27,7 +27,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
@@ -73,7 +73,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 /**
  * The client action. Note that the action does not supports pipelining directly.
  */
-public class HttpClientAction extends CloseableInvalidatingBase implements AHttpRequest, NeedsExport<AHttpRequest> {
+public class HttpClientAction extends CloseableInvalidatingBase implements AHttpRequest, ExportableComponent<AHttpRequest> {
     // TODO enable pipelining (output released event, input released event)
     /**
      * The connection to use.

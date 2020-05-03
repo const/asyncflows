@@ -23,7 +23,7 @@
 
 package org.asyncflows.protocol.http.server;
 
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import static org.asyncflows.core.CoreFlows.aLater;
@@ -31,7 +31,7 @@ import static org.asyncflows.core.CoreFlows.aLater;
 /**
  * The base class for HTTP handler.
  */
-public abstract class HttpHandlerBase implements AHttpHandler, NeedsExport<AHttpHandler> {
+public abstract class HttpHandlerBase implements AHttpHandler, ExportableComponent<AHttpHandler> {
 
     @Override
     public final AHttpHandler export(final Vat vat) {

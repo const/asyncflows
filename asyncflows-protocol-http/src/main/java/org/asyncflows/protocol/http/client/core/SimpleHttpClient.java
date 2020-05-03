@@ -28,7 +28,7 @@ import org.asyncflows.core.data.Cell;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.CloseableBase;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.util.ResourceClosedException;
 import org.asyncflows.core.vats.Vat;
@@ -79,7 +79,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 /**
  * The simple HTTP client (no proxies and other things). This client is used mostly for testing.
  */
-public class SimpleHttpClient extends CloseableBase implements AHttpClient, NeedsExport<AHttpClient> {
+public class SimpleHttpClient extends CloseableBase implements AHttpClient, ExportableComponent<AHttpClient> {
     /**
      * The logger.
      */
@@ -280,7 +280,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Need
     /**
      * The request that routes the request to the specified host.
      */
-    private class ProxyRequest extends CloseableInvalidatingBase implements AHttpRequest, NeedsExport<AHttpRequest> {
+    private class ProxyRequest extends CloseableInvalidatingBase implements AHttpRequest, ExportableComponent<AHttpRequest> {
         /**
          * The request.
          */

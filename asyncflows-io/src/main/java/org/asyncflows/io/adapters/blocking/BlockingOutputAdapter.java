@@ -24,7 +24,7 @@
 package org.asyncflows.io.adapters.blocking;
 
 import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
 import org.asyncflows.io.AOutputProxyFactory;
@@ -46,7 +46,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  * @param <A> the array type
  */
 public abstract class BlockingOutputAdapter<B extends Buffer, O extends Closeable, A>
-        extends CloseableAdapter<O> implements AOutput<B>, NeedsExport<AOutput<B>> {
+        extends CloseableAdapter<O> implements AOutput<B>, ExportableComponent<AOutput<B>> {
     /**
      * The data array.
      */

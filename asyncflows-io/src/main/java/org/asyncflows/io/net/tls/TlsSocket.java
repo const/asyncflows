@@ -25,7 +25,7 @@ package org.asyncflows.io.net.tls;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.ASocket;
 import org.asyncflows.io.net.SocketOptions;
@@ -39,7 +39,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 /**
  * The SSL socket.
  */
-public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, NeedsExport<ATlsSocket> {
+public class TlsSocket extends TlsChannel<ASocket> implements ATlsSocket, ExportableComponent<ATlsSocket> {
     /**
      * The engine factory.
      */

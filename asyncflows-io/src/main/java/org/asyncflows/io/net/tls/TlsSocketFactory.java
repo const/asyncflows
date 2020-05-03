@@ -25,7 +25,7 @@ package org.asyncflows.io.net.tls;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.ADatagramSocket;
 import org.asyncflows.io.net.AServerSocket;
@@ -39,7 +39,7 @@ import java.net.SocketAddress;
 /**
  * The TLS socket factory.
  */
-public class TlsSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class TlsSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     /**
      * The factory for server SSL engine.
      */

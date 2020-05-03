@@ -26,7 +26,7 @@ package org.asyncflows.protocol.http.client.core;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AOutput;
@@ -61,7 +61,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 /**
  * The socket factory.
  */
-public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASocketFactory> {
+public class HttpConnectSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     /**
      * The http client (note that it should be closed, after the factory is not used anymore).
      */
@@ -109,7 +109,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, NeedsExport<ASo
     /**
      * The connect operation.
      */
-    private class ConnectSocket extends CloseableInvalidatingBase implements ASocket, NeedsExport<ASocket> {
+    private class ConnectSocket extends CloseableInvalidatingBase implements ASocket, ExportableComponent<ASocket> {
         /**
          * The connect scope.
          */

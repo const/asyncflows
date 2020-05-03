@@ -28,7 +28,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.FunctionExporter;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
@@ -85,7 +85,7 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
  * TODO localhost checks for connect (only localhost could connect to localhost)
  */
 class HttpExchangeAction extends CloseableInvalidatingBase
-        implements AHttpResponse, NeedsExport<AHttpResponse> {
+        implements AHttpResponse, ExportableComponent<AHttpResponse> {
     /**
      * Fake event indicating that stream was not created.
      */

@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
@@ -52,7 +52,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  *
  * @param <B> the buffer type
  */
-public class BufferedPipe<B extends Buffer> implements AChannel<B>, NeedsExport<AChannel<B>> {
+public class BufferedPipe<B extends Buffer> implements AChannel<B>, ExportableComponent<AChannel<B>> {
     /**
      * The buffer operations.
      */

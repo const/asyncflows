@@ -25,7 +25,7 @@ package org.asyncflows.core.util.sample;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.Deque;
@@ -35,7 +35,7 @@ import static org.asyncflows.core.CoreFlows.aResolver;
 import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
-public class TestQueue<T> implements ATestQueue<T>, NeedsExport<ATestQueue<T>> {
+public class TestQueue<T> implements ATestQueue<T>, ExportableComponent<ATestQueue<T>> {
     private final Deque<T> elements = new LinkedList<>();
     private final Deque<AResolver<T>> resolvers = new LinkedList<>();
 

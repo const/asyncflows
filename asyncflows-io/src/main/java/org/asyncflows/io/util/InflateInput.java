@@ -26,7 +26,7 @@ package org.asyncflows.io.util;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
@@ -48,7 +48,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
  * @see DeflateOutput
  */
 public class InflateInput extends CloseableInvalidatingBase implements
-        AInput<ByteBuffer>, NeedsExport<AInput<ByteBuffer>> {
+        AInput<ByteBuffer>, ExportableComponent<AInput<ByteBuffer>> {
     /**
      * The size of temporary array.
      */

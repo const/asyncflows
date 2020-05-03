@@ -25,7 +25,7 @@ package org.asyncflows.io.net.selector;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.net.AServerSocket;
@@ -49,7 +49,7 @@ import static org.asyncflows.core.CoreFlows.aVoid;
 /**
  * Server socket based on selectors.
  */
-class SelectorServerSocket extends CloseableBase implements AServerSocket, NeedsExport<AServerSocket> {
+class SelectorServerSocket extends CloseableBase implements AServerSocket, ExportableComponent<AServerSocket> {
     /**
      * The logger.
      */

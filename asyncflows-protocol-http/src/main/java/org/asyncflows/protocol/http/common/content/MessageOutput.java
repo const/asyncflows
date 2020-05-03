@@ -26,7 +26,7 @@ package org.asyncflows.protocol.http.common.content;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
@@ -42,7 +42,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  * The base class for the message output.
  */
 public abstract class MessageOutput extends CloseableInvalidatingBase
-        implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+        implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
     /**
      * Read requests.
      */

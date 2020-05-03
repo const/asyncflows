@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AInput;
 import org.asyncflows.io.AInputProxyFactory;
@@ -40,7 +40,7 @@ import java.nio.CharBuffer;
  *
  * @param <B> the buffer type
  */
-public class NulInput<B extends Buffer> extends CloseableBase implements AInput<B>, NeedsExport<AInput<B>> {
+public class NulInput<B extends Buffer> extends CloseableBase implements AInput<B>, ExportableComponent<AInput<B>> {
 
     /**
      * @return null input for bytes

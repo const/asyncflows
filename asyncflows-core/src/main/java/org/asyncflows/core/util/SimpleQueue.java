@@ -39,7 +39,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
  *
  * @param <T> the queue element type
  */
-public final class SimpleQueue<T> implements AQueue<T>, NeedsExport<AQueue<T>> {
+public final class SimpleQueue<T> implements AQueue<T>, ExportableComponent<AQueue<T>> {
     /**
      * The elements in the queue. Invariant: if elements is non-empty, {@link #resolvers} must be empty.
      */

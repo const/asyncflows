@@ -25,7 +25,7 @@ package org.asyncflows.io.util;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.CloseableBase;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AChannel;
 import org.asyncflows.io.AChannelProxyFactory;
@@ -45,7 +45,7 @@ import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
  *
  * @param <B> the buffer type
  */
-public class NulChannel<B extends Buffer> extends CloseableBase implements AChannel<B>, NeedsExport<AChannel<B>> {
+public class NulChannel<B extends Buffer> extends CloseableBase implements AChannel<B>, ExportableComponent<AChannel<B>> {
     /**
      * The input.
      */

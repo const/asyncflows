@@ -25,7 +25,7 @@ package org.asyncflows.io.file.nio;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.util.ChainedClosable;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
@@ -36,7 +36,7 @@ import java.nio.ByteBuffer;
 /**
  * File output.
  */
-class FileOutput extends ChainedClosable<RandomAccessFile> implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+class FileOutput extends ChainedClosable<RandomAccessFile> implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
     /**
      * The request queue.
      */

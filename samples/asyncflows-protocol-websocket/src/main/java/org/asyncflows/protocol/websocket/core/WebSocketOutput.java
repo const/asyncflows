@@ -27,7 +27,7 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.CoreFlowsResource;
-import org.asyncflows.core.util.NeedsExport;
+import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.io.AOutput;
@@ -272,7 +272,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
      * The output stream for single-frame message with known length in octets.
      */
     private final class MessageOutputStream extends CloseableInvalidatingBase
-            implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+            implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
         /**
          * The finished resolver.
          */
@@ -386,7 +386,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
      * The output stream for frames.
      */
     private final class FrameOutputStream extends CloseableInvalidatingBase
-            implements AOutput<ByteBuffer>, NeedsExport<AOutput<ByteBuffer>> {
+            implements AOutput<ByteBuffer>, ExportableComponent<AOutput<ByteBuffer>> {
         /**
          * The finished resolver.
          */
