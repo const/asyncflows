@@ -29,6 +29,7 @@ import org.asyncflows.core.time.Timer;
 import org.asyncflows.core.util.CoreFlowsResource;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
@@ -47,14 +48,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The test for the timer functionality.
  */
-public class TimerTest {
+class TimerTest {
 
     @Test
-    public void sleepTest() {
-        final Tuple3<Long, Long, Long> r = doAsync(() ->
+    void sleepTest() {
+        final Tuple3<Long, Long, Instant> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
-                    return timer.sleep(20).flatMap(value -> {
+                    return timer.sleep(Duration.ofMillis(20)).flatMap(value -> {
                         long end = System.nanoTime();
                         return aValue(Tuple3.of(start, end, value));
                     });
@@ -63,10 +64,10 @@ public class TimerTest {
     }
 
     @Test
-    public void sleepCancelTest() {
+    void sleepCancelTest() {
         doAsync(() -> aWithLocalCancellation(c -> CoreFlowsResource.aTryResource(new Timer()).run(timer -> aAll(() ->
-                timer.sleep(10).listen(o -> c.cancel())
-        ).andLast(() -> timer.sleep(TimeUnit.HOURS.toMillis(1)).flatMapOutcome(o -> {
+                timer.sleep(Duration.ofMillis(10)).listen(o -> c.cancel())
+        ).andLast(() -> timer.sleep(Duration.ofHours(1)).flatMapOutcome(o -> {
                     assertTrue(o.isFailure());
                     assertEquals(CancellationException.class, o.failure().getClass());
                     return aVoid();
@@ -75,8 +76,8 @@ public class TimerTest {
     }
 
     @Test
-    public void waitForTest() {
-        final Tuple3<Long, Long, Long> r = doAsync(() ->
+    void waitForTest() {
+        final Tuple3<Long, Long, Instant> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer -> {
                     final long start = System.nanoTime();
                     return timer.waitFor(Instant.now().plusMillis(100)).flatMap(
@@ -89,35 +90,35 @@ public class TimerTest {
     }
 
     @Test
-    public void fixedRate() {
+    void fixedRate() {
         final long start = System.nanoTime();
-        final List<Long> r = doAsync(() ->
+        final List<Instant> r = doAsync(() ->
                 CoreFlowsResource.aTryResource(new Timer()).run(timer ->
-                        timer.fixedRate(5, 5).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
+                        timer.fixedRate(Duration.ofMillis(5), Duration.ofMillis(5)).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
         final long end = System.nanoTime();
         assertTrue(start + TimeUnit.MILLISECONDS.toNanos(25) <= end);
         assertEquals(5, r.size());
-        final Iterator<Long> i = r.iterator();
-        long t = i.next();
+        final Iterator<Instant> i = r.iterator();
+        long t = i.next().toEpochMilli();
         while (i.hasNext()) {
-            final long t2 = i.next();
+            final long t2 = i.next().toEpochMilli();
             assertEquals(t + 5, t2);
             t = t2;
         }
     }
 
     @Test
-    public void fixedDelay() {
+    void fixedDelay() {
         final long start = System.nanoTime();
-        final List<Long> r = doAsync(() -> CoreFlowsResource.aTryResource(new Timer()).run(
-                timer -> timer.fixedDelay(5, 5).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
+        final List<Instant> r = doAsync(() -> CoreFlowsResource.aTryResource(new Timer()).run(
+                timer -> timer.fixedDelay(Duration.ofMillis(5), Duration.ofMillis(5)).flatMap(value -> aForStream(StreamUtil.head(value, 5)).toList())));
         final long end = System.nanoTime();
         assertTrue(start + TimeUnit.MILLISECONDS.toNanos(25) <= end);
         assertEquals(5, r.size());
-        final Iterator<Long> i = r.iterator();
-        long t = i.next();
+        final Iterator<Instant> i = r.iterator();
+        long t = i.next().toEpochMilli();
         while (i.hasNext()) {
-            final long t2 = i.next();
+            final long t2 = i.next().toEpochMilli();
             assertTrue(t + 5 <= t2);
             t = t2;
         }

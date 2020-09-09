@@ -29,6 +29,7 @@ import org.asyncflows.tracker.ATracker;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.stream.Stream;
 
@@ -60,7 +61,7 @@ public class TrackerSample {
             Stream.of(textField, textOutput, timerOutput).forEach(contentPane::add);
             frame.pack();
             frame.setVisible(true);
-            long start = System.currentTimeMillis();
+            Instant start = Instant.now();
             return aTryResource(new Timer()).run(timer -> {
                 final Cell<Boolean> stop = new Cell<>(false);
                 final ATracker<String> tracker = trottle(trackText(textField), timer, 1000);
@@ -79,9 +80,9 @@ public class TrackerSample {
                             return aTrue();
                         }
                     });
-                }).andLast(() -> aTry(timer.fixedRate(Instant.ofEpochMilli(start).plusMillis(1000), 1000)).run(stream -> {
+                }).andLast(() -> aTry(timer.fixedRate(start.plusMillis(1000), Duration.ofMillis(1000))).run(stream -> {
                     return aForStream(stream).consume(l -> {
-                        timerOutput.setText("Time: " + (l - start) + "ms");
+                        timerOutput.setText("Time: " + Duration.between(start, l).toMillis() + "ms");
                         return aBoolean(!stop.getValue());
                     });
                 }));

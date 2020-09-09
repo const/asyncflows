@@ -36,6 +36,7 @@ import org.asyncflows.core.util.AsynchronousService;
 import org.asyncflows.core.util.Cancellation;
 import org.asyncflows.core.util.RequestQueue;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.TimerTask;
@@ -60,6 +61,7 @@ import static org.asyncflows.core.Outcome.notifySuccess;
 @SuppressWarnings("squid:S1700")
 public class Timer implements ATimer, AsynchronousService {
     // DO NOT REPEAT DANGEROUS DESIGN PATTERNS FROM THIS CLASS, UNLESS YOU KNOW WHAT YOU ARE DOING
+    // This class happens to be threadsafe because of features of {@link java.util.Timer} class
     /**
      * The counter for anonymous timers.
      */
@@ -86,19 +88,15 @@ public class Timer implements ATimer, AsynchronousService {
     }
 
     @Override
-    public Promise<Long> sleep(final long delay) {
-        final Promise<Long> rc = new Promise<>();
-        final AResolver<Long> resolver = rc.resolver();
-        timer.schedule(getRunOnceTask(resolver), delay);
-        return rc;
-    }
-
-    @Override
-    public Promise<Long> waitFor(final Instant time) {
-        final Promise<Long> rc = new Promise<>();
-        final AResolver<Long> resolver = rc.resolver();
-        timer.schedule(getRunOnceTask(resolver), Date.from(time));
-        return rc;
+    public Promise<Instant> waitFor(final Instant time) {
+        if (time.isAfter(Instant.now())) {
+            final Promise<Instant> rc = new Promise<>();
+            final AResolver<Instant> resolver = rc.resolver();
+            timer.schedule(getRunOnceTask(time, resolver), Date.from(time));
+            return rc;
+        } else {
+            return aValue(time);
+        }
     }
 
     /**
@@ -107,7 +105,7 @@ public class Timer implements ATimer, AsynchronousService {
      * @param resolver a resolver
      * @return the task
      */
-    private TimerTask getRunOnceTask(final AResolver<Long> resolver) {
+    private TimerTask getRunOnceTask(Instant scheduledTime, final AResolver<Instant> resolver) {
         class CancellableTimerTask extends TimerTask {
             private final AtomicBoolean done = new AtomicBoolean(false);
             private final Subcription cancellationRegistration;
@@ -123,7 +121,7 @@ public class Timer implements ATimer, AsynchronousService {
                     if (cancellationRegistration != null) {
                         cancellationRegistration.close();
                     }
-                    notifySuccess(resolver, this.scheduledExecutionTime());
+                    notifySuccess(resolver, scheduledTime);
                 }
             }
 
@@ -142,24 +140,26 @@ public class Timer implements ATimer, AsynchronousService {
     }
 
     @Override
-    public Promise<AStream<Long>> fixedRate(final Instant firstTime, final long period) {
-        ASupplier<Maybe<Long>> producer = new ASupplier<Maybe<Long>>() {
+    public Promise<AStream<Instant>> fixedRate(final Instant firstTime, final Duration period) {
+        ASupplier<Maybe<Instant>> producer = new ASupplier<Maybe<Instant>>() {
             private final RequestQueue requests = new RequestQueue();
-            private long next = firstTime.toEpochMilli();
+            private Instant next = firstTime;
 
             @Override
-            public Promise<Maybe<Long>> get() {
+            public Promise<Maybe<Instant>> get() {
                 return requests.run(() -> {
-                    if (next < System.currentTimeMillis()) {
+                    Instant now = Instant.now();
+                    if (next.isAfter(now)) {
+                        return waitFor(next).thenFlatGet(this::produce);
+                    } else {
                         return produce();
                     }
-                    return waitFor(Instant.ofEpochMilli(next)).thenFlatGet(this::produce);
                 });
             }
 
-            private Promise<Maybe<Long>> produce() {
-                long r = this.next;
-                next = r + period;
+            private Promise<Maybe<Instant>> produce() {
+                Instant r = this.next;
+                next = r.plus(period);
                 return aMaybeValue(r);
             }
         };
@@ -167,12 +167,12 @@ public class Timer implements ATimer, AsynchronousService {
     }
 
     @Override
-    public Promise<AStream<Long>> fixedDelay(final Instant firstTime, final long delay) {
-        return aValue(AsyncStreams.aForProducer(new ASupplier<Maybe<Long>>() {
+    public Promise<AStream<Instant>> fixedDelay(final Instant firstTime, final Duration delay) {
+        return aValue(AsyncStreams.aForProducer(new ASupplier<Maybe<Instant>>() {
             private boolean first = true;
 
             @Override
-            public Promise<Maybe<Long>> get() {
+            public Promise<Maybe<Instant>> get() {
                 if (first) {
                     first = false;
                     return waitFor(firstTime).flatMap(AsyncFunctionUtil.maybeMapper());
@@ -182,16 +182,6 @@ public class Timer implements ATimer, AsynchronousService {
                 }
             }
         }).stream());
-    }
-
-    @Override
-    public Promise<AStream<Long>> fixedRate(final long initialDelay, final long period) {
-        return fixedRate(Instant.now().plusMillis(initialDelay), period);
-    }
-
-    @Override
-    public Promise<AStream<Long>> fixedDelay(final long initialDelay, final long delay) {
-        return fixedDelay(Instant.now().plusMillis(initialDelay), delay);
     }
 
     @Override

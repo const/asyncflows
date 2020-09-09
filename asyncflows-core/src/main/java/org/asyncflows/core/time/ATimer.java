@@ -30,7 +30,6 @@ import org.asyncflows.core.streams.AStream;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The timer interface.
@@ -38,22 +37,13 @@ import java.util.concurrent.TimeUnit;
 @Asynchronous
 public interface ATimer extends ACloseable {
     /**
-     * Sleep for the specified time.
-     *
-     * @param delay the delay to sleep for
-     * @return promise for the time when sleep was scheduled to awake
-     */
-    Promise<Long> sleep(long delay);
-
-    /**
      * Sleep for the specified duration.
      *
      * @param duration the duration
      * @return when sleep finishes
      */
-    default Promise<Long> sleep(Duration duration) {
-        long delay = TimeUnit.SECONDS.toMillis(duration.getSeconds()) + TimeUnit.NANOSECONDS.toMillis(duration.getNano());
-        return sleep(delay);
+    default Promise<Instant> sleep(Duration duration) {
+        return waitFor(Instant.now().plus(duration));
     }
 
     /**
@@ -62,7 +52,7 @@ public interface ATimer extends ACloseable {
      * @param time the time to wait for
      * @return promise for the time when sleep was scheduled to awake
      */
-    Promise<Long> waitFor(Instant time);
+    Promise<Instant> waitFor(Instant time);
 
     /**
      * Start fixed rate stream timer stream.
@@ -71,7 +61,28 @@ public interface ATimer extends ACloseable {
      * @param period    the period with which events happen
      * @return promise for stream, note the stream accumulate events if they were not asked for
      */
-    Promise<AStream<Long>> fixedRate(Instant firstTime, long period);
+    Promise<AStream<Instant>> fixedRate(Instant firstTime, Duration period);
+
+    /**
+     * Start fixed rate stream timer stream.
+     *
+     * @param initialDelay the delay before first event
+     * @param period       the period with which events happen
+     * @return promise for stream, note the stream accumulate events if they were not asked for
+     */
+    default Promise<AStream<Instant>> fixedRate(Duration initialDelay, Duration period) {
+        return fixedRate(Instant.now().plus(initialDelay), period);
+    }
+
+    /**
+     * Start fixed rate stream timer stream.
+     *
+     * @param period the period with which events happen
+     * @return promise for stream, note the stream accumulate events if they were not asked for
+     */
+    default Promise<AStream<Instant>> fixedRate(Duration period) {
+        return fixedRate(Instant.now(), period);
+    }
 
     /**
      * Start delay rate stream timer stream. The each reading from stream is delayed
@@ -82,16 +93,7 @@ public interface ATimer extends ACloseable {
      * @param delay     the delay between events
      * @return promise for stream
      */
-    Promise<AStream<Long>> fixedDelay(Instant firstTime, long delay);
-
-    /**
-     * Start fixed rate stream timer stream.
-     *
-     * @param initialDelay the delay before first event
-     * @param period       the period with which events happen
-     * @return promise for stream, note the stream accumulate events if they were not asked for
-     */
-    Promise<AStream<Long>> fixedRate(long initialDelay, long period);
+    Promise<AStream<Instant>> fixedDelay(Instant firstTime, Duration delay);
 
     /**
      * Start delay rate stream timer stream. The each reading from stream is delayed
@@ -102,5 +104,19 @@ public interface ATimer extends ACloseable {
      * @param delay        the delay between events
      * @return promise for stream
      */
-    Promise<AStream<Long>> fixedDelay(long initialDelay, long delay);
+    default Promise<AStream<Instant>> fixedDelay(Duration initialDelay, Duration delay) {
+        return fixedDelay(Instant.now().plus(initialDelay), delay);
+    }
+
+    /**
+     * Start delay rate stream timer stream. The each reading from stream is delayed
+     * for the specified time. It is assumed that caller would ask for the next value,
+     * when it finished task for the previous one.
+     *
+     * @param delay the delay between events
+     * @return promise for stream
+     */
+    default Promise<AStream<Instant>> fixedDelay(Duration delay) {
+        return fixedDelay(Instant.now(), delay);
+    }
 }
