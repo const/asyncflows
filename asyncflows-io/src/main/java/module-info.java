@@ -1,9 +1,10 @@
 module org.asyncflows.io {
     requires org.slf4j;
     requires org.asyncflows.core;
+    requires java.compiler;
     exports org.asyncflows.io;
-    exports org.asyncflows.io.adapters;
-    exports org.asyncflows.io.nio;
+    exports org.asyncflows.io.adapters.blocking;
+    exports org.asyncflows.io.adapters.nio;
     exports org.asyncflows.io.file;
     exports org.asyncflows.io.file.nio;
     exports org.asyncflows.io.net;

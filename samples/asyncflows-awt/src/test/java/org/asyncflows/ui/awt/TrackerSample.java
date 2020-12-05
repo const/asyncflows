@@ -64,7 +64,7 @@ public class TrackerSample {
             Instant start = Instant.now();
             return aTryResource(new Timer()).run(timer -> {
                 final Cell<Boolean> stop = new Cell<>(false);
-                final ATracker<String> tracker = trottle(trackText(textField), timer, 1000);
+                final ATracker<String> tracker = trottle(trackText(textField), timer, Duration.ofSeconds(1));
                 return aAll(() -> {
                     int[] count = new int[1];
                     return aForStream(streamTracker(tracker)).consume(value -> {
@@ -80,7 +80,7 @@ public class TrackerSample {
                             return aTrue();
                         }
                     });
-                }).andLast(() -> aTry(timer.fixedRate(start.plusMillis(1000), Duration.ofMillis(1000))).run(stream -> {
+                }).andLast(() -> aTry(timer.fixedRate(start.plusMillis(1000), Duration.ofSeconds(1))).run(stream -> {
                     return aForStream(stream).consume(l -> {
                         timerOutput.setText("Time: " + Duration.between(start, l).toMillis() + "ms");
                         return aBoolean(!stop.getValue());

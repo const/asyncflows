@@ -200,6 +200,7 @@ public final class CancellableFlows {
          * The action {@code onCancelAction} is executed in arbitrary thread context w/o context propagation.
          *
          * @param onCancelAction the action executed on the cancel.
+         * @return a promise for main action
          */
         public Promise<R> onCancelSync(Consumer<Throwable> onCancelAction) {
             final Subcription subcription = registerCurrentCancellableListener(onCancelAction);
@@ -210,6 +211,7 @@ public final class CancellableFlows {
          * The execute construct with {@code onCancelAction} action executed when cancellation happen.
          *
          * @param onCancelAction the action executed on the cancel.
+         * @return a promise for main action
          */
         public Promise<R> onCancel(Consumer<Throwable> onCancelAction) {
             final Context current = Context.current();

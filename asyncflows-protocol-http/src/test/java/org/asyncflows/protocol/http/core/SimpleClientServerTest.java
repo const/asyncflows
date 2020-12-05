@@ -25,7 +25,6 @@ package org.asyncflows.protocol.http.core;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
-import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.util.CoreFlowsResource;
 import org.asyncflows.io.AOutput;
@@ -177,7 +176,7 @@ public class SimpleClientServerTest extends HttpServerTestBase {
                     return aSeq(
                             () -> request.request(new Scope(), HttpMethodUtil.OPTIONS, uri, headers, 0L)
                     ).map(
-                            ACloseable::close
+                            a -> a.close()
                     ).thenDo(
                             request::getResponse
                     ).mapLast(httpResponse -> {

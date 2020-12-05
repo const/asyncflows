@@ -3,6 +3,7 @@ module org.asyncflows.protocol.http {
     requires org.asyncflows.core;
     requires org.asyncflows.io;
     requires org.asyncflows.protocol;
+    requires java.compiler;
     exports org.asyncflows.protocol.http;
     exports org.asyncflows.protocol.http.client;
     exports org.asyncflows.protocol.http.client.core;

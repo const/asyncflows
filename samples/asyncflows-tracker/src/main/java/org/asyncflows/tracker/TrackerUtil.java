@@ -31,6 +31,7 @@ import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.time.ATimer;
 import org.asyncflows.core.util.RequestQueue;
 
+import java.time.Duration;
 import java.util.Objects;
 
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
@@ -76,7 +77,7 @@ public final class TrackerUtil {
 
     }
 
-    public static <A> ATracker<A> trottle(ATracker<A> tracker, ATimer timer, long delay) {
+    public static <A> ATracker<A> trottle(ATracker<A> tracker, ATimer timer, Duration delay) {
         return new AbstractTracker<A>() {
             private Outcome<A> value;
             private final TrackerAdapter<A> adapter = new TrackerAdapter<>(tracker, this::changed);

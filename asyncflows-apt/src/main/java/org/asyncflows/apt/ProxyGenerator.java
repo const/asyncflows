@@ -59,7 +59,7 @@ public final class ProxyGenerator {
         line("/**");
         line(" * The asynchronous proxy factory for {@link " + type.getInterfaceQName() + "}.");
         line(" */");
-        line("@javax.annotation.Generated(\"" + AsynchronousProxyProcessor.class.getName() + "\")");
+        line("@javax.annotation.processing.Generated(\"" + AsynchronousProxyProcessor.class.getName() + "\")");
         write("public final class " + type.getFactoryName()
                 + " implements java.util.function.BiFunction<" + VAT + ", " + OBJECT + ", " + OBJECT
                 + ">, org.asyncflows.core.util.AsynchronousService"
@@ -107,7 +107,7 @@ public final class ProxyGenerator {
 
     private void generateProxyClass() {
         final String typeParametersWithBounds = type.getProxyTypeParametersWithBounds();
-        line("@javax.annotation.Generated(\"" + AsynchronousProxyProcessor.class.getName() + "\")");
+        line("@javax.annotation.processing.Generated(\"" + AsynchronousProxyProcessor.class.getName() + "\")");
         write("private static final class " + type.getProxyName() + typeParametersWithBounds + " implements " + type.getInterfaceType()).block(() -> {
             line("private final " + VAT + " vat;");
             line("private final " + type.getInterfaceType() + " service;");
