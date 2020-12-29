@@ -146,7 +146,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, ExportableCompo
                 return aFailure(new ConnectException("Connect could be called only once"));
             }
             remoteAddress = address;
-            return aSeq(client::newRequest).map(request -> {
+            return aSeq(client::newRequest).flatMap(request -> {
                 httpRequest = request;
                 scope.set(HttpRequestUtil.CONNECTION_HOST, proxyHost);
                 return httpRequest.request(scope,
@@ -154,11 +154,11 @@ public class HttpConnectSocketFactory implements ASocketFactory, ExportableCompo
                         new URI("http://" + HttpURIUtil.getHost(address)),
                         new HttpHeaders(),
                         HttpRequestUtil.NO_CONTENT);
-            }).map(ACloseable::close).thenDo(() -> {
+            }).flatMap(ACloseable::close).thenFlatGet(() -> {
                 // TODO Http client and server options (NO_WAIT)
                 // TODO get local address from the scope
                 return httpRequest.getResponse();
-            }).map(response -> {
+            }).flatMap(response -> {
                 if (!HttpStatusUtil.isSuccess(response.getStatusCode())) {
                     throw new ConnectException("Unable to execute request: "
                             + response.getStatusCode() + " " + response.getReason());
@@ -175,7 +175,7 @@ public class HttpConnectSocketFactory implements ASocketFactory, ExportableCompo
                     output = channelOutput;
                     return aVoid();
                 });
-            }).failedLast(value -> {
+            }).flatMapFailure(value -> {
                 if (value instanceof SocketException) {
                     return aFailure(value);
                 }

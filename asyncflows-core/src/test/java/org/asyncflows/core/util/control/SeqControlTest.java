@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests for sequential control constructs.
  */
-public class SeqControlTest {
+class SeqControlTest {
 
     /**
      * Check if failure is an exception and has a required method
@@ -68,20 +68,20 @@ public class SeqControlTest {
     }
 
     @Test
-    public void testSeq() {
+    void testSeq() {
         final ArrayList<Integer> list = new ArrayList<>();
         final int rc = doAsync(() ->
                 aSeq(() -> {
                     list.add(1);
                     return aValue(1);
-                }).map(value -> {
+                }).flatMap(value -> {
                     list.add(value + 1);
                     throw new IllegalStateException();
-                }).thenDo(() -> {
+                }).thenFlatGet(() -> {
                     // never called
                     list.add(-1);
                     return aValue(-1);
-                }).failed(value -> {
+                }).flatMapFailure(value -> {
                     assertEquals(IllegalStateException.class, value.getClass());
                     list.add(3);
                     return aValue(42);
@@ -94,29 +94,29 @@ public class SeqControlTest {
     }
 
     @Test
-    public void testSeqSimple() {
+    void testSeqSimple() {
         final String test = doAsync(() ->
                 aSeq(
                         () -> aValue(42)
-                ).map(
+                ).flatMap(
                         value -> aLater(() -> aValue("The answer is " + value))
                 ).finallyDo(CoreFlows::aVoid));
         assertEquals("The answer is 42", test);
     }
 
     @Test
-    public void testSeqFailed() {
+    void testSeqFailed() {
         final Outcome<Integer> test = doAsync(() ->
                 aSeq(
                         (ASupplier<Integer>) () -> aFailure(new IllegalStateException("test"))
-                ).failedLast(
+                ).flatMapFailure(
                         value -> aValue(42)
                 ).toOutcomePromise());
         assertEquals(Outcome.success(42), test);
         final Outcome<Integer> test2 = doAsync(() ->
                 aSeq(
                         (ASupplier<Integer>) () -> aFailure(new IllegalStateException("1"))
-                ).failedLast(
+                ).flatMapFailure(
                         value -> {
                             throw new IllegalStateException("2");
                         }
@@ -125,7 +125,7 @@ public class SeqControlTest {
     }
 
     @Test
-    public void testSeqFinallyFailed() {
+    void testSeqFinallyFailed() {
         final Outcome<Integer> test = doAsync(() ->
                 aSeq(
                         (ASupplier<Integer>) () -> aFailure(new IllegalStateException("test"))
@@ -151,7 +151,7 @@ public class SeqControlTest {
 
 
     @Test
-    public void testSeqForLoop() {
+    void testSeqForLoop() {
         final int rc = doAsync(() ->
                 aForArray(0, 1, 2, 3, 4).leftFold(0,
                         (result, item) -> aValue(result + item)
@@ -160,7 +160,7 @@ public class SeqControlTest {
     }
 
     @Test
-    public void testSeqForLoopSimple() {
+    void testSeqForLoopSimple() {
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             return aSeqForUnit(Arrays.asList(0, 1, 2, 3, 4), value -> {
@@ -172,7 +172,7 @@ public class SeqControlTest {
     }
 
     @Test
-    public void testSeqWhile() {
+    void testSeqWhile() {
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -187,7 +187,7 @@ public class SeqControlTest {
 
 
     @Test
-    public void testSeqUntilValue() {
+    void testSeqUntilValue() {
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -202,7 +202,7 @@ public class SeqControlTest {
 
 
     @Test
-    public void testSeqLoopFail() {
+    void testSeqLoopFail() {
         final Cell<Boolean> flag = new Cell<>(true);
         final Outcome<Void> rc = doAsync(() ->
                 aSeqWhile(() -> {
@@ -219,7 +219,7 @@ public class SeqControlTest {
     }
 
     @Test
-    public void seqForCollect() {
+    void seqForCollect() {
         final int rc = doAsync(() ->
                 aSeqForCollect(Stream.of(1, 2, 3, 4),
                         e -> aValue(e + 1),

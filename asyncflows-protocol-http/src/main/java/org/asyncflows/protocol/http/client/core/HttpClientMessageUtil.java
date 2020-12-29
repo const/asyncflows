@@ -78,11 +78,11 @@ public final class HttpClientMessageUtil {
                 LOG.debug(String.format("Writing a message: %s%s", startLine, message.getHeaders()));
             }
             return LineUtil.writeLatin1(context, startLine);
-        }).thenDo(
+        }).thenFlatGet(
                 () -> message.getHeaders().write(context)
-        ).thenDo(
+        ).thenFlatGet(
                 () -> context.send().toVoid()
-        ).failedLast(HttpRuntimeUtil.toHttpException("Failed write request message"));
+        ).flatMapFailure(HttpRuntimeUtil.toHttpException("Failed write request message"));
     }
 
     /**
@@ -131,10 +131,10 @@ public final class HttpClientMessageUtil {
     public static Promise<Void> readResponseMessage(final ByteParserContext input, final HttpResponseMessage message) {
         return aSeq(
                 () -> LineUtil.readLineCRLF(input, HttpLimits.MAX_START_LINE_SIZE)
-        ).map(statusLine -> {
+        ).flatMap(statusLine -> {
             parseStatusLine(message, statusLine);
             return HttpHeaders.readHeaders(input, HttpLimits.MAX_HEADERS_SIZE);
-        }).mapLast(headers -> {
+        }).flatMap(headers -> {
             message.setHeaders(headers);
             return aVoid();
         });

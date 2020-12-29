@@ -42,10 +42,10 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CancellationTest {
+class CancellationTest {
 
     @Test
-    public void test() {
+    void test() {
         final ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
             final SimpleQueue<Integer> queue = new SimpleQueue<>();
@@ -63,12 +63,12 @@ public class CancellationTest {
             ).andLast(
                     () -> aSeq(
                             () -> queue.put(1)
-                    ).thenDo(
+                    ).thenFlatGet(
                             () -> queue.put(2)
-                    ).thenDo(
+                    ).thenFlatGet(
                             // pause
                             () -> aSeqForUnit(rangeIterator(1, 10), t -> aLater(CoreFlows::aTrue))
-                    ).thenDoLast(
+                    ).thenFlatGet(
                             () -> cancellation.run(() -> aFailure(new RuntimeException()))
                     )
             ).mapOutcome(o -> {

@@ -172,7 +172,7 @@ public class HttpClientConnection extends CloseableInvalidatingBase
                     notifySuccess(promise.resolver(), Maybe.value(current.export()));
                     return aSeq(
                             current::finish
-                    ).map(value -> {
+                    ).flatMap(value -> {
                         finished = !value;
                         return aVoid();
                     }).finallyDo(() -> {
@@ -195,9 +195,9 @@ public class HttpClientConnection extends CloseableInvalidatingBase
             } else {
                 return current.close();
             }
-        }).thenDo(
+        }).thenFlatGet(
                 () -> output.send().toVoid()
-        ).thenDo(
+        ).thenFlatGet(
                 () -> aAll(
                         () -> output.getOutput().close()
                 ).andLast(

@@ -31,6 +31,7 @@ import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.function.AsyncFunctionUtil;
 import org.asyncflows.core.trace.PromiseTrace;
+import org.asyncflows.core.util.ExceptionUtil;
 import org.asyncflows.core.vats.Vat;
 
 import java.util.Objects;
@@ -81,6 +82,29 @@ public final class Promise<T> {
      */
     public Promise() {
         this.trace = PromiseTrace.INSTANCE.recordTrace();
+    }
+
+
+    /**
+     * Run result in this place, if action fails, wrap its result in failed promise.
+     * This method never throws exception unless there is out ouf memory.
+     *
+     * @param action the action
+     * @param <T>    the result type.
+     * @return the promise
+     */
+    public static <T> Promise<T> get(final ASupplier<T> action) {
+        try {
+            final Promise<T> promise = action.get();
+            //noinspection ReplaceNullCheck
+            if (promise == null) {
+                return new Promise<>(Outcome.failure(new NullPointerException("Action returned null: " + action.getClass().getName())));
+            } else {
+                return promise;
+            }
+        } catch (Throwable throwable) {
+            return new Promise<>(Outcome.failure(throwable));
+        }
     }
 
     /**
@@ -264,6 +288,7 @@ public final class Promise<T> {
         } else {
             try {
                 final Promise<R> promise = mapper.apply(currentOutcome);
+                //noinspection ReplaceNullCheck
                 if (promise != null) {
                     return promise;
                 } else {
@@ -296,7 +321,6 @@ public final class Promise<T> {
     public <R> Promise<R> flatMap(final AFunction<T, R> mapper) {
         return flatMap(Vat.current(), mapper);
     }
-
 
     /**
      * Flat map successful outcome of promise. The failure is just passed through.
@@ -440,7 +464,7 @@ public final class Promise<T> {
         final Throwable ex = failure != null ? failure : new IllegalArgumentException("Failure cannot be null");
         return flatMapOutcome(o -> {
             if (o.isFailure()) {
-                ex.addSuppressed(o.failure());
+                ExceptionUtil.addSuppressed(ex, o.failure());
             }
             return new Promise<>(Outcome.failure(ex));
         });
@@ -470,6 +494,33 @@ public final class Promise<T> {
      */
     public <R> Promise<R> thenPromise(final Promise<R> result) {
         return thenFlatGet(promiseSupplier(result));
+    }
+
+
+    /**
+     * Execute action after promise ignoring the result.
+     * <ul>
+     * <li>If action is successful, original outcome is used.</li>
+     * <li>If action is failed and original was success, failure from action is used.</li>
+     * <li>If action is failed and original was failure, original failure is used,
+     * but failure from action is added to suppressed exception list.</li>
+     * </ul>
+     *
+     * @param action the action
+     * @param <I>    the ignored result type
+     * @return the promise for result
+     */
+    public <I> Promise<T> finallyDo(ASupplier<I> action) {
+        return flatMapOutcome(o -> get(action).flatMapOutcome(f -> {
+            if (f.isSuccess()) {
+                return new Promise<>(o);
+            } else if (o.isSuccess()) {
+                return new Promise<>(Outcome.failure(f.failure()));
+            } else {
+                ExceptionUtil.addSuppressed(o.failure(), f.failure());
+                return new Promise<>(o);
+            }
+        }));
     }
 
     /**

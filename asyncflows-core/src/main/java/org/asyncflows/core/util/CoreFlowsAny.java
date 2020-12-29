@@ -177,7 +177,7 @@ public final class CoreFlowsAny {
                     if (error == null) {
                         error = o;
                     } else if (error.failure() != o.failure()) {
-                        error.failure().addSuppressed(o.failure());
+                        ExceptionUtil.addSuppressed(error.failure(), o.failure());
                     }
                     if (count == 0) {
                         resolver.resolve(error);

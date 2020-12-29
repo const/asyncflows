@@ -372,7 +372,7 @@ public final class GZipHeader {
      */
     private static Promise<Void> writeLatin1(final ByteGeneratorContext context,
                                              final CRC32 headerCRC, final String text, final boolean allowZero) {
-        return aSeqWhile(new ASupplier<Boolean>() {
+        return aSeqWhile(new ASupplier<>() {
             private int pos;
 
             @Override
@@ -540,7 +540,7 @@ public final class GZipHeader {
                     rc.append(ByteIOUtil.toLatin1(b));
                 }
             }
-        })).thenDoLast(() -> aValue(rc.toString()));
+        })).thenFlatGet(() -> aValue(rc.toString()));
     }
 
     /**
@@ -558,13 +558,13 @@ public final class GZipHeader {
 
         return aSeq(
                 () -> context.ensureAvailable(ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH)
-        ).thenDo(() -> {
+        ).thenFlatGet(() -> {
             id[0] = getUInt16(context, crc);
             final int size = getUInt16(context, crc);
             if (size + ByteIOUtil.UINT16_LENGTH + ByteIOUtil.UINT16_LENGTH > limit) {
                 throw new IOException("Field size is too big: " + size);
             }
-            return aSeqWhile(new ASupplier<Boolean>() {
+            return aSeqWhile(new ASupplier<>() {
                 private int count;
 
                 @Override
@@ -584,7 +584,7 @@ public final class GZipHeader {
                     return aFalse();
                 }
             });
-        }).thenDoLast(() -> aValue(new ExtraField(id[0], rc.toString())));
+        }).thenFlatGet(() -> aValue(new ExtraField(id[0], rc.toString())));
 
     }
 

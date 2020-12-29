@@ -323,7 +323,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
         @Override
         public Promise<Void> write(final ByteBuffer buffer) {
             return streamRequests.run(
-                    () -> aSeq(this::writeHeader).thenDoLast(() -> {
+                    () -> aSeq(this::writeHeader).thenFlatGet(() -> {
                         if (buffer.remaining() > remaining) {
                             throw new IllegalArgumentException("The " + remaining
                                     + " bytes could be written to message, and writing " + buffer.remaining());
@@ -368,7 +368,7 @@ public class WebSocketOutput extends CloseableInvalidatingBase implements AWebSo
                     } else {
                         return aVoid();
                     }
-                }).thenDoLast(output::send).toVoid().listen(outcomeChecker());
+                }).thenFlatGet(output::send).toVoid().listen(outcomeChecker());
             }).listen(resolution -> {
                 if (isValid()) {
                     finished.resolve(resolution);

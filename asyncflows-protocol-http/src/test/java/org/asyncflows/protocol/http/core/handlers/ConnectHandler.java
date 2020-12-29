@@ -92,14 +92,14 @@ public class ConnectHandler extends HttpHandlerBase {
         return aTrySocket(socketFactory.makeSocket()).run(
                 (socket, socketInput, socketOutput) -> aSeq(
                         () -> socket.connect(address)
-                ).failed(exception -> {
+                ).flatMapFailure(exception -> {
                     throw new HttpStatusException(HttpStatusUtil.BAD_GATEWAY,
                             "Unable to connect", exception);
-                }).thenDo(() -> {
+                }).thenFlatGet(() -> {
                     exchange.getExchangeScope().set(HttpExchangeUtil.REMOTE, uri.getAuthority());
                     return ResponseUtil.discardAndClose(exchange.getInput()).thenFlatGet(
                             closeResourceAction(exchange.getInput()));
-                }).thenDo(() -> IOUtil.aTryChannel(
+                }).thenFlatGet(() -> IOUtil.aTryChannel(
                         exchange.switchProtocol(HttpStatusUtil.OK, null, new HttpHeaders())).run(
                         (connection, input, output) -> aAll(
                                 copyAndClose(socket, connection,
@@ -108,7 +108,7 @@ public class ConnectHandler extends HttpHandlerBase {
                                 copyAndClose(socket, connection,
                                         input, count(exchange, socketOutput), "clientToServer")
                         ).toVoid()
-                )).failedLast(exception -> {
+                )).flatMapFailure(exception -> {
                     if (exception instanceof ResourceClosedException) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Connection is closed, possibly handler shutdown", exception);
@@ -166,7 +166,7 @@ public class ConnectHandler extends HttpHandlerBase {
             }
             return IOUtil.BYTE.copy(input, output, false,
                     ByteBuffer.allocate(HttpLimits.DEFAULT_BUFFER_SIZE)).toVoid();
-        }).failed(exception -> {
+        }).flatMapFailure(exception -> {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Copy failed: " + direction, exception);
             }

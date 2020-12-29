@@ -196,21 +196,22 @@ class HttpExchangeAction extends CloseableInvalidatingBase
      *
      * @return resolves to true if the next request response could be handled on this this connection.
      */
+    @SuppressWarnings("java:S5411")
     public Promise<Boolean> handle() {
         return aSeq(
                 () -> HttpServerMessageUtil.parseRequestMessage(connection.getInput(), requestMessage)
-        ).failed(value -> {
+        ).flatMapFailure(value -> {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to parse request " + id() + ": " + requestMessage.getMethod()
-                        + " " + requestMessage.getRequestTarget() + " " + requestMessage.getVersion()
-                        + "\n" + requestMessage.getHeaders().toString(), value);
+                LOG.debug(String.format("Failed to parse request %s: %s %s %s%n%s",
+                        id(), requestMessage.getMethod(), requestMessage.getRequestTarget(),
+                        requestMessage.getVersion(), requestMessage.getHeaders().toString()), value);
             }
             return aFailure(value);
-        }).map(
+        }).flatMap(
                 hasMessage -> hasMessage ? processRequest() : aFalse()
-        ).failed(exception -> {
+        ).flatMapFailure(exception -> {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to process request " + id(), exception);
+                LOG.debug(String.format("Failed to process request %s", id()), exception);
             }
             // if handler failed to respond properly, the exception is thrown to indicate bad response.
             if (!responseStarted) {
@@ -243,9 +244,9 @@ class HttpExchangeAction extends CloseableInvalidatingBase
      */
     private Promise<Boolean> processRequest() {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Starting processing " + id() + ": " + requestMessage.getMethod()
-                    + " " + requestMessage.getRequestTarget()
-                    + " " + requestMessage.getVersion() + "\n" + requestMessage.getHeaders().toString());
+            LOG.debug(String.format("Starting processing %s: %s %s %s%n%s",
+                    id(), requestMessage.getMethod(), requestMessage.getRequestTarget(),
+                    requestMessage.getVersion(), requestMessage.getHeaders().toString()));
         }
         responseMessage.setVersion(requestMessage.getVersion());
         canContinue = canContinue
@@ -358,11 +359,9 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                 final HttpResponseMessage intermediate = new HttpResponseMessage();
                 initResponseMessage(intermediate, status, reason, headers);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Intermediate response started " + id() + ": "
-                            + intermediate.getVersion()
-                            + intermediate.getStatusCode()
-                            + " " + intermediate.getStatusMessage()
-                            + "\n" + intermediate.getHeaders());
+                    LOG.debug(String.format("Intermediate response started %s: %s%d %s%n%s",
+                            id(), intermediate.getVersion(), intermediate.getStatusCode(),
+                            intermediate.getStatusMessage(), intermediate.getHeaders()));
                 }
                 return HttpServerMessageUtil.writeResponseMessage(connection.getOutput(), intermediate);
             }
@@ -442,11 +441,9 @@ class HttpExchangeAction extends CloseableInvalidatingBase
             canContinue &= !exchangeContext.getExchangeScope().get(HttpScopeUtil.LAST_EXCHANGE);
             HttpHeadersUtil.setLastMessageHeader(headers, responseMessage.getVersion(), !canContinue);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Response started " + id() + ": "
-                        + responseMessage.getVersion()
-                        + " " + responseMessage.getStatusCode()
-                        + " " + responseMessage.getStatusMessage()
-                        + "\n" + responseMessage.getHeaders());
+                LOG.debug(String.format("Response started %s: %s %d %s%n%s",
+                        id(), responseMessage.getVersion(), responseMessage.getStatusCode(),
+                        responseMessage.getStatusMessage(), responseMessage.getHeaders()));
             }
             return HttpServerMessageUtil.writeResponseMessage(connection.getOutput(), responseMessage).thenFlatGet(
                     () -> aValue(outputInfo.getStream())
@@ -552,7 +549,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                 inputInfo = null;
                 inputState = null;
                 return closed ? aVoid() : stream.close();
-            }).thenDo(() -> {
+            }).thenFlatGet(() -> {
                 final boolean switchWithoutReply = exchangeContext.getExchangeScope()
                         .get(HttpServer.SWITCH_NO_REPLY, false);
                 if (switchWithoutReply) {
@@ -563,15 +560,13 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                     return aVoid();
                 } else {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Switching protocols " + id() + ": "
-                                + responseMessage.getVersion()
-                                + " " + responseMessage.getStatusCode()
-                                + " " + responseMessage.getStatusMessage()
-                                + "\n" + responseMessage.getHeaders());
+                        LOG.debug(String.format("Switching protocols %s: %s %d %s%n%s", id(),
+                                responseMessage.getVersion(), responseMessage.getStatusCode(),
+                                responseMessage.getStatusMessage(), responseMessage.getHeaders()));
                     }
                     return HttpServerMessageUtil.writeResponseMessage(connection.getOutput(), responseMessage);
                 }
-            }).thenDoLast(() -> {
+            }).thenFlatGet(() -> {
                 // there is a minor hack here since it imitates rest of the stream response for the get request.
                 // It does what is needed. Possibly more optimized version will be used later.
                 inputInfo = ContentUtil.getInput(
@@ -611,7 +606,7 @@ class HttpExchangeAction extends CloseableInvalidatingBase
                         return aVoid();
                     }
                 }).toVoid()
-        ).thenDo(() -> {
+        ).thenFlatGet(() -> {
             if (inputState != InputState.CLOSED || outputState != OutputState.CLOSED) {
                 canContinue = false;
             }

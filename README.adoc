@@ -22,7 +22,7 @@ There is currently no legal framework to accept project contributions in form of
 However, bug reporting, experimental forking, and other feedback is welcome.
 The project might migrate to some project groups to solve this problem.
 
-Currently, project is considered in the Alpha phase and there could be backward incompatible changes even for minor versions.
+CAUTION: Currently, project is considered in the Alpha phase and there could be backward incompatible changes even for minor versions.
 
 === Code Samples
 
@@ -36,10 +36,11 @@ The project source repository is currently available on https://github.com/const
 
 Snapshot releases are available at repository https://oss.sonatype.org/content/groups/public[OSS Sonatype repository].
 
-The latest stable version is {stable-version} is available from maven central.The following project
-artifacts are released:
+IMPORTANT: The framework currently requires Java 11.
 
-[source, xml, subs="attributes,verbatim"]
+The latest stable version is {stable-version} is available from maven central.The following project artifacts are released:
+
+[source,xml,subs="attributes,verbatim"]
 ----
             <!-- Core library -->
             <dependency>
@@ -113,7 +114,8 @@ This vat is usually used in unit tests and to start application on the main thre
 
 For example, the vat could be used like the following, if more high-level constructs could not be used otherwise.
 
-```java
+[source,java]
+----
         final Cell<Vat> result = new Cell<>(); // create holder for value
         final SingleThreadVat vat = new SingleThreadVat(null); // create vat
         vat.execute(() -> { // schedule event
@@ -124,17 +126,12 @@ For example, the vat could be used like the following, if more high-level constr
         vat.runInCurrentThread(); // start vat and execute event
         // vat is stopped
         assertSame(vat, result.getValue()); // get vat value
-```  
+----
 
 It is rarely needed to use vat directly.The typical cases are:
 
 * Application setup
 * Library or framework code
-
-==== Default Vat
-
-When an asynchronous context is needed, but it is not clear whether the current thread has one, It is possible to use `Vat.defaultVat()` method, that return current vat, if it is present, or new daemon vat if it is not present.
-Differently from JDK, the default is a daemon vat instead for ForkJoin pool, because the framework is oriented on interaction with external services (that could block threads in some cases) rather than for CPU-bound computations.
 
 === Promise
 
@@ -157,30 +154,27 @@ There are three versions of method that adds listener to promise:
 
 * `listenSync(AResolver)` - adds the listener for `Promise` that is notified in the execution context where promise is resolved.
 This method should be only used, if listener already has appropriate synchronizations or asynchronous event delivery implemented (for example, a resolver for other promise).
-* `listen(AResolver)` - adds the listener for `Promise` that is notified in the context of default executor where listener is registered.
+* `listen(AResolver)` - adds the listener for `Promise` that is notified in the context of default executor where a listener is registered.
 
 There are also some utility methods on the promise that help its usage and contain some optimizations.
 
 * `flatMap` - converts value when a promise is successful with `AFunction`
 * `flatMapOutcome` - converts outcome when promise is resolved with `AFunction`
+* `flatMapFailure` - maps failure with `AFunction` in case if promise failed (like try-catch in Java).
+* `finallyDo` - execute some code when promise finishes with any outcome (like try-finally in Java).
 * `map` - converts value when promise is successful with `Function`
 * `mapOutcome` - converts outcome when promise is resolved with `Function`
 
 There are few more utility methods.
 
-These functions are executed immediately, if result is available and with default execution context.
-
-The lambdas passed to these methods are executed in default execution context.
+These functions are executed immediately, if result is already available.
+If not, they will be executed after promise is resolved, using the vat associated with the current thread.
 
 == Structured Asynchronous Programming
 
-The core concept of the framework is asynchronous operation.*Asynchronous operation* is a sequence
-of logically grouped execution of the events in some events loops that that finish with
-some outcome (or just finish for one-way operations).
+The core concept of the framework is asynchronous operation.*Asynchronous operation* is a sequence of logically grouped execution of the events in some events loops that that finish with some outcome (or just finish for one-way operations).
 
-Asynchronous operators are static methods that usually return `Promise` and start with prefix `a`
-(for example `aValue`).The operations are supposed to be imported using static import to form a DSL
-in the programming language.
+Asynchronous operators are static methods that usually return `Promise` and start with the prefix 'a' (for example `aValue`).The operations are supposed to be imported using static import to form a DSL in the programming language.
 
 The structured programming constructs are inspired by combining ideas from two sources:
 
@@ -189,7 +183,7 @@ The structured programming constructs are inspired by combining ideas from two s
 
 === Asynchronous Functions
 
-The most of operators expect lambdas are arguments.
+The most of the operators expect lambdas are arguments.
 These function interfaces are located at package
 `org.asyncflows.core.function`.
 These functions return `Promise`.
@@ -204,12 +198,13 @@ These functions return `Promise`.
 === Asynchronous Context
 
 While much of the framework functionality is able to work w/o current vat, it is best to provide a context vat.
-The most simple way to do so is using AsyncContext class to create temporary local context to implement some operation.
+The simplest way to do so is using AsyncContext class to create temporary local context to implement some operation.
 
-```java
+[source,java]
+----
 Integer i = doAsync(() -> aValue(42));
 assertEquals(42, i);
-``` 
+----
 
 The operation above creates `SingeThreadedVat`, run it on the current thread, and then stops vat when `Promise`
 is done with success or failure.
@@ -223,7 +218,8 @@ Generally, the code should not need to create promise directly, except for few D
 Use promise construction operation instead.
 All these trivial operations are implemented in `Promise` class as they are mostly factory methods for it.
 
-```java
+[source,java]
+----
 aValue(42) // resolved promise that holds specified value
 aFailure(new NullPointerException) // failed promise
 aNull() // promise holding null
@@ -235,54 +231,55 @@ aNow(()->aValue(a * b)) // evaluate body and return promise (if body failed, ret
 aLater(()->aValue(a * b)) // evaluate on later turn in default vat
 aLater(vat, ()->aValue(a * b)) // evaluate on later turn in the specified vat
 aNever() // the process that never ends
-```
+----
 
-Note, `aNow` looks like useless operation, but it is actually used quite often.In many cases when constructing
-asynchronous operations, throwing an error is not acceptable behaviour because some listeners are not added
-and so on.
+Note, `aNow` looks like useless operation, but it is actually used quite often.
+An expression that returns a promise might result in the following:
+
+. Return unresolved promise
+. Return promise resolved with some outcome (failure or value)
+. Return `null`
+. Throw an exception
+
+If we want to register listener on the result of operation, the fist two cases are not much different.
+The listener will be called either immediately, or later when promise is resolved.
+The last two cases are significantly different.
+They will cause listener to be never called, and the listeners will be never be called.
+This will case operation to hang up, if these two exceptional cases are not handled specially.
+The operator `aNow` reduces these two cases to a promise with failure outcome.
+So, there is no need to handle these cases specially.
+This greatly simplifies the code.
+There still could be problem in case of StackOverflowException or OutOfMemoryError, but most of the asynchronous frameworks will have problems with these failures as well.
 
 === Sequential Processes
 
 All sequential controls method now require that they should be running in the context of the vat.
 
-==== aSeq Operator
+==== aNow and aSeq Operator
 
-The operator `aSeq` is a basic way ot organize actions sequentially.
-This operator is basically builder for sequential action.
-The building process starts with the initial action provided as `ASupplier`.
-Then it is continued with the following methods:
+The sequential fow in AsyncFlows is organized using operations on `Promise`.
 
-* `map(AFunction<T, N>)` - map the current result using provided function.
-The action is executed only if previous action was success.
-* `thenDo(ASupplier<N>)` - discard the result and execute action instead.
-This method is useful if the current result is not needed (for example it is of type Void).
-* `failed(AFunction<T, AThrowable>)` - if one of previous actions failed, this method is executed, otherwise it is skipped.
-There might be more than one `failed(...)` method in the chain.
-* `mapOutcome(AFunction<N, Outcome<T>)` - this method is always invoked after block, it maps outcome of operation
-(whether if is failure or success).This method is combination of `failed()` and `map()`.
-* `listen(AResolver<T>)` - this is an utility callback is that used mostly for debugging purposes.This operation
-could not be last.
-It just adds listener to promise returned from previous operations.
-* `finallyDo(ASupplier<Void>)` - this method is always invoked after block, it acts like finally clause in Java
-try statement.It should be used mostly for clean up.This statement should be always last, and it terminates
-building process.
-* `finish()` - finish building and start process.
+The operator `aSeq` is just alias for `aNow` operator.
+It is used to indicate that there is some chain of the sequential operations on promise.
+It also wraps the first expression that returns promise, so it is shown on the same block level as subsequent operations.
 
 The following test demonstrate its usage:
-```java
+
+[source,java]
+----
         final ArrayList<Integer> list = new ArrayList<>();
         final int rc = doAsync(() ->
                 aSeq(() -> {
                     list.add(1);
                     return aValue(1);
-                }).map(value -> {
+                }).flatMap(value -> {
                     list.add(value + 1);
                     throw new IllegalStateException();
-                }).thenDo(() -> {
+                }).thenFlatGet(() -> {
                     // never called
                     list.add(-1);
                     return aValue(-1);
-                }).failed(value -> {
+                }).flatMapFailure(value -> {
                     assertEquals(IllegalStateException.class, value.getClass());
                     list.add(3);
                     return aValue(42);
@@ -292,16 +289,14 @@ The following test demonstrate its usage:
                 }));
         assertEquals(42, rc);
         assertEquals(Arrays.asList(1, 2, 3, 4), list);
-```
-
-There are also the following suffixes possible:
-* `Last` - the function is combination of function w/o suffix, and `finish()` operation.
-
+----
 
 ==== Simple Loops
 
 The simplest loop is `aSeqWhile`.This loop is executed while its body returns true.
-```java
+
+[source,java]
+----
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -312,14 +307,15 @@ The simplest loop is `aSeqWhile`.This loop is executed while its body returns tr
             }).thenFlatGet(() -> aValue(sum[0]));
         });
         assertEquals(10, rc);
-```
+----
 
 There is also the `Maybe` type in the framework that represent the optional value.Differently from Java `Optional`,
 the `Maybe` type could hold any value including null value.It also could be serialized, passed as parameter etc.
 
 It is possible to iterate until the value is available with this aSeqUntilValue loop.
 
-```java
+[source,java]
+----
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             final int[] current = new int[1];
@@ -330,13 +326,14 @@ It is possible to iterate until the value is available with this aSeqUntilValue 
             });
         });
         assertEquals(10, rc);
-```
+----
 
 ==== Collections Loops
 
 It is possible to iterate over collections using iterator:
 
-```java
+[source,java]
+----
         final int rc = doAsync(() -> {
             final int[] sum = new int[1];
             return aSeqForUnit(Arrays.asList(0, 1, 2, 3, 4), value -> {
@@ -345,19 +342,20 @@ It is possible to iterate over collections using iterator:
             }).thenFlatGet(() -> aValue(sum[0]));
         });
         assertEquals(10, rc);
-```
+----
 
 It is also possible to supply iteration values to collector, but in that case it is not possible
 to abort the loop:
 
-```java
+[source,java]
+----
         final int rc = doAsync(() ->
                 aSeqForCollect(Stream.of(1, 2, 3, 4),
                         e -> aValue(e + 1),
                         Collectors.summingInt((Integer e) -> e))
         );
         assertEquals(14, rc);
-```
+----
 
 The more advanced collection processing could be done by the stream framework.
 
@@ -371,10 +369,12 @@ AsyncFlows provides a number of methods to organize simultaneous asynchronous ac
 ==== aAll Operator
 
 The simplest form is aAll operator.
-The operator starts all its branches on the current vat on the current turn and executes the opration `map(...)` when all branches are finished.
+The operator starts all its branches on the current vat on the current turn and executes the operation
+`map(...)` when all branches are finished.
 If some branch thrown exception, the operator throws an error, but it will still wait for all branches to complete.
 
-```java
+[source,java]
+----
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aAll(
                         () -> aValue("The answer")
@@ -382,11 +382,12 @@ If some branch thrown exception, the operator throws an error, but it will still
                         () -> aLater(() -> aValue(42))
                 ).map((a, b) -> aValue(Tuple2.of(a, b))));
         assertEquals(Tuple2.of("The answer", 42), rc);
-```
+----
 
 It is possible to return tuple from all arguments directly using `Last` suffix on the last branch.
 
-```java
+[source,java]
+----
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aAll(
                         () -> aValue("The answer")
@@ -394,22 +395,23 @@ It is possible to return tuple from all arguments directly using `Last` suffix o
                         () -> aLater(() -> aValue(42))
                 ));
         assertEquals(Tuple2.of("The answer", 42), rc);
-```
+----
 
 ==== Processing Collections
 
 Basic operation for iterating collection, streams, and iterators is `aAllForCollect` operators.
 
-```java
+[source,java]
+----
         final int rc = doAsync(() ->
                 aAllForCollect(Stream.of(1, 2, 3, 4),
                         e -> aValue(e + 1),
                         Collectors.summingInt((Integer e) -> e))
         );
         assertEquals(14, rc);
-```
+----
 
-It process all branches in interleaving on the current event loop.
+It processes all branches in interleaving on the current event loop.
 Then summarize them using supplied collector.
 
 The more advanced collection processing could be done by the stream framework.
@@ -417,10 +419,11 @@ The more advanced collection processing could be done by the stream framework.
 ==== Parallel Processes
 
 If `aAll` is replaced with `aPar` in the previous section, then we will get parallel operations provided by the framework.
-By default, the each branch is executed on the own new daemon vat.
+By default, each branch is executed on the own new daemon vat.
 However, is possible to customize execution by providing an implementation of ARunner interface.
 
-```java
+[source,java]
+----
         final Tuple2<String, Integer> rc = doAsync(() ->
                 aPar(
                         () -> aValue("The answer")
@@ -428,7 +431,7 @@ However, is possible to customize execution by providing an implementation of AR
                         () -> aLater(() -> aValue(42))
                 ).map((a, b) -> aValue(Tuple2.of(a, b))));
         assertEquals(Tuple2.of("The answer", 42), rc);
-```
+----
 
 This is applicable to all other `aAll` operators.
 
@@ -438,7 +441,8 @@ The alternative processing is done using `aAny` operator.
 This operator starts all branches on the current turn and waits for the first branch to complete with error or success.
 The `aAny` operator is intended for error handling and querying alternative sources of information.
 
-```java
+[source,java]
+----
         int value = doAsync(() ->
                 aAny(
                         () -> aLater(() -> aValue(1))
@@ -459,12 +463,13 @@ The `aAny` operator is intended for error handling and querying alternative sour
         } catch (AsyncExecutionException ex) {
             assertEquals(RuntimeException.class, ex.getCause().getClass());
         }
-```
+----
 
 
 There is also execution mode that the `aAny` operator tries to wait for successful result if possible.
 
-```java
+[source,java]
+----
         int value = doAsync(() ->
                 aAny(true,
                         () -> aLater(() -> aValue(1))
@@ -473,16 +478,19 @@ There is also execution mode that the `aAny` operator tries to wait for successf
                 )
         );
         assertEquals(1, value);
-```
+----
 
-The other feature of aAny operator is handling of the branches that did not reach output of `aAny` operator.
-This is important when the `aAny` operator opens resources that are required to be closed.Or when exceptions
-from failed branches need to be logged.
+The other feature of `aAny` operator is handling of the branches that did not reach output of `aAny` operator.
+This is important when the `aAny` operator opens resources that are required to be closed.Or when exceptions from failed branches need to be logged.
 
-The sample below demonstrates usage of `suppressed(...)` and `suppressedFailure(...)` that could be used to
-receive the abandoned results.
+The sample below demonstrates usage of `suppressed(...)` and `suppressedFailure(...)` that could be used to receive the abandoned results.
+This might be used for logging and cleaning up resources.
+Note, these operations will be called after `aAny` operator promise will be resolved.
+In some cases vat might be already stopped at that points, so these operations might be never executed.
+Use these operations with care or on the vats which cannot be stopped (like daemon vat's).
 
-```java
+[source,java]
+----
         Tuple3<Integer, Throwable, Integer> t = doAsync(
                 () -> {
                     Promise<Throwable> failure = new Promise<>();
@@ -510,7 +518,7 @@ receive the abandoned results.
         assertEquals(RuntimeException.class, t.getValue2().getClass());
         assertEquals(1, t.getValue3().intValue());
 
-```
+----
 
 ==== Cancellation
 
@@ -532,7 +540,8 @@ We will assume that provider fail, so consumer might fail to receive expected va
 In that case, we would like to consumer to fail as well.
 For example:
 
-```java
+[source,java]
+----
         ArrayList<Integer> list = new ArrayList<>();
         doAsync(() -> {
             SimpleQueue<Integer> queue = new SimpleQueue<>();
@@ -550,12 +559,12 @@ For example:
             ).andLast(
                     () -> aSeq(
                             () -> queue.put(1)
-                    ).thenDo(
+                    ).thenFlatGet(
                             () -> queue.put(2)
-                    ).thenDo(
+                    ).thenFlatGet(
                             // pause
                             () -> aSeqForUnit(rangeIterator(1, 10), t -> aLater(() -> aTrue()))
-                    ).thenDoLast(
+                    ).thenFlatGet(
                             () -> cancellation.run(() -> aFailure(new RuntimeException()))
                     )
             ).mapOutcome(o -> {
@@ -565,59 +574,69 @@ For example:
             });
         });
         assertEquals(Arrays.asList(1, 2), list);
-```
+----
+
 If we do queue reading like in commented out line, the test will hang up, because the consumer will never receive the value, because supplier failed.
-But in uncommented line, we wrap call to `queue.take()` into cancellation runner.
+But, in uncommented line, we wrap call to `queue.take()` into cancellation runner.
 This allows us to fail all executions of cancellation that are active or will be active.
 Inside the call of `cancellation.run(...)` there is any operator against common promise, if any of the
 `cancellation.run(...)` fails, that promise fails as well.
-Otherwise it stays in unresolved state.
+Otherwise, it stays in unresolved state.
 
 === Context Propagation
 
 Some API requires propagation of the context and setting the context for action execution.
-The best option would be passing it via implicit or explicit arguments, but in some cases it is not practical, particularly in case of integration with different frameworks that rely on thread local variables to keep contextual information.
+The best option would be passing it via implicit or explicit arguments, but in some cases it is not practical, particularly in case of integration with different frameworks that rely on thread-local variables to keep contextual information.
 
 To simplify handling of such cases AsyncFlows provides Context API. The context API allows is automatic propagation of context ot most actions.
-Basic operation `aLater(...)` and `aSend(...)` support such propagation.
-So it is recommended to rely on them when you are creating own DSL.
+
+Basic operation `aLater(...)` and `aSend(...)` support such propagation, and most of control constructs are using them.
+So it is recommended to rely on them when you are creating own DSL operations.
 
 ==== Context Object
 
-The class link:asyncflows-core/src/main/java/org/asyncflows/core/context/Context.java[Context] is basic element of the context propagation functionality.
-The context construction starts with `Context.empty()` then elements could be added with `context.with(...)` and `context.withPrivate(...)` entries, and removed with `context.without(...)` entries.
+The class link:asyncflows-core/src/main/java/org/asyncflows/core/context/Context.java[Context] is the basic element of the context propagation functionality.
+The context construction starts with `Context.empty()` then elements could be added with `context.with(...)`
+and `context.withPrivate(...)` entries, and removed with `context.without(...)` entries.
 
 The context has two operators for establishing the context: `context.setContext()` that returns `Context.Cleanup`
 that could be used in 'try with resources' Java statement.
 
-```java
+[source,java]
+----
 final Context test = ...;
 try (Cleanup ignored = test.setContext()) {
     action.doIt();
 }
-```
+----
 
-And `context.run(...)` that set context runs runnable and then close context cleanup.
+The method `context.run(...)` that set context runs runnable and then close context cleanup.
 
-```java
+[source,java]
+----
 test.run(() -> {
     action.doIt();
 });
-```
+----
+
 There are private and public entries in the context.
 The public entries are added using `context.with(...)` operator, and they could be later removed with `context.without(...)` operation.
+
 Each such entry is associated with key of the type `ContextKey`.
 The context values could be added later with the method `context.getOrNull(...)` and other get methods.
 
 The keys are created as the following:
 
-```java
+[source,java]
+----
     private static final ContextKey<String> TEST_KEY = ContextKey.get(ContextTest.class, "test");
-```
+----
+
 The type parameter of key is the type of the value associated with context.
 Then the key could be used to access and add context values.
 
-```java
+[source,java]
+----
 final Context test = Context.empty().with(TEST_KEY, "test");
 assertNull(Context.current().getOrNull(TEST_KEY));
 test.run(() -> {
@@ -628,10 +647,10 @@ test.run(() -> {
     assertEquals("test", Context.current().getOrNull(TEST_KEY));
 });
 assertNull(Context.current().getOrNull(TEST_KEY));
-```
+----
 
 Context is an immutable object, and each modification of the context return a new instance of the context.
-When new instance of the context is established, the old instance is completely rolled back.
+However, context entries could contain mutable objects (for example logging MDC) When new instance of the context is established, the old instance is completely rolled back.
 
 ==== Active Context Entries
 
@@ -640,9 +659,9 @@ Some context entries require modification of the thread when context is establis
 To support such contextual entries an interface
 link:asyncflows-core/src/main/java/org/asyncflows/core/context/spi/ActiveContextEntry.java[ActiveContextEntry]
 was introduced.
-When context with such value is activated, the method `Context.Cleanup setContextInTheCurrentThread()` is invoked.
+When context with such value is activated, the method `Cleanup setContextInTheCurrentThread()` is invoked.
 The returned value is used to return to the previous state of the context.
-The convention is that such state should be equal to the previous sate, for example, the preivous state of `ThreadLocal` should be set.
+The convention is that such state should be equal to the previous state, for example, the previous state of `ThreadLocal` should be set.
 
 See the definition of
 link:asyncflows-core/src/main/java/org/asyncflows/core/context/util/ContextClassLoaderEntry.java[ContextClassLoaderEntry]
@@ -652,7 +671,8 @@ methods that return `UnaryOperator<Context>` that could be passed to `context.tr
 This allows hiding implementation details like keys and initialization of initial values.
 For example:
 
-```java
+[source,java]
+----
 public static UnaryOperator<Context> withSavedContextClassloader() {
     return withContextClassloader(Thread.currentThread().getContextClassLoader());
 }
@@ -660,20 +680,21 @@ public static UnaryOperator<Context> withSavedContextClassloader() {
 public static UnaryOperator<Context> withContextClassloader(ClassLoader newClassLoader) {
     return c -> c.with(KEY, new ContextClassLoaderEntry(newClassLoader));
 }
-```
+----
 
 Such method could be used later as the following:
 
-```java
+[source,java]
+----
 final Context test1 = Context.empty().transform(withContextClassloader(classLoader));
-```
+----
 
 Sometimes it is not practical or possible to require creation of the separate key for context entries, as context entries could have own identity (for example, ThreadLocal).
 Such entries exist only for establishing the thread context, and there is no meaningful textual names for such objects.
 To support such entries, the interface
 link:asyncflows-core/src/main/java/org/asyncflows/core/context/spi/PrivateContextEntry.java[PrivateContextEntry]
 was introduced.
-It is possible to add it context (or replace with in new instance of context), but it is not possible to create a context with such entry removed.
+It is possible to add it context (or replace with in a new instance of context), but it is not possible to create a context with such entry removed.
 
 Instead of the explicit key, such entries should implement the method  `Object identity()` that returns identity object for context entry, this identity object will be used as a key (it will be compared by the operator `==`).
 For thread local context entry, such entry will return a reference to thread local itself.
@@ -686,10 +707,12 @@ contains a number of useful active context entries that could be used as example
 
 ==== Asynchronous Operations
 
-While context framework does not depend on the rest of AsyncFlows framework and it could be used independetnly, the AsyncFlows framework integrates with it and provide some ready to use control constructs.
+While context framework does not depend on the rest of the AsyncFlows framework, and it could be used independently, the AsyncFlows framework integrates with it and provide some ready to use control constructs.
 
 There are two versions of the contextual execution, one that gets ready to use context, and one that updates the context.
-```java
+
+[source,java]
+----
 doAsync(() -> {
     assertNull(MDC.get("k"));
     return inContext(withMdcEntry("k", "v"), () -> { // updates current context using
@@ -703,12 +726,13 @@ doAsync(() -> {
         return null;
     });
 });
-```
+----
 
 It is also possible to create contexts asynchronously, if establishing context requires contacting some external service.
 The same sample in the asynchronous version:
 
-```java
+[source,java]
+----
 doAsync(() -> {
     assertNull(MDC.get("k"));
     return inContext(c -> aValue(c.transform(withMdcEntry("k", "v")))).run(() -> aLater(() -> {
@@ -725,19 +749,17 @@ doAsync(() -> {
         return null;
     });
 });
-```
+----
+
 === Safety frames
 
-The asynchronous operations generally do not own data and many changes could happen to data
-when there is simultaneous work on it.
+The asynchronous operations generally do not own data, and many changes could happen to data when there is a simultaneous processing on it.
 
-Generally, the code should be written that data invariant should be maintained while single
-closure is executed.Other closures represent code that might be executed after something
-has changed.
+Generally, the code should be written that data invariant should be maintained while single closure is executed.
+Other closures represent code that might be executed after something has changed.
 
-If there is no explicit fork like (aPar, aSed/aLater to other vat, calls to components),
-the mutable data could be assumed to be safe to use from vat as vat context would not switch while operation is in progress.
-The thread might be different, but there will be appropriate synchronizations that will cause write/read barriers for new thread.
+If there is no explicit fork like (aPar, aSed/aLater to other vat, calls to components), the mutable data could be assumed to be safe to use from vat as vat context would not switch while operation is in progress.
+The thread might be different, but there will be write/read barriers for the new thread.
 
 If callback is passed to other Vat, it usually need to be exported in order to be executed in this Vat context with the same safety guarantees using
 link:asyncflows-core/src/main/java/org/asyncflows/core/function/FunctionExporter.java[FunctionExporter]
@@ -746,7 +768,7 @@ or other way.
 == Object-Oriented Programming
 
 As we have seen in the previous section, the framework support rich set of asynchronous operators that support functional and structured asynchronous programming.
-And the framework also supports creation of asynchronous components, so normal object-oriented programming could be used as well.
+And, the framework also supports creation of asynchronous components, so normal object-oriented programming could be used as well.
 
 === Classes and Interfaces
 
@@ -754,20 +776,22 @@ The asynchronous interface is normal Java interface that has methods that return
 The other types of methods could present on the interface, but they will not be supported by the runtime, and they will throw an exception.
 Let's consider a simple Queue interface:
 
-```java
+[source,java]
+----
 @Asynchronous
 public interface ATestQueue<T> {
     Promise<T> take();
     void put(T element);
 }
-```
+----
 
 The method `put(...)` is one way, the method is one-way is just for demonstration here.
 AQueue component in the library returns Promise<Void> because there might be errors on put operations.
 The method `take()` returns the `Promise` as it might need to wait until some value is available.
 By convention, the interface names start with 'A' to indicate that is an asynchronous interface.
 
-```java
+[source,java]
+----
 public class TestQueue<T> implements ATestQueue<T>, ExportableComponent<ATestQueue<T>> {
     private final Deque<T> elements = new LinkedList<>();
     private final Deque<AResolver<T>> resolvers = new LinkedList<>();
@@ -803,10 +827,10 @@ public class TestQueue<T> implements ATestQueue<T>, ExportableComponent<ATestQue
 
     @Override
     public ATestQueue<T> export(final Vat vat) {
-        return ObjectExporter.export(vat, this);
+        return exportTestQueue(vat, this);
     }
 }
-```
+----
 
 The basic idea of the implementation is that we have two queues, queue of values and queue of waiters for value.
 Only one of the queues could contain values at the same time.
@@ -824,7 +848,8 @@ The proxies could be written manually or APT code generator could be used to gen
 
 The exporter could be written manually, and would look like this:
 
-```java
+[source,java]
+----
     public static <T> ATestQueue<T> exportTestQueue(final ATestQueue<T> service, final Vat vat) {
         return new ATestQueue<T>() {
             @Override
@@ -838,11 +863,12 @@ The exporter could be written manually, and would look like this:
             }
         };
     }
-``` 
+----
 
 Let's test this method:
 
-```java
+[source,java]
+----
         final int rc = doAsync(() -> {
             final ATestQueue<Integer> queue = new TestQueue<Integer>().export();
             return aAll(() -> aSeqForUnit(rangeIterator(0, 10), i -> {
@@ -854,7 +880,7 @@ Let's test this method:
             ).selectValue2();
         });
         assertEquals((11 * 10) / 2, rc);
-```
+----
 
 ==== Asynchronous Proxy Generator
 
@@ -879,7 +905,8 @@ annotation.The implementation will be generated only for non-default interface m
 
 The generated proxy will look like the following:
 
-```java
+[source,java]
+----
 @javax.annotation.Generated("org.asyncflows.apt.AsynchronousProxyProcessor")
 public final class ATestQueueProxyFactory implements java.util.function.BiFunction<org.asyncflows.core.vats.Vat, java.lang.Object, java.lang.Object>, org.asyncflows.core.util.AsynchronousService {
     public static final ATestQueueProxyFactory INSTANCE = new ATestQueueProxyFactory();
@@ -947,7 +974,7 @@ public final class ATestQueueProxyFactory implements java.util.function.BiFuncti
         }
     }
 }
-```
+----
 
 The rules are the following:
 
@@ -987,9 +1014,8 @@ However, it is not always so as some operations require calls of non-asynchronou
 
 CPU-bound operations should be generally delegated to the ForkJoin pool (`aForkJoinGet(...)`).
 IO-bound synchronous operations should be delegated to daemon thread pool (`aDaemonGet(...)`).
-If you are in doubt, just send it to daemon pool.There are helps that start operations on
-corresponding pools using vats.These operations do not establish asynchronous context
-on corresponding pools, so they are quite lightweight and suitable to invocation of some synchronous method.
+If you are in doubt, just send it to daemon pool.
+There are utilities that start operations on corresponding pools using vats.These operations do not establish asynchronous context on corresponding pools, so they are quite lightweight and suitable to invocation of some synchronous method.
 
 If asynchronous context need to be established, it is better to use `aLater(Vats.daemonVat(), ...)`
 or `aLater(Vats.forkJoinVat(), ...)`.
@@ -998,9 +1024,10 @@ These operations will create a new vats that runs over corresponding pools.
 === Request Queue
 
 In the queue sample, the asynchronous operations are written in the way, that no new problems will happen if method will be called before some previous method finishes.
-In Java synchronous code this is usually handled by synchronized framework.
+In Java synchronous code this is usually handled by the statement 'synchronized'.
 In this framework similar functionality is provided by `RequestQueue`.
-The biggest difference from Java synchronization is that nested invocations of request queue are blocked.
+The biggest difference from Java synchronization is that nested invocations of request queue are not supported.
+Other major difference is that this utility class is indendent for use from single vat, so it should not be exposed outside of the asynchronous components.
 
 The basic method of `RequestQueue` is `run(ASupplier<T>)`, this method has some utility variants like
 `runSeqWhile(...)`.
@@ -1010,18 +1037,20 @@ There are also suspend/resume utility methods that are analogs of Java wait/noti
 
 As example, lets consider `Semaphore` implementation similar to Java `Semaphore` class.
 
-```java
+[source,java]
+----
 public interface ASemaphore {
     void release(int permits);
     void release();
     Promise<Void> acquire();
     Promise<Void> acquire(int permits);
 }
-```
+----
 
 The class in the library is implemented like the following:
 
-```java
+[source,java]
+----
 public final class Semaphore implements ASemaphore, ExportableComponent<ASemaphore> {
     private final RequestQueue requests = new RequestQueue();
     private int permits;
@@ -1069,7 +1098,7 @@ public final class Semaphore implements ASemaphore, ExportableComponent<ASemapho
         return UtilExporter.export(vat, this);
     }
 }
-```
+----
 
 The method `acquire(...)` needs to be ordered to implement FIFO ordering.
 Some parts of the method do not need to be protected, and we can check input as we please.
@@ -1087,7 +1116,8 @@ If there is no acquire operation pending, the resume operation is doing nothing.
 
 Let's see how it works in test:
 
-```java
+[source,java]
+----
         final ArrayList<Integer> result = new ArrayList<>();
         final Void t = doAsync(() -> {
             final ASemaphore semaphore = new Semaphore(0).export();
@@ -1095,54 +1125,60 @@ Let's see how it works in test:
             return aAll(() ->
                             aSeq(
                                     () -> semaphore.acquire().listen(o -> result.add(1))
-                            ).thenDo(
+                            ).thenFlatGet(
                                     () -> semaphore.acquire(3).listen(o -> result.add(2))
-                            ).thenDoLast(
+                            ).thenFlatGet(
                                     () -> semaphore.acquire().listen(o -> result.add(3))
                             )
             ).andLast(() ->
                     aSeq(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDo(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-1);
                         semaphore.release(2);
                         return aVoid();
-                    }).thenDo(
+                    }).thenFlatGet(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDo(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-2);
                         semaphore.release();
                         return aVoid();
-                    }).thenDo(
+                    }).thenFlatGet(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDoLast(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-3);
                         semaphore.release(3);
                         return aVoid();
-                    })).toVoid();
+                    }));
         });
         assertSame(null, t);
         assertEquals(Arrays.asList(-1, 1, -2, -3,  2, 3), result);
-```
+----
 
 == Troubleshooting
+
 === Logging
 
-The framework uses slf4j for logging. All exceptions that are received during listener
-notification are logged on the debug level. If you do not receive some events for some reason,
-you could try enable debug logging for the framework.
+The framework uses slf4j for logging.
+All exceptions that are received during listener notification are logged on the debug level.
+If you do not receive some events for some reason, you could try enabling debug logging for the framework.
 
 A good logging could greatly help troubleshooting the applications.
 
 === Trace Provider
 
-The execution trace of asynchronous operations is difficult to record. In the framework, it is  
-possible to enable call tracing for the application using system property:
-```
+The execution trace of asynchronous operations is difficult to record.
+In the framework, it is possible to enable call tracing for the application using system property:
+
+[source,properties]
+----
 org.asyncflows.core.trace.provider=EXCEPTION
-```
+----
+
 If this property is enabled, the stack trace will look like the following:
-```
+
+[source]
+----
 java.lang.IllegalStateException: Test
 	at org.asyncflows.core.CoreFlowsTest.lambda$null$3(CoreFlowsTest.java:51)
 	at org.asyncflows.core.CoreFlows.aNow(CoreFlows.java:191)
@@ -1162,22 +1198,20 @@ java.lang.IllegalStateException: Test
 		at org.asyncflows.core.CoreFlows.aNow(CoreFlows.java:191)
 		at org.asyncflows.core.AsyncContext.lambda$doAsyncOutcome$1(AsyncContext.java:65)
 		... 59 more
-```
-The exception `org.asyncflows.core.PromiseTraceExceptionProvider$PromiseTraceException`
-is entry created by the exception trace provider. This provider is quite expensive from CPU
-perspective as it creates an exception for each unresolved promise, so it is suggested to use
-it only during problem investigation.
+----
 
-This feature is experimental. It is also possible to write own trace providers. Refer to interface
+The exception `org.asyncflows.core.PromiseTraceExceptionProvider$PromiseTraceException`
+is entry created by the exception trace provider.This provider is quite expensive from CPU perspective as it creates an exception for each unresolved promise, so it is suggested to use it only during problem investigation.
+
+This feature is experimental.It is also possible to write own trace providers.Refer to interface
 link:asyncflows-core/src/main/java/org/asyncflows/core/trace/PromiseTraceProvider.java[PromiseTraceProvider]
 for more information.
 
 === Debugging Considerations
 
-When debugging, the stack trace is not available directly, but it is still possible to examine
-asynchronous stack by starting from resolvers passed from upper contexts. The Java saves variables
-in Java objects referenced by lambdas. If trace feature is enabled, it is also possible to find out stack
-trace for location where promise was created.
+When debugging, the stack trace is not available directly, but it is still possible to examine asynchronous stack by starting from resolvers passed from upper contexts.
+The Java saves variables in Java objects referenced by lambdas.
+If trace feature is enabled, it is also possible to find out stack trace for location where promise was created.
 
 So the debugging is more difficult, but it is still possible using framework.
 
@@ -1192,7 +1226,8 @@ is that asynchronous streams provide asynchronous stream access operations.The s
 
 Asynchronous streams provide two lean interfaces and there is no intention to provide additional operations here.
 
-```java
+[source,java]
+----
 public interface AStream<T> extends ACloseable {
     Promise<Maybe<T>> next();
 }
@@ -1202,7 +1237,7 @@ public interface ASink<T> extends ACloseable {
     Promise<Void> fail(Throwable error);
     Promise<Void> finished();
 }
-```
+----
 
 The stream operations like map, flatMap, filter, and others are provided by stream builders.Work with StreamBuilder
 typically starts with some `AsyncStreams` class method like `aForRange` or `aForStream`.Stream building starts
@@ -1210,7 +1245,8 @@ in `pull` mode.So all elements will be processed sequentially.The stream builder
 like `map`, `filter`, `flatMap`, `leftFold`, and `collect`.These operations accept asynchronous operations instead of
 synchronous ones.
 
-```java
+[source,java]
+----
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .filter(i -> aBoolean(i % 2 == 0))
@@ -1218,11 +1254,12 @@ synchronous ones.
                         .collect(Collectors.summingInt(e -> e))
         );
         assertEquals(15, rc);
-```
+----
 
 Some methods also have the variant `Sync` that accepts Java functional interfaces.
 
-```java
+[source,java]
+----
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .filterSync(i -> i % 2 == 0)
@@ -1230,7 +1267,7 @@ Some methods also have the variant `Sync` that accepts Java functional interface
                         .collect(Collectors.summingInt(e -> e))
         );
         assertEquals(15, rc);
-``` 
+----
 
 It is also possible to specify processing window.
 This window is basically prefetch buffer for a sequential stream.
@@ -1238,7 +1275,8 @@ If several stages take long time, it is reasonable to start processing next reco
 The example below specifies that exactly one element is pre-fetched.
 The sample is also shows usage of `process(...)` method that could be used to implement reusable parts of processing pipeline.
 
-```java
+[source,java]
+----
         final Function<StreamBuilder<Integer>, StreamBuilder<Integer>> delay =
                 s -> s.map(a -> aForRange(0, 10).toVoid().thenValue(a));
         List<Integer> result = new ArrayList<>();
@@ -1260,7 +1298,7 @@ The sample is also shows usage of `process(...)` method that could be used to im
         );
         assertEquals(10, rc);
         assertEquals(Arrays.asList(0, 2, -0, 4, -2, 6, -4, 8, -6, -8), result);
-```
+----
 
 ==== 'All' Streams
 
@@ -1273,7 +1311,8 @@ Like for `aAll*` operators, the processing done is parallel for all elements.How
 amount of parallel processing using `.window(n)` call.In that case only several elements will be processed
 at the same time.This might be useful if the task is taxing on resources.
 
-```java
+[source,java]
+----
         final int rc = doAsync(() ->
                 aForRange(0, 11)
                         .all(2)
@@ -1282,7 +1321,7 @@ at the same time.This might be useful if the task is taxing on resources.
                         .collect(Collectors.summingInt(e -> e))
         );
         assertEquals(15, rc);
-```
+----
 
 Note, while each stage is parallel, the current implementation waits until previous element was passed to next stage before passing element to next stage.
 This might introduce delays to processing, but maintain the same order as pull stream processing.
@@ -1296,7 +1335,8 @@ The try statement accepts resource references, promises for resource references,
 Then it closes resource after it has been used.
 Let's define a simple resource.
 
-```java
+[source,java]
+----
     public static class SampleResource implements ACloseable, ExportableComponent<ACloseable> {
         private final Cell<Boolean> closed;
 
@@ -1315,13 +1355,14 @@ Let's define a simple resource.
             return () -> ResourceUtil.closeResource(vat, SampleResource.this);
         }
     }
-```
+----
 
 This resource just support close action.Also, to support work with resources there are classes
 CloseableBase and ChainedCloseableBase that simplify creating resource wrappers.Now, we could try
 different options of working with resources:
 
-```java
+[source,java]
+----
         final Cell<Boolean> r1 = new Cell<>(false);
         final Cell<Boolean> r2 = new Cell<>(false);
         final Cell<Boolean> r3 = new Cell<>(false);
@@ -1335,7 +1376,7 @@ different options of working with resources:
         assertTrue(r1.getValue());
         assertTrue(r2.getValue());
         assertTrue(r3.getValue());
-```
+----
 
 Up to three resources could be opened with one `aTry` operator.
 However, it is also possible to nest `aTry` operators, so previously opened resources are accessible in lexical scope.
@@ -1347,7 +1388,8 @@ However, it is also possible to nest `aTry` operators, so previously opened reso
 The IO library is also built upon lean interfaces and different operations built upon it.
 The following are core interfaces of the library:
 
-```java
+[source,java]
+----
 public interface AInput<B extends Buffer> extends ACloseable {
     Promise<Integer> read(B buffer);
 }
@@ -1359,22 +1401,18 @@ public interface AChannel<B extends Buffer> extends ACloseable {
     Promise<AInput<B>> getInput();
     Promise<AOutput<B>> getOutput();
 }
-```
+----
 
-As you could see, these interfaces are suitable for both character IO and
-byte IO. Some operations that work with these interfaces are
+As you could see, these interfaces are suitable for both character IO and byte IO. Some operations that work with these interfaces are
 [generic](asyncflows-io/src/main/java/org/asyncflows/io/IOUtil.java).
 
 The following functionality is supported out of the box:
 
-* Character encoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/DecoderInput.java[DecoderInput])
-/ decoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/EncoderOutput.java[EncoderOutput])
+* Character encoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/DecoderInput.java[DecoderInput]) / decoding(link:asyncflows-io/src/main/java/org/asyncflows/io/text/EncoderOutput.java[EncoderOutput])
 * Digesting (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java[DigestingInput]) and
 link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java[DigestingOutput])
 * GZip (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingInput.java[GZipInput]) and
-link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java[GZipOutput]),
-Deflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DeflateOutput.java[DeflateOutput]),
-and Inflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/InflateInput.java[InflateInput])
+link:asyncflows-io/src/main/java/org/asyncflows/io/util/DigestingOutput.java[GZipOutput]), Deflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/DeflateOutput.java[DeflateOutput]), and Inflate (link:asyncflows-io/src/main/java/org/asyncflows/io/util/InflateInput.java[InflateInput])
 * Utility streams
 * Synchronous stream link:asyncflows-io/src/main/java/org/asyncflows/io/adapters[adapters].
 
@@ -1387,9 +1425,10 @@ Implementation based on traditional blocking sockets API sometimes hangs on Wind
 This implementation is left only backward compatibility with non-complete Java runtimes.
 
 The sockets are just byte channels with few additional operators, and they support the same operations.
-But, there are few additional operations.
+However, there are few additional operations.
 
-```java
+[source,java]
+----
 public interface ASocket extends AChannel<ByteBuffer> {
     Promise<Void> setOptions(SocketOptions options);
     Promise<Void> connect(SocketAddress address);
@@ -1419,35 +1458,33 @@ public interface ADatagramSocket extends ACloseable {
     Promise<Void> send(SocketAddress address, ByteBuffer buffer);
     Promise<SocketAddress> receive(ByteBuffer buffer);
 }
-``` 
+----
 
 These interfaces could be used in the way similar to traditional synchronous code.
 See link:asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoServerSample.java[echo server]
 and link:asyncflows-io/src/test/java/org/asyncflows/io/net/samples/EchoClientSample.java[echo client]
 as examples.
 
-
 ==== TLS support
 
-TLS implementation relies on Java SSLEngine for asynchronous processing, so it follows all restrictions
-enforced by it.Note, SSL protocols are not not supported by Java's SSLEngine anymore, so the framework
-stick with TLS name.
+TLS implementation relies on Java SSLEngine for asynchronous processing, so it follows all restrictions enforced by it.Note, SSL protocols are not supported by Java's SSLEngine anymore, so the framework stick with TLS name.
 
-The TLS implementation is just a ASocketFactory that wraps other socket factory.Interfaces are the same
-as for sockets with two additional operations on the socket:
+The TLS implementation is just a ASocketFactory that wraps other socket factory.Interfaces are the same as for sockets with two additional operations on the socket:
 
-```java
+[source,java]
+----
 public interface ATlsSocket extends ASocket {
     Promise<Void> handshake();
     Promise<SSLSession> getSession();
 }
-``` 
+----
+
 First one allows initiating handshake, the second one allows accessing session and examining certificates.
 
-There are no TLS related parameters on TlsSocket factory, instead there are a factory methods for SSLEngine
-which allow configuring needed parameters for SSLEngine before using it in the processing:
+There are no TLS related parameters on TlsSocket factory, instead there are a factory methods for SSLEngine which allow configuring needed parameters for SSLEngine before using it in the processing:
 
-```java
+[source,java]
+----
 public class TlsSocketFactory implements ASocketFactory, ExportableComponent<ASocketFactory> {
     public void setServerEngineFactory(final AFunction<SocketAddress, SSLEngine> serverEngineFactory) {
        ...
@@ -1456,34 +1493,30 @@ public class TlsSocketFactory implements ASocketFactory, ExportableComponent<ASo
         ...
     }
 }
-```
-These factories need to configure TLS parameters basing on SocketAddress.It is expected, that different
-TlsSocketFactory instances will be used for different security contexts.
+----
+
+These factories need to configure TLS parameters basing on SocketAddress.It is expected, that different TlsSocketFactory instances will be used for different security contexts.
 
 ==== HTTP 1.1 support
 
 The framework provides experimental support for HTTP 1.1 protocol on client and server side.
-The code is currently more like low-level protocol implementation rather than ready to use
-application server. The neither side is finished, but it could be experimented with. 
+The code is currently more like low-level protocol implementation rather than ready to use application server.The neither side is finished, but it could be experimented with.
 HTTPS is not implemented at the moment.
 
-See [unit test](asyncflows-protocol-http/src/test/java/org/asyncflows/protocol/http/core)
-for sample code.
+See [unit test](asyncflows-protocol-http/src/test/java/org/asyncflows/protocol/http/core) for sample code.
 
 == How framework addresses the typical problems
 
 === Back pressure
 
-Many asynchronous libraries have a back pressure problem.When one source of data provides more
-data than consumer might consume.Some frameworks did not had a solution for the problem
-(like Netty before 4.0), some introduce unnatural solutions like disabling/enabling reading
-(like Vert.x and modern Netty), some hide it inside framework (like Akka), or provide a separate
-event listeners for channels (like Apache HttpCore Async 5.x).
+Many asynchronous libraries have a back pressure problem.
+When one source of data provides more data than consumer might consume.
+Some frameworks did not have a solution for the problem (like Netty before 4.0), some introduce unnatural solutions like disabling/enabling reading (like Vert.x and modern Netty), some hide it inside framework (like Akka), or provide a separate event listeners for channels (like Apache HttpCore Async 5.x).
 
-However, there is no such problem with synchronous io in Java, as streams block if nothing
-could be written to it:
+However, there is no such problem with synchronous io in Java, as streams block if nothing could be written to it:
 
-```java
+[source,java]
+----
 long length = 0;
 byte[] b = new byte[4096]
 while(true)  {
@@ -1495,7 +1528,7 @@ while(true)  {
    out.write(b, 0, c);
 }
 return length;
-```
+----
 That is practically all.Back pressure propagates naturally via blocking.No more data will be read,
 if write is not complete.If there is error, it will be propagated to caller.
 
@@ -1503,7 +1536,8 @@ The framework provides practically the same approach.There is no explicit backpr
 The output stream is accepting request, and return to caller when it is finished processing it,
 including sending data to downstream.
 
-```java
+[source,java]
+----
     public final Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int bufferSize) {
         ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
         final long[] result = new long[1];
@@ -1522,7 +1556,7 @@ including sending data to downstream.
                 })
         ).thenGet(() -> result[0]);
     }
-```
+----
 
 There are more code as asynchronous operations need to be handled and working with buffers is more complex
 than with arrays, but still it is very similar to what is written for synchronous streams.
@@ -1530,7 +1564,8 @@ than with arrays, but still it is very similar to what is written for synchronou
 Such way of handling back pressure does not necessary limit parallelism.It is possible to use features of the
 framework to ensure that reads and writes are done in parallel when it makes sense.
 
-```java
+[source,java]
+----
     public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int buffers, int bufferSize) {
         final SimpleQueue<ByteBuffer> readQueue = new SimpleQueue<>();
         final SimpleQueue<ByteBuffer> writeQueue = new SimpleQueue<>();
@@ -1570,7 +1605,7 @@ framework to ensure that reads and writes are done in parallel when it makes sen
                 )
         ).map((a, b) -> aValue(result[0]));
     }
-```
+----
 
 In the provided sample, the read operation uses buffers to read when available, and writes when buffer with data is available.
 So if writes are slower or reads are slower, the algorithm will adapt to the speed.
@@ -1585,8 +1620,8 @@ If there is a recursive state like xml or json, they have to keep the explicit s
 
 The biggest problem with such approach is that such code is not readable as state of the process does not match state of the code.
 This is exactly the same problem that is mentioned is the famous article Edsger W. Dijkstra "Go To Statement Considered Harmful".
-There is excellent analysis of that article that translates the article to more modern context: http://david.tribble.com/text/goto.html[David R. Tribble "Go To
-Statement Considered Harmful: A Retrospective"].
+There is excellent analysis of that article that translates the article to more modern context:
+http://david.tribble.com/text/goto.html[David R. Tribble "Go To Statement Considered Harmful: A Retrospective"].
 Control flow inversion causes the same problem as it was described by Edsger W. Dijkstra:
 
 [quote,Edsger W. Dijkstra,Go To Statement Considered Harmful,1968]
@@ -1594,45 +1629,24 @@ Control flow inversion causes the same problem as it was described by Edsger W. 
 For that reason we should do (as wise programmers aware of our limitations) our utmost to shorten the conceptual gap between the static program and the dynamic process, to make the correspondence between the program (spread out in text space) and the process (spread out in time) as trivial as possible.
 ""
 
-It is very hard to understand what is happening in the process and to what states it could go by analysis
-of the code.It is much simpler when control flow is evident from the code structure.AsyncFlows library
-provide such flow.
+It is very hard to understand what is happening in the process and to what states it could go by analysis of the code.It is much simpler when control flow is evident from the code structure.AsyncFlows library provide such flow.
 
-I would say that direct event sending to some queue or actor is similar to "go to" operator in programming
-languages.At least it has the same properties.
+I would say that direct event sending to some queue or actor is similar to "go to" operator in programming languages.At least it has the same properties.
 
 [quote,Edsger W. Dijkstra,Go To Statement Considered Harmful,1968]
-""
-The unbridled use of the go to statement has an immediate consequence that it becomes terribly hard to find
-a meaningful set of coordinates in which to describe the process progress.Usually, people take into account
-as well the values of some well chosen variables, but this is out of the question because it is relative to
-the progress that the meaning of these values is to be understood!With the go to statement one can, of course,
-still describe the progress uniquely by a counter counting the number of actions performed since program start
-(viz. a kind of normalized clock).The difficulty is that such a coordinate, although unique, is utterly
-unhelpful.In such a coordinate system it becomes an extremely complicated affair to define all those points
-of progress where, say, n equals the number of persons in the room minus one!
+"" The unbridled use of the go to statement has an immediate consequence that it becomes terribly hard to find a meaningful set of coordinates in which to describe the process progress.Usually, people take into account as well the values of some well chosen variables, but this is out of the question because it is relative to the progress that the meaning of these values is to be understood!With the go to statement one can, of course, still describe the progress uniquely by a counter counting the number of actions performed since program start (viz. a kind of normalized clock).The difficulty is that such a coordinate, although unique, is utterly unhelpful.In such a coordinate system it becomes an extremely complicated affair to define all those points of progress where, say, n equals the number of persons in the room minus one!
 ""
 
-If we have event handlers, that are to keep own state, we also do no have a context, that helps us
-to understand context.We need to consider all events to be possible at every moment of time.The pain is real.
-For example of pain of Actor programming paradigm cased by event sending in Erlang context,
-one could watch the presentation https://www.infoq.com/presentations/Death-by-Accidental-Complexity[Death
-by Accidental Complexity].While presentation is using Erlang sample, the problems described are common for many
-other technologies, particularly Actor-based.
+If we have event handlers, that are to keep own state, we also do no have a context, that helps us to understand context.We need to consider all events to be possible at every moment of time.The pain is real.
+For example of pain of Actor programming paradigm cased by event sending in Erlang context, one could watch the presentation https://www.infoq.com/presentations/Death-by-Accidental-Complexity[Death
+by Accidental Complexity].While presentation is using Erlang sample, the problems described are common for many other technologies, particularly Actor-based.
 
 [quote,Ulf Wiger,Death by Accidental Complexity (slide Apparent Problems at 26:49)]
-""
-* The whole matrix needs to be revisited if messages/features are added or removed
-* What we do in each cell is by no means obvious - depends on history
-* What to do when unexpected message arrives in a transition state is practically never specified
-(we must invent some reasonable response.)
-* Abstraction is broken, encapsulation is broken
-* Code reuse becomes practically impossible
-""
+"" * The whole matrix needs to be revisited if messages/features are added or removed * What we do in each cell is by no means obvious - depends on history * What to do when unexpected message arrives in a transition state is practically never specified (we must invent some reasonable response.) * Abstraction is broken, encapsulation is broken * Code reuse becomes practically impossible ""
 
 The core of the problem is the same as what was described by Edsger W. Dijkstra for "go to": the code structure does not mach control flow structure, so we could not reason about application state by reading code.
 The solution to the problem is also the same: structured asynchronous programming.
-While Ulf Wiger identifies problem correctly in the presentation, the proposed solution looks like poor man semi-structured programming using event filtering.
+While Ulf Wiger identifies the problem correctly in the presentation, the proposed solution looks like poor man semi-structured programming using event filtering.
 
 == Inter-Process Communications
 
@@ -1643,6 +1657,7 @@ For example, JAX-RS 2.0 supports asynchronous invocations in client and server c
 
 The most of inter-process communication protocols are currently based on the language and application independent meta-protocols, where exact choices it depends on the context.
 Most popular now are HTTP-based protocols, and additional transports like Web Sockets are also getting popular in some contexts.
+In some specific situations even memory-mapped files works well.
 As for message formats, there is a wide range of them starting from XML and JSON to ASN.1 and protobuf.
 
 Prescribing a specific solution is not practical in the current situation.
@@ -1667,7 +1682,7 @@ TBD
 
 === Java EE Security Manager
 
-The framework uses an own thread pool in some cases, and it could be incompatible with Java EE when security manager is enabled.
+The framework uses an own thread pool in some cases, and it could be incompatible with Java EE when a security manager is enabled.
 Turn off security manager or add appropriate permissions for your application.
 Also, the contextual security checks are not so valid in the asynchronous context, and they could be break important assumptions about security if Java EE components are called.
 
@@ -1682,27 +1697,21 @@ Some technologies have support for re-establishing context (like
 Comparing with Scala actors, there are the following key points of difference.
 
 1. In the AsyncFlows framework, component and event queue are separated and one queue could support many small components.
-Practically, there is at least one one asynchronous micro-component for each asynchronous operation.In Scala, there
-are only one asynchronous component for each event queue.This leads to problems with resource management as state of
-component need to be tracked.
+Practically, there is at least one one asynchronous micro-component for each asynchronous operation.In Scala, there are only one asynchronous component for each event queue.This leads to problems with resource management as state of component need to be tracked.
 
 2. Event dispatch in Akka is done explicitly and each queue supports only closed set of events.
-There is no interfaces
-for components and even returning result is different each time.(TypedActors try to solve problem of explicit dispatch,
-but introduce own set of the problems due to blocking calls, and also still support only closed set of events).
+There is no interfaces for components and even returning result is different each time.(TypedActors try to solve problem of explicit dispatch, but introduce own set of the problems due to blocking calls, and also still support only closed set of events).
 AsyncFlows support open set of events, as they translate to `Runnable` anyway.As many components could leave
 
-3. Actors are heavy-weight as they are integrated with event queue.They also need to be deleted explicitly to free
-resources.By comparison, AsyncFlows do not manage components explicitly, as they could garbage collected normally.
+3. Actors are heavy-weight as they are integrated with event queue.They also need to be deleted explicitly to free resources.By comparison, AsyncFlows do not manage components explicitly, as they could garbage collected normally.
 Some Vats needs to be managed explicitly, but these vats are usually used as application starting point in the main thread or have the same lifetime as application (NIO).
 ExecutorVat does not need to be explicitly stopped (the underlying executor needs to be stopped, but daemon executor creates and frees threads as needed and does not need to be stopped).
 
 4. As Akka Actors work with event queue directly, it is possible handle events not in the order they were sent to actor.
-AsyncFlows insists on handling events in the order they are received by a vat.Reordering of event
-handling still could be done by utility classes like RequestQueue.
+AsyncFlows insists on handling events in the order they are received by a vat.Reordering of event handling still could be done by utility classes like RequestQueue.
 
-Generally, AsyncFlows support more flexible management of asynchronous components and their relationship to event queues.
-Also AsyncFlows support running the entire network application in the single thread, while Akka requires multiple threads by design.
+Generally, AsyncFlows support more flexible management of asynchronous components, and their relationship to event queues.
+Also, AsyncFlows support running the entire network application in the single thread, while Akka requires multiple threads by design.
 
 === CompletableFuture
 
@@ -1771,11 +1780,10 @@ in reasonable way, it is possible to use this DSL language in similar way.
 
 === Groovy
 
-Groovy since version 2.4 supports java functional interfaces using closure syntax. However, sometimes more
-type annotations are needed, to specify parameter types if type checking is wanted. The syntax actually looks
-more nice for groovy.  
+Groovy since version 2.4 supports java functional interfaces using closure syntax.However, sometimes more type annotations are needed, to specify parameter types if type checking is wanted.The syntax actually looks more nice for groovy.
 
-```groovy
+[source,groovy]
+----
         def t = doAsync {
             def failure = new Promise<Throwable>();
             def suppressed = new Promise<Integer>();
@@ -1800,21 +1808,20 @@ more nice for groovy.
         assertEquals(2, t.getValue1().intValue());
         assertEquals(RuntimeException.class, t.getValue2().getClass());
         assertEquals(1, t.getValue3().intValue());
-```
+----
 
 There is much less visual noise in groovy version than in Java version of the same test.
-The Groovy is a good choice of using with the framework if there is no special concerns about
-performance.
+The Groovy is a good choice of using with the framework if there is no special concerns about performance.
 
-Note, Groovy currently implements lambdas using inner classes, so more classes are generated comparing 
-to Java 8 code. This might lead to higher application start time.
+Note, Groovy currently implements lambdas using inner classes, so more classes are generated comparing to Java 8 code.
+This might lead to higher application start time.
 
 === Kotlin
 
-The Kotlin language also has compact syntax that support DSL creation. It is also possible
-to write a compact code with much less visual noise in Kotlin as well.
+The Kotlin language also has compact syntax that support DSL creation.It is also possible to write a compact code with much less visual noise in Kotlin as well.
 
-```kotlin
+[source,kotlin]
+----
         val t = doAsync {
             val failure = Promise<Throwable>()
             val suppressed = Promise<Int>()
@@ -1839,62 +1846,56 @@ to write a compact code with much less visual noise in Kotlin as well.
         assertEquals(2, t.value1)
         assertEquals(RuntimeException::class.java, t.value2.javaClass)
         assertEquals(1, t.value3)
-```
+----
 
 So Kotlin is also good language to write structured asynchronous code if you project allows for it.
 
-Note, Kotlin currently implement lambdas using inner classes, so more classes are generated comparing 
-to Java 8 code. This might lead to higher application start time.
+Note, Kotlin currently implement lambdas using inner classes, so more classes are generated comparing to Java 8 code.This might lead to higher application start time.
 
 ==== Kotlin Coroutines
+
+CAUTION: Obsolete, it needs to be revised with flows and coroutines in 1.4.x.
 
 The https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md[Kotlin Corountines]
 is an experimental feature similar to C# async support, and there are some similar problems and advantages.
 
 The extension is implemented as compiler extension with support library.
 
-1. There is no explicit safety frames. It is not clear from lexical scope what code
-   can execute w/o interleaving with other code. In AsyncFlows, safe frame boundaries
-   are more explicit.
+1. There is no explicit safety frames.
+It is not clear from lexical scope what code can execute w/o interleaving with other code.
+In AsyncFlows, safe frame boundaries are more explicit.
 
-2. It is not always clear in what thread the code will be executed. In coroutines there is only one point
-   for specifying context `launch(context){...}`, but after that each component is on its own.
-   Controlling execution context looks like
-   https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md#continuation-interceptor[quite
-   complex]. Controlling and clear understanding of the execution context is important in the following aspects:
+2. It is not always clear in what thread the code will be executed.In coroutines there is only one point for specifying context `launch(context){...}`, but after that each component is on its own.
+Controlling execution context looks like
+https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md#continuation-interceptor[quite
+ complex].Controlling and clear understanding of the execution context is important in the following aspects:
 ** Some code requires specific execution context to be used (For example for using with NIO Selectors or AWT/Swing components)
-** Some code is either CPU-bound (so it should be go to ForkJoin), and some code is blocking
-   and IO-bound(so it should go to some unlimited thread pool). AsyncFlows solves it by the following means:
+** Some code is either CPU-bound (so it should be go to ForkJoin), and some code is blocking and IO-bound(so it should go to some unlimited thread pool).AsyncFlows solves it by the following means:
 *** The context normally is inherited from parent for asynchronous operation
 *** There are ways to change context explicitly (aSend, aLater, aPar)
 *** Each component has own context declaring during exporting, that is reestablished on each call.
 
-3. Coroutines provide very compact syntax for sequential operations, i.e. waiting and resuming
-   until some ready to continue. But coroutines provide little support from combining
-   simultaneous operations (`aAll*`, `aAny*`, `aPar*`). There is practically only fork operation.
-   partial support is provided by contextual await() operations. There is no
-   support yet for combining them in the code explicitly. The problem could be fixed by
-   providing a richer library with operators similar to AsyncFlows.
+3. Coroutines provide very compact syntax for sequential operations, i.e. waiting and resuming until some ready to continue.
+But coroutines provide little support from combining simultaneous operations (`aAll*`, `aAny*`, `aPar*`).
+There is practically only fork operation.
+partial support is provided by contextual await() operations.
+There is no support yet for combining them in the code explicitly.
+The problem could be fixed by providing a richer library with operators similar to AsyncFlows.
 
-4. Base concurrency abstractions looks like more more complex then in AsyncFlows.
-   Concurrency context combines continuation scheduling, context variables, and many
-   resume/suspend etc. Practically these are orthogonal aspects and they may be decoupled
-   and they are decoupled in AsyncFlows:
-   ** Scheduling actions: Vat
-   ** Resuming/Suspending: Promise
-   ** Contextual variables: Components and Asynchronous operations with lexical scope
+4. Base concurrency abstractions looks like more complex than in AsyncFlows.
+Concurrency context combines continuation scheduling, context variables, and many resume/suspend etc.
+Practically these are orthogonal aspects, and they may be decoupled (and they are decoupled in AsyncFlows):
+** Scheduling actions: Vat
+** Resuming/Suspending: Promise
+** Contextual variables: Components and Asynchronous operations with lexical scope
 
-5. Context combinators could provide more interesting methods of integration with
-   legacy frameworks like Java EE. Some of these ideas could be also implemented
-   in AsyncFlows with minor refactoring the current Vat API.
+5. Context combinators could provide more interesting methods of integration with legacy frameworks like Java EE. Some of these ideas could be also implemented in AsyncFlows with minor refactoring the current Vat API.
 
-Also, coroutines are bound to Kotlin with compiler support. So it is hard to write library code
-that is intended to be used by other programming languages. AsyncFlows is designed as mostly
-language-agnostic, and if language provides a reasonable integration with JVM, it is likely
-that AsyncFlows could be used with it.
+Also, coroutines are bound to Kotlin with compiler support.
+So it is hard to write library code that is intended to be used by other programming languages.
+AsyncFlows is designed as mostly language-agnostic, and if language provides a reasonable integration with JVM, it is likely that AsyncFlows could be used with it.
 
-Some library extension might be done in the future to integrate with Kotlin coroutines, so it might
-be possible to get advantages of both approaches.
+Some library extension might be done in the future to integrate with Kotlin coroutines, so it might be possible to get advantages of both approaches.
 
 === Scala
 
@@ -1914,7 +1915,8 @@ https://github.com/const/asyncflows/tree/63586493fb9d5a63c0c335df63fa396d894b0a5
 
 In the old sample code, control flow looked like the following:
 
-```scala
+[source,scala]
+----
     val list = new ListBuffer[Integer]
     val rc: Int = doAsync {
       aSeq {
@@ -1937,6 +1939,6 @@ In the old sample code, control flow looked like the following:
 
     assertEquals(42, rc)
     assertEquals(List(1, 2, 3, 4), list)
-```
+----
 
 It looks the same as Groovy version (but with better typing), and it a bit cleaner than Kotlin version.

@@ -42,9 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The semaphore test.
  */
-public class SemaphoreTest {
+class SemaphoreTest {
     @Test
-    public void test() {
+    void test() {
         final ArrayList<Integer> result = new ArrayList<>();
         final Void t = doAsync(() -> {
             final ASemaphore semaphore = new Semaphore(0).export();
@@ -52,27 +52,27 @@ public class SemaphoreTest {
             return aAll(() ->
                     aSeq(
                             () -> semaphore.acquire().listen(o -> result.add(1))
-                    ).thenDo(
+                    ).thenFlatGet(
                             () -> semaphore.acquire(3).listen(o -> result.add(2))
-                    ).thenDoLast(
+                    ).thenFlatGet(
                             () -> semaphore.acquire().listen(o -> result.add(3))
                     )
             ).andLast(() ->
                     aSeq(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDo(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-1);
                         semaphore.release(2);
                         return aVoid();
-                    }).thenDo(
+                    }).thenFlatGet(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDo(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-2);
                         semaphore.release();
                         return aVoid();
-                    }).thenDo(
+                    }).thenFlatGet(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDoLast(() -> {
+                    ).thenFlatGet(() -> {
                         result.add(-3);
                         semaphore.release(3);
                         return aVoid();
@@ -84,7 +84,7 @@ public class SemaphoreTest {
 
     @Test
     @SuppressWarnings("deprecation")
-    public void testReflection() {
+    void testReflection() {
         final Void t = doAsync(() -> {
             final Semaphore object = new Semaphore(0);
             final ASemaphore semaphore = ObjectExporter.export(Vat.current(), object);
@@ -94,18 +94,18 @@ public class SemaphoreTest {
             return aAll(
                     () -> aSeq(
                             semaphore::acquire
-                    ).thenDo(
+                    ).thenFlatGet(
                             () -> semaphore.acquire(3)
-                    ).thenDoLast(semaphore::acquire)
+                    ).thenFlatGet(semaphore::acquire)
             ).andLast(
                     () -> aSeq(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDo(() -> {
+                    ).thenFlatGet(() -> {
                         semaphore.release(2);
                         return aVoid();
-                    }).thenDo(
+                    }).thenFlatGet(
                             () -> aForRange(0, 10).toVoid()
-                    ).thenDoLast(() -> {
+                    ).thenFlatGet(() -> {
                         semaphore.release();
                         semaphore.release(3);
                         return aVoid();

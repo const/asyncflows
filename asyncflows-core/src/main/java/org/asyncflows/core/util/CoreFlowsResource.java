@@ -188,7 +188,7 @@ public final class CoreFlowsResource {
          */
         public <R> Promise<R> run(final AFunction<A, R> body) {
             final Cell<A> resource1 = new Cell<>();
-            return aSeq(openAction).map(value -> {
+            return aSeq(openAction).flatMap(value -> {
                 resource1.setValue(value);
                 return body.apply(value);
             }).finallyDo(closeResourceCellAction(resource1));
@@ -266,7 +266,7 @@ public final class CoreFlowsResource {
          */
         public <R> Promise<R> run(final AFunction2<A, B, R> body) {
             final Cell<B> resource = new Cell<>();
-            return outer.run(value1 -> aSeq(() -> openAction.apply(value1)).map(value2 -> {
+            return outer.run(value1 -> aSeq(() -> openAction.apply(value1)).flatMap(value2 -> {
                 resource.setValue(value2);
                 return body.apply(value1, value2);
             }).finallyDo(closeResourceCellAction(resource)));
@@ -323,7 +323,7 @@ public final class CoreFlowsResource {
             final Cell<C> resource = new Cell<>();
             return outer.run((value1, value2) ->
                     aSeq(() -> openAction.apply(value1, value2)
-                    ).map(value3 -> {
+                    ).flatMap(value3 -> {
                         resource.setValue(value3);
                         return body.apply(value1, value2, value3);
                     }).finallyDo(closeResourceCellAction(resource)));

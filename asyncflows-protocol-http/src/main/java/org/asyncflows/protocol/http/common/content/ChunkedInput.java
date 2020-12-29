@@ -218,7 +218,7 @@ public class ChunkedInput extends MessageInput {
     private Promise<Long> readChunkHeader(final boolean endPrevious) {
         return aSeq(
                 () -> endPrevious ? LineUtil.readLineCRLF(input, 0, true) : aValue("")
-        ).map(emptyLine -> {
+        ).flatMap(emptyLine -> {
             if (emptyLine == null) {
                 throw new HttpException("EOF instead of a chunk header");
             }
@@ -226,7 +226,7 @@ public class ChunkedInput extends MessageInput {
                 throw new HttpException("CRLF is expected after chunk end");
             }
             return LineUtil.readLineCRLF(input, HttpLimits.MAX_CHUNK_LINE, true);
-        }).map(chunkSizeLine -> {
+        }).flatMap(chunkSizeLine -> {
             if (chunkSizeLine == null) {
                 throw new HttpException("EOF instead of a chunk header");
             }
@@ -236,6 +236,6 @@ public class ChunkedInput extends MessageInput {
                 throw new HttpException("The chunk size is too big: " + chunkSizeLine);
             }
             return aValue(result);
-        }).failedLast(HttpRuntimeUtil.toHttpException("Failed to parse chunk header"));
+        }).flatMapFailure(HttpRuntimeUtil.toHttpException("Failed to parse chunk header"));
     }
 }

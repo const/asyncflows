@@ -76,7 +76,7 @@ public final class CoreFlowsAll {
     /**
      * The void collector.
      */
-    private static final Collector<Object, Void, Void> VOID_COLLECTOR = new Collector<Object, Void, Void>() {
+    private static final Collector<Object, Void, Void> VOID_COLLECTOR = new Collector<>() {
         @Override
         public Supplier<Void> supplier() {
             return () -> null;
@@ -326,7 +326,7 @@ public final class CoreFlowsAll {
                     cyclePromise.flatMapOutcome(po -> bodyPromise.flatMapOutcome(to -> {
                         if (po.isFailure()) {
                             if (to.isFailure()) {
-                                po.failure().addSuppressed(to.failure());
+                                ExceptionUtil.addSuppressed(po.failure(), to.failure());
                             }
                             return aFailure(po.failure());
                         } else {
@@ -373,7 +373,7 @@ public final class CoreFlowsAll {
                     result = outcome.failure();
                 } else {
                     if (result != outcome.failure()) {
-                        result.addSuppressed(outcome.failure());
+                        ExceptionUtil.addSuppressed(result, outcome.failure());
                     }
                 }
             }

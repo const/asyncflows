@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http2</artifactId>
-            <version>4.1.24.Final</version>
+            <version>4.1.54.Final</version>
         </dependency>
         <dependency>
             <groupId>org.asyncflows</groupId>
@@ -54,6 +54,11 @@
             <groupId>org.asyncflows</groupId>
             <artifactId>asyncflows-apt</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

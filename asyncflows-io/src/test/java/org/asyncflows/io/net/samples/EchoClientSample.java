@@ -76,7 +76,7 @@ public final class EchoClientSample {
                                     info.connectEnd = time.get();
                                     connected[0]++;
                                 });
-                    })).thenDoLast(() ->
+                    })).thenFlatGet(() ->
                             aAll(
                                     () -> aTry(socket.getOutput()).run(
                                             out -> ByteIOUtil.charGen(out, size, 4012)

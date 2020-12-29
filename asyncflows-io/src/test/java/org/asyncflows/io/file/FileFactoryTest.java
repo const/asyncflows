@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests for file factory.
  */
-public class FileFactoryTest {
+class FileFactoryTest {
     private static final byte[] SMALL_DATA = "Small Data\n".getBytes(StandardCharsets.UTF_8);
 
     private static String getMavenTargetDirectory() {
@@ -58,8 +58,9 @@ public class FileFactoryTest {
         return new File(base).getParent();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
-    public void testAppend() {
+    void testAppend() {
         String base = getMavenTargetDirectory() + "/test-standbox/fs-tests";
         new File(base).mkdirs();
         String file = base + "/append-file.txt";
@@ -70,9 +71,9 @@ public class FileFactoryTest {
             );
             return aSeq(
                     () -> aTry(files.openOutput(file)).run(t -> aVoid())
-            ).thenDo(
+            ).thenFlatGet(
                     appendToFile
-            ).thenDoLast(
+            ).thenFlatGet(
                     appendToFile
             );
         });
@@ -84,15 +85,16 @@ public class FileFactoryTest {
     }
 
     @Test
-    public void testWrite() {
+    void testWrite() {
         String base = getMavenTargetDirectory() + "/test-standbox/fs-tests";
+        //noinspection ResultOfMethodCallIgnored
         new File(base).mkdirs();
         String file = base + "/write-file.txt";
         doAsync(() -> {
             AFileFactory files = new FileFactory().export();
             return aSeq(
                     () -> aTry(files.openOutput(file)).run(this::writeSmallData)
-            ).thenDoLast(
+            ).thenFlatGet(
                     () -> aTry(files.openOutput(file)).run(
                             f -> writeSmallData(f).thenGet(() -> writeSmallData(f)))
             );

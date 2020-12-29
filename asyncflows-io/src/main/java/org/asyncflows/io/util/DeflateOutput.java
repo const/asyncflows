@@ -231,7 +231,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
                     headerWritten = true;
                     return handleHeader(output, compressed);
                 }
-            }).thenDo(() -> {
+            }).thenFlatGet(() -> {
                 deflater.setInput(ByteIOUtil.EMPTY_ARRAY, 0, 0);
                 deflater.finish();
                 return aSeqWhile(() -> {
@@ -241,7 +241,7 @@ public class DeflateOutput extends CloseableInvalidatingBase implements
                         return deflateAndWrite(Deflater.NO_FLUSH);
                     }
                 });
-            }).thenDoLast(() -> handleFinish(output, compressed));
+            }).thenFlatGet(() -> handleFinish(output, compressed));
         } else {
             return invalidationPromise();
         }

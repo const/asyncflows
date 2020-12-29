@@ -28,14 +28,10 @@ import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.function.ARunner;
 import org.asyncflows.core.function.ASupplier;
-import org.asyncflows.core.vats.Vat;
 
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -45,10 +41,8 @@ import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
 import static org.asyncflows.core.CoreFlows.aNow;
-import static org.asyncflows.core.CoreFlows.aOutcome;
 import static org.asyncflows.core.CoreFlows.aResolver;
 import static org.asyncflows.core.CoreFlows.aTrue;
-import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
 
@@ -176,8 +170,8 @@ public final class CoreFlowsSeq {
      * @param <T>    the initial type
      * @return the result type.
      */
-    public static <T> SeqBuilder<T> aSeq(final ASupplier<T> action) {
-        return withDefaultContext((runner, vat) -> new SeqBuilder<>(action, runner, vat));
+    public static <T> Promise<T> aSeq(final ASupplier<T> action) {
+        return aNow(action);
     }
 
     /**
@@ -186,8 +180,14 @@ public final class CoreFlowsSeq {
      * @param loopBody loop body.
      * @return the result.
      */
+    @SuppressWarnings("java:S5411")
     public static Promise<Void> aSeqWhile(final ASupplier<Boolean> loopBody) {
-        return aSeqUntilValue(() -> aNow(loopBody).flatMap(v -> v ? aMaybeEmpty() : aMaybeValue(null)));
+        return aSeqUntilValue(() -> aNow(loopBody).flatMap(v -> {
+            if (v == null) {
+                return aFailure(new NullPointerException("Null is not expected"));
+            }
+            return v ? aMaybeEmpty() : aMaybeValue(null);
+        }));
     }
 
     /**
@@ -243,201 +243,5 @@ public final class CoreFlowsSeq {
             }
         });
         return withDefaultContext((r, e) -> r.run(loop));
-    }
-
-
-    /**
-     * Builder for the sequence of operations. Note that class may call all bodies on the single vat turn,
-     * if they resolve immediately. So amount of bodies should be limited, in order prevent stack overflow.
-     *
-     * @param <T> the current result type
-     */
-    public static final class SeqBuilder<T> {
-        /**
-         * The action to execute.
-         */
-        private final ASupplier<T> action;
-        /**
-         * Vat used by sec builder.
-         */
-        private final Vat vat;
-        /**
-         * Runner.
-         */
-        private final ARunner runner;
-
-        /**
-         * The constructor.
-         *
-         * @param action the action to start with
-         * @param runner the runner
-         * @param vat    the vat
-         */
-        private SeqBuilder(final ASupplier<T> action, final ARunner runner, final Vat vat) {
-            this.action = action;
-            this.runner = runner;
-            this.vat = vat;
-        }
-
-        /**
-         * Convert to function that ignores argument.
-         *
-         * @param nextAction the next action
-         * @param <A>        the argument type
-         * @param <N>        the result type
-         * @return the function that ignores argument
-         */
-        private static <A, N> AFunction<A, N> toFunction(final ASupplier<N> nextAction) {
-            return t -> nextAction.get();
-        }
-
-        /**
-         * Transform method, that allows grouping some operations.
-         *
-         * @param body the body
-         * @param <R>  the result type
-         * @return the result
-         */
-        public <R> R transform(Function<SeqBuilder<T>, R> body) {
-            Objects.requireNonNull(body);
-            return body.apply(this);
-        }
-
-        /**
-         * @return finish the sequence
-         */
-        public Promise<T> finish() {
-            return runner.run(action);
-        }
-
-        /**
-         * Add next step to the sequence.
-         *
-         * @param mapper the mapper
-         * @param <N>    the next type
-         * @return the sequence builder with next step
-         */
-        public <N> SeqBuilder<N> map(final AFunction<T, N> mapper) {
-            return new SeqBuilder<>(mapSupplier(action, mapper), runner, vat);
-        }
-
-        /**
-         * Map supplier.
-         *
-         * @param body   the action to map
-         * @param mapper the mapper
-         * @param <N>    the result type
-         * @return a suppler for result
-         */
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        private <N> ASupplier<N> mapSupplier(final ASupplier<T> body, final AFunction<T, N> mapper) {
-            final Vat contextVat = this.vat;
-            return () -> aNow(body).flatMap(contextVat, mapper);
-        }
-
-        /**
-         * Observe result of previous actions.
-         *
-         * @param listener the the listener to be notified
-         * @return the out
-         */
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        public SeqBuilder<T> listen(final AResolver<T> listener) {
-            final Vat currentVat = vat;
-            final ASupplier<T> currentAction = this.action;
-            return new SeqBuilder<>(() -> aNow(currentAction).listen(currentVat, listener), runner, currentVat);
-        }
-
-        /**
-         * Add next step to the sequence.
-         *
-         * @param mapper the mapper
-         * @param <N>    the next type
-         * @return the sequence builder with next step
-         */
-        public <N> Promise<N> mapLast(final AFunction<T, N> mapper) {
-            return map(mapper).finish();
-        }
-
-        /**
-         * Add next step to the sequence.
-         *
-         * @param nextAction the action that ignores the input argument
-         * @param <N>        the next type
-         * @return the sequence builder with next step
-         */
-        public <N> SeqBuilder<N> thenDo(final ASupplier<N> nextAction) {
-            return map(toFunction(nextAction));
-        }
-
-        /**
-         * Add next step to the sequence.
-         *
-         * @param nextAction the action that ignores the input argument
-         * @param <N>        the next type
-         * @return the sequence builder with next step
-         */
-        public <N> Promise<N> thenDoLast(final ASupplier<N> nextAction) {
-            return thenDo(nextAction).finish();
-        }
-
-        /**
-         * Handle exception thrown by the previous steps.
-         *
-         * @param catcher the action that handles exceptions
-         * @return the builder
-         */
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        public SeqBuilder<T> failed(final AFunction<Throwable, T> catcher) {
-            final Vat currentVat = vat;
-            final ASupplier<T> currentAction = this.action;
-            return new SeqBuilder<>(() -> aNow(currentAction).flatMapOutcome(currentVat, o -> {
-                if (o.isSuccess()) {
-                    return aOutcome(o);
-                } else {
-                    return catcher.apply(o.failure());
-                }
-            }), runner, currentVat);
-        }
-
-
-        /**
-         * Add next step to the sequence.
-         *
-         * @param mapper the mapper
-         * @return the sequence builder with next step
-         */
-        public Promise<T> failedLast(final AFunction<Throwable, T> mapper) {
-            return failed(mapper).finish();
-        }
-
-        /**
-         * Execute action in any case and the end of sequence operator.
-         * The result promise is resolves to the original result after
-         * the finally body is resolved. Unless the original body has
-         * a success outcome, but finally body fails.
-         *
-         * @param finallyAction an action to execute
-         * @return a promise for the sequence result
-         */
-        @SuppressWarnings("squid:S3776")
-        public Promise<T> finallyDo(final ASupplier<Void> finallyAction) {
-            final Vat currentVat = this.vat;
-            return runner.run(() -> aNow(action).flatMapOutcome(currentVat,
-                    o -> aNow(finallyAction).flatMapOutcome(currentVat, o2 -> {
-                        if (o.isFailure()) {
-                            if (o2.isFailure() && o2.failure() != o.failure()) {
-                                o.failure().addSuppressed(o2.failure());
-                            }
-                            return aFailure(o.failure());
-                        } else {
-                            if (o2.isFailure()) {
-                                return aFailure(o2.failure());
-                            } else {
-                                return aValue(o.value());
-                            }
-                        }
-                    })));
-        }
     }
 }

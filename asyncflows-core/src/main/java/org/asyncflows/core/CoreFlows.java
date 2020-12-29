@@ -208,16 +208,7 @@ public final class CoreFlows {
      * @return the promise
      */
     public static <T> Promise<T> aNow(final ASupplier<T> action) {
-        try {
-            final Promise<T> promise = action.get();
-            if (promise == null) {
-                return aFailure(new NullPointerException("Action returned null: " + action.getClass().getName()));
-            } else {
-                return promise;
-            }
-        } catch (Throwable throwable) {
-            return aFailure(throwable);
-        }
+        return Promise.get(action);
     }
 
     /**

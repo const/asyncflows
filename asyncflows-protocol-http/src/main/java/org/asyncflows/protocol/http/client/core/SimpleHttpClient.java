@@ -204,9 +204,9 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Expo
             for (final ConnectionWrapper wrapper : connectionWrappers) {
                 if (wrapper.isExpired(System.currentTimeMillis())) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Closing cached connection: " + wrapper.id + " "
-                                + wrapper.connection.getLocalAddress()
-                                + " -> " + wrapper.connection.getRemoteAddress());
+                        LOG.debug(String.format("Closing cached connection: %s %s -> %s",
+                                wrapper.id, wrapper.connection.getLocalAddress(),
+                                wrapper.connection.getRemoteAddress()));
                     }
                     wrapper.close();
                 }
@@ -226,25 +226,25 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Expo
         final Cell<ASocket> socketCell = new Cell<>();
         return aSeq(
                 () -> getSocketFactory().makeSocket()
-        ).map(socket -> {
+        ).flatMap(socket -> {
             final SocketOptions options = new SocketOptions();
             options.setTpcNoDelay(true);
             if (connectionTimeout > 0) {
                 options.setTimeout(connectionTimeout);
             }
             return socket.setOptions(options).thenValue(socket);
-        }).map(socket -> {
+        }).flatMap(socket -> {
             socketCell.setValue(socket);
             return socket.connect(new InetSocketAddress(key.getHost(), key.getPort()));
-        }).thenDo(() -> {
+        }).thenFlatGet(() -> {
             // TODO property for buffer size
             return connectionFactory.wrap(key.getAuthority(), key.getScheme(), socketCell.getValue(),
                     HttpLimits.DEFAULT_BUFFER_SIZE, getUserAgent());
-        }).map(connection -> {
+        }).flatMap(connection -> {
             ensureOpen();
             final ConnectionWrapper wrapper = new ConnectionWrapper(nextId(), key, connection);
             return wrapper.start();
-        }).failedLast(failure -> {
+        }).flatMapFailure(failure -> {
             if (!socketCell.isEmpty()) {
                 return socketCell.getValue().close().thenFailure(failure);
             } else {
@@ -509,6 +509,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Expo
         /**
          * @return start working with wrapper.
          */
+        @SuppressWarnings("java:S5411")
         public Promise<AHttpRequest> start() {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Starting connection %s to %s", id, key));

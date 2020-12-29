@@ -259,7 +259,7 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
                     HttpHeadersUtil.USER_AGENT_HEADER, connection.getUserAgent());
             return aSeq(
                     () -> HttpClientMessageUtil.writeRequestMessage(connection.getOutput(), requestMessage)
-            ).thenDoLast(
+            ).thenFlatGet(
                     () -> aValue(outputStream.getStream())).listen(outcomeChecker()
             );
         } catch (Throwable ex) {
@@ -329,13 +329,13 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
         return aSeq(() -> {
             ensureValidAndOpen();
             return waitForResponse();
-        }).thenDo(() -> {
+        }).thenFlatGet(() -> {
             if (HttpStatusUtil.isSwitchProtocol(requestMessage.getMethod(), responseMessage.getStatusCode())) {
                 return switchProtocol();
             } else {
                 return normalResponse();
             }
-        }).failedLast(HttpRuntimeUtil.toHttpException()).listen(outcomeChecker());
+        }).flatMapFailure(HttpRuntimeUtil.toHttpException()).listen(outcomeChecker());
     }
 
     private Promise<Void> waitForResponse() {
@@ -386,7 +386,7 @@ public class HttpClientAction extends CloseableInvalidatingBase implements AHttp
     private Promise<HttpResponse> switchProtocol() {
         return aSeq(
                 () -> outputStream.getStream().close()
-        ).thenDoLast(() -> {
+        ).thenFlatGet(() -> {
             if (outputState != OutputState.CLOSED) {
                 throw new HttpException("Output stream must be closed before switching protocols: "
                         + outputState);

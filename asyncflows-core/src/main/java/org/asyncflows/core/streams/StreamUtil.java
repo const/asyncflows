@@ -70,7 +70,7 @@ public final class StreamUtil {
      * @return a new stream
      */
     public static <T> AStream<T> head(final AStream<T> stream, final int n) {
-        return new ChainedStreamBase<T, AStream<T>>(stream) {
+        return new ChainedStreamBase<>(stream) {
             private int count;
 
             @Override
@@ -120,16 +120,16 @@ public final class StreamUtil {
                                     return sink.put(value.value().value()).thenValue(true);
                                 }
                             } else {
-                                return sink.fail(value.failure()).<Boolean>thenFailure(value.failure());
+                                return sink.fail(value.failure()).thenFailure(value.failure());
                             }
                         } catch (Throwable problem) {
-                            return sink.fail(problem).<Boolean>thenFailure(problem);
+                            return sink.fail(problem).thenFailure(problem);
                         }
                     });
                 })
-        ).thenDo(
+        ).thenFlatGet(
                 () -> stopped.isEmpty() ? aVoid() : aOutcome(stopped.getValue())
-        ).thenDo(
+        ).thenFlatGet(
                 () -> aValue(count[0])
         ).finallyDo(
                 () -> aAll(closeResourceAction(sink)).andLast(closeResourceAction(stream)).toVoid()

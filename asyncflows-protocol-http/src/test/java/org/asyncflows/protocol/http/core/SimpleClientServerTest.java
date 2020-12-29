@@ -25,6 +25,7 @@ package org.asyncflows.protocol.http.core;
 
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Tuple2;
+import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.util.CoreFlowsResource;
 import org.asyncflows.io.AOutput;
@@ -60,7 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * The test of the server with the simple client.
  */
-public class SimpleClientServerTest extends HttpServerTestBase {
+class SimpleClientServerTest extends HttpServerTestBase {
     // TODO tests for trailers
     // TODO tests for transfer encodings
     @Override
@@ -150,7 +151,7 @@ public class SimpleClientServerTest extends HttpServerTestBase {
     }
 
     @Test
-    public void testEchoUpgrade() {
+    void testEchoUpgrade() {
         final Tuple2<byte[], byte[]> result = runAction(
                 (socketFactory, socketAddress) -> {
                     final URI uri = new URI("http://localhost:"
@@ -175,11 +176,11 @@ public class SimpleClientServerTest extends HttpServerTestBase {
                     headers.setHeader(HttpHeadersUtil.UPGRADE_HEADER, "echo");
                     return aSeq(
                             () -> request.request(new Scope(), HttpMethodUtil.OPTIONS, uri, headers, 0L)
-                    ).map(
-                            a -> a.close()
-                    ).thenDo(
+                    ).flatMap(
+                            ACloseable::close
+                    ).thenFlatGet(
                             request::getResponse
-                    ).mapLast(httpResponse -> {
+                    ).flatMap(httpResponse -> {
                         assertNotNull(httpResponse.getSwitchedChannel(), String.valueOf(httpResponse.getStatusCode()));
                         return aAll(
                                 () -> DigestingOutput.generateDigested(httpResponse.getSwitchedChannel().getOutput(),
