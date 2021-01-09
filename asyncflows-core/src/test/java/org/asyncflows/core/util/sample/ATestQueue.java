@@ -31,4 +31,10 @@ public interface ATestQueue<T> {
     Promise<T> take();
 
     void put(T element); // bad practice
+
+    default void putAll(T... elements) {
+        for (T element : elements) {
+            put(element);
+        }
+    }
 }

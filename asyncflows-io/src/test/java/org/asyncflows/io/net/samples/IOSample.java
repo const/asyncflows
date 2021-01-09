@@ -23,13 +23,6 @@
 
 package org.asyncflows.io.net.samples;
 
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.util.SimpleQueue;
-import org.asyncflows.io.AInput;
-import org.asyncflows.io.AOutput;
-
-import java.nio.ByteBuffer;
-
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.CoreFlows.aValue;
@@ -37,6 +30,13 @@ import static org.asyncflows.core.util.CancellableFlows.aWithLocalCancellation;
 import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.asyncflows.io.IOUtil.isEof;
+
+import java.nio.ByteBuffer;
+
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.util.SimpleQueue;
+import org.asyncflows.io.AInput;
+import org.asyncflows.io.AOutput;
 
 public class IOSample {
 
@@ -48,8 +48,8 @@ public class IOSample {
      * @return the amount of bytes read then written (bytes already in the buffer are not counted)
      */
     public static Promise<Long> copy(final AInput<ByteBuffer> input, final AOutput<ByteBuffer> output, int bufferSize) {
-        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
-        final long[] result = new long[1];
+        var buffer = ByteBuffer.allocate(bufferSize);
+        var result = new long[1];
         return aSeqWhile(
                 () -> input.read(buffer).flatMap(value -> {
                     if (isEof(value)) {

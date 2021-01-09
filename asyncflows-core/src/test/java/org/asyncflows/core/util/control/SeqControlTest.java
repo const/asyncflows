@@ -23,17 +23,6 @@
 
 package org.asyncflows.core.util.control;
 
-import org.asyncflows.core.CoreFlows;
-import org.asyncflows.core.Outcome;
-import org.asyncflows.core.data.Cell;
-import org.asyncflows.core.function.ASupplier;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static org.asyncflows.core.AsyncContext.doAsync;
 import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aFailure;
@@ -50,6 +39,17 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForUnit;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.asyncflows.core.CoreFlows;
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.data.Cell;
+import org.asyncflows.core.function.ASupplier;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for sequential control constructs.
@@ -78,16 +78,16 @@ class SeqControlTest {
                     list.add(value + 1);
                     throw new IllegalStateException();
                 }).thenFlatGet(() -> {
-                    // never called
+                    // never called, because of exception in previous block
                     list.add(-1);
                     return aValue(-1);
                 }).flatMapFailure(value -> {
                     assertEquals(IllegalStateException.class, value.getClass());
                     list.add(3);
-                    return aValue(42);
+                    return aValue(42); // the result of the aSeq
                 }).finallyDo(() -> {
                     list.add(4);
-                    return aVoid();
+                    return aVoid(); // this result is ignored
                 }));
         assertEquals(42, rc);
         assertEquals(Arrays.asList(1, 2, 3, 4), list);
@@ -173,9 +173,9 @@ class SeqControlTest {
 
     @Test
     void testSeqWhile() {
-        final int rc = doAsync(() -> {
-            final int[] sum = new int[1];
-            final int[] current = new int[1];
+        var rc = doAsync(() -> {
+            var sum = new int[1];
+            var current = new int[1];
             return aSeqWhile(() -> {
                 sum[0] += current[0];
                 current[0]++;
@@ -188,9 +188,9 @@ class SeqControlTest {
 
     @Test
     void testSeqUntilValue() {
-        final int rc = doAsync(() -> {
-            final int[] sum = new int[1];
-            final int[] current = new int[1];
+        var rc = doAsync(() -> {
+            var sum = new int[1];
+            var current = new int[1];
             return aSeqUntilValue(() -> {
                 sum[0] += current[0];
                 current[0]++;

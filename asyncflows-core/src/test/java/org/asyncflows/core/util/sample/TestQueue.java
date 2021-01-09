@@ -23,17 +23,17 @@
 
 package org.asyncflows.core.util.sample;
 
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.util.ExportableComponent;
-import org.asyncflows.core.vats.Vat;
+import static org.asyncflows.core.CoreFlows.aResolver;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.Outcome.notifySuccess;
 
 import java.util.Deque;
 import java.util.LinkedList;
 
-import static org.asyncflows.core.CoreFlows.aResolver;
-import static org.asyncflows.core.CoreFlows.aValue;
-import static org.asyncflows.core.Outcome.notifySuccess;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.util.ExportableComponent;
+import org.asyncflows.core.vats.Vat;
 
 public class TestQueue<T> implements ATestQueue<T>, ExportableComponent<ATestQueue<T>> {
     private final Deque<T> elements = new LinkedList<>();
@@ -42,7 +42,7 @@ public class TestQueue<T> implements ATestQueue<T>, ExportableComponent<ATestQue
     private void invariantCheck() {
         // checks that queue invariant holds
         if (!elements.isEmpty() && !resolvers.isEmpty()) {
-            throw new IllegalStateException("BUG: one of the collections should be empty");
+            throw new IllegalStateException("BUG: at least one of the collections should be empty");
         }
     }
 

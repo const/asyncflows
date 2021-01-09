@@ -23,14 +23,14 @@
 
 package org.asyncflows.core.streams;
 
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.Outcome.notifyFailure;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.function.ACloseable;
 import org.asyncflows.core.util.ChainedClosable;
 import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.vats.Vat;
-
-import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.Outcome.notifyFailure;
 
 /**
  * The chained sink.
@@ -62,7 +62,7 @@ public abstract class ChainedSinkBase<I, U extends ACloseable> extends ChainedCl
 
     @Override
     protected void onInvalidation(final Throwable throwable) {
-        if (finished.getOutcome() == null) {
+        if (finished.getOutcomeOrNull() == null) {
             notifyFailure(finished.resolver(), throwable);
             startClosing();
         }

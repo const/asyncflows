@@ -23,6 +23,17 @@
 
 package org.asyncflows.core;
 
+import static org.asyncflows.core.CoreFlows.aOutcome;
+import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
+import static org.asyncflows.core.function.AsyncFunctionUtil.toAsyncFunction;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
+
 import org.asyncflows.core.annotations.ThreadSafe;
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.data.Subcription;
@@ -33,17 +44,6 @@ import org.asyncflows.core.function.AsyncFunctionUtil;
 import org.asyncflows.core.trace.PromiseTrace;
 import org.asyncflows.core.util.ExceptionUtil;
 import org.asyncflows.core.vats.Vat;
-
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
-
-import static org.asyncflows.core.CoreFlows.aOutcome;
-import static org.asyncflows.core.function.AsyncFunctionUtil.promiseSupplier;
-import static org.asyncflows.core.function.AsyncFunctionUtil.toAsyncFunction;
 
 /**
  * Promise class, it is different from future that it is final, does not support
@@ -268,7 +268,7 @@ public final class Promise<T> {
      * @return the result promise
      */
     public <R> Promise<R> flatMapOutcome(final Vat vat, final AFunction<Outcome<T>, R> mapper) {
-        final Outcome<T> currentOutcome = getOutcome();
+        final Outcome<T> currentOutcome = getOutcomeOrNull();
         if (currentOutcome == null) {
             final Promise<R> promise = new Promise<>();
             final AResolver<R> resolver = promise.resolver();
@@ -429,7 +429,7 @@ public final class Promise<T> {
      * @return the current outcome of promise.
      */
     @SuppressWarnings("unchecked")
-    public Outcome<T> getOutcome() {
+    public Outcome<T> getOutcomeOrNull() {
         final Object currentState = state.get();
         return currentState instanceof Outcome ? (Outcome<T>) currentState : null;
     }
@@ -438,7 +438,7 @@ public final class Promise<T> {
      * @return the completable future, that is notified when promise is resolved.
      */
     public CompletableFuture<T> toCompletableFuture() {
-        final Outcome<T> outcome = getOutcome();
+        final Outcome<T> outcome = getOutcomeOrNull();
         if (outcome != null && outcome.isSuccess()) {
             return CompletableFuture.completedFuture(outcome.value());
         }
@@ -474,7 +474,7 @@ public final class Promise<T> {
      * @return true if promise is unresolved yet
      */
     public boolean isUnresolved() {
-        return getOutcome() == null;
+        return getOutcomeOrNull() == null;
     }
 
     /**

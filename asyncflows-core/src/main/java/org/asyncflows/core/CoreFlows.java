@@ -23,6 +23,15 @@
 
 package org.asyncflows.core;
 
+import static org.asyncflows.core.Outcome.notifyFailure;
+import static org.asyncflows.core.Outcome.notifySuccess;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AOneWayAction;
@@ -31,15 +40,6 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.Vat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-
-import static org.asyncflows.core.Outcome.notifyFailure;
-import static org.asyncflows.core.Outcome.notifySuccess;
 
 /**
  * Basic asynchronous control constructs.
@@ -311,8 +311,7 @@ public final class CoreFlows {
      * @return the promise for result
      */
     public static <T> Promise<T> aLater(final Vat vat, final ASupplier<T> action) {
-        final Context context = Context.current();
-        return aResolver(r -> vat.execute(propagatingContext(context, () -> aNow(action).listenSync(r))));
+        return aResolver(r -> aSend(vat, () -> aNow(action).listenSync(r)));
     }
 
     /**

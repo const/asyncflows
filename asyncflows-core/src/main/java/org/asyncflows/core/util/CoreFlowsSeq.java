@@ -23,19 +23,6 @@
 
 package org.asyncflows.core.util;
 
-import org.asyncflows.core.Outcome;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Maybe;
-import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.function.AResolver;
-import org.asyncflows.core.function.ASupplier;
-
-import java.util.Iterator;
-import java.util.function.Consumer;
-import java.util.stream.Collector;
-import java.util.stream.Stream;
-
-import static org.asyncflows.core.AsyncContext.withDefaultContext;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
@@ -45,6 +32,18 @@ import static org.asyncflows.core.CoreFlows.aResolver;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.Outcome.notifyFailure;
 import static org.asyncflows.core.Outcome.notifySuccess;
+
+import java.util.Iterator;
+import java.util.function.Consumer;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
+
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.function.AResolver;
+import org.asyncflows.core.function.ASupplier;
 
 /**
  * Utility class with sequential control utilities.
@@ -135,7 +134,7 @@ public final class CoreFlowsSeq {
      * @param collection the collection
      * @param body       the body that iterates over it. If body returns false, the cycle is aborted.
      * @param collector  the collector
-     * @param <T>        the element type
+     * @param <T>        the element typew
      * @param <R>        the body result type
      * @param <I>        the collector intermediate type
      * @param <C>        the final type
@@ -199,19 +198,19 @@ public final class CoreFlowsSeq {
      */
     @SuppressWarnings({"squid:S3776", "squid:S135"})
     public static <T> Promise<T> aSeqUntilValue(final ASupplier<Maybe<T>> loopBody) {
-        final ASupplier<T> loop = () -> aResolver(new Consumer<AResolver<T>>() {
+        return aResolver(new Consumer<>() {
             private AResolver<T> resolver;
 
             @Override
             public void accept(final AResolver<T> resolver) {
                 this.resolver = resolver;
-                iterate();
+                iterate(); // start iteration
             }
 
             private void iterate() {
                 while (true) {
-                    final Promise<Maybe<T>> result = aNow(loopBody);
-                    final Outcome<Maybe<T>> outcome = result.getOutcome();
+                    var result = aNow(loopBody);
+                    var outcome = result.getOutcomeOrNull();
                     if (outcome == null) {
                         result.listen(o -> {
                             if (checkStep(o)) {
@@ -229,7 +228,7 @@ public final class CoreFlowsSeq {
 
             private boolean checkStep(Outcome<Maybe<T>> o) {
                 if (o.isSuccess()) {
-                    Maybe<T> v = o.value();
+                    var v = o.value();
                     if (v.isEmpty()) {
                         return true;
                     } else {
@@ -242,6 +241,5 @@ public final class CoreFlowsSeq {
                 }
             }
         });
-        return withDefaultContext((r, e) -> r.run(loop));
     }
 }

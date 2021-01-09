@@ -2,7 +2,9 @@
 
 == 0.1.2 Unreleased
 
-* Added module-info to jars using moditect-maven-plugin
+* Ported to Java 11
+* Removed SeqBuilder and moved methods to promise
+* Minor documentation and API improvements
 
 == 0.1.1 2019-10-15
 

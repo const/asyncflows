@@ -23,6 +23,14 @@
 
 package org.asyncflows.core;
 
+import static org.asyncflows.core.CoreFlows.aResolver;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
 import org.asyncflows.core.context.Context;
 import org.asyncflows.core.data.Subcription;
 import org.asyncflows.core.function.AOneWayAction;
@@ -31,16 +39,6 @@ import org.asyncflows.core.function.ASupplier;
 import org.asyncflows.core.vats.SingleThreadVat;
 import org.asyncflows.core.vats.Vat;
 import org.asyncflows.core.vats.Vats;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
-
-import static org.asyncflows.core.CoreFlows.aLater;
-import static org.asyncflows.core.CoreFlows.aNow;
-import static org.asyncflows.core.CoreFlows.aResolver;
 
 /**
  * Asynchronous context operations.
@@ -62,10 +60,10 @@ public final class AsyncContext {
      * @return the outcome
      */
     public static <T> Outcome<T> doAsyncOutcome(final ASupplier<T> supplier) {
-        final AtomicReference<Outcome<T>> outcome = new AtomicReference<>();
-        final Object stopKey = new Object();
-        final SingleThreadVat vat = new SingleThreadVat(stopKey);
-        vat.execute(() -> aNow(supplier).listen(o -> {
+        var outcome = new AtomicReference<Outcome<T>>();
+        var stopKey = new Object();
+        var vat = new SingleThreadVat(stopKey);
+        vat.execute(() -> Promise.get(supplier).listen(o -> {
             outcome.set(o);
             vat.stop(stopKey);
         }));
@@ -82,7 +80,7 @@ public final class AsyncContext {
      * @throws AsyncExecutionException if there is any failure.
      */
     public static <T> T doAsync(final ASupplier<T> supplier) {
-        final Outcome<T> outcome = doAsyncOutcome(supplier);
+        var outcome = doAsyncOutcome(supplier);
         if (outcome.isSuccess()) {
             return outcome.value();
         } else {
@@ -112,18 +110,8 @@ public final class AsyncContext {
      */
     @SuppressWarnings("squid:S1604")
     public static <R> R withDefaultContext(final BiFunction<ARunner, Vat, R> function) {
-        final Vat current = Vat.currentOrNull();
-        if (current != null) {
-            return function.apply(CoreFlows::aNow, current);
-        } else {
-            final Vat vat = Vat.current();
-            return function.apply(new ARunner() {
-                @Override
-                public <T> Promise<T> run(final ASupplier<T> a) {
-                    return aLater(vat, a);
-                }
-            }, vat);
-        }
+        final Vat current = Vat.current();
+        return function.apply(CoreFlows::aNow, current);
     }
 
     /**
@@ -177,18 +165,18 @@ public final class AsyncContext {
      * @return promise that resolves to the result of the execution
      */
     public static <T> Promise<T> aDaemonGet(final Supplier<T> action) {
-        return aExecutorGet(action, Vats.DAEMON_EXECUTOR);
+        return aExecutorGet(Vats.DAEMON_EXECUTOR, action);
     }
 
     /**
      * Get value using executor.
      *
-     * @param action   the action
-     * @param executor the executor
      * @param <T>      the type
+     * @param executor the executor
+     * @param action   the action
      * @return the value
      */
-    public static <T> Promise<T> aExecutorGet(final Supplier<T> action, final ExecutorService executor) {
+    public static <T> Promise<T> aExecutorGet(final ExecutorService executor, final Supplier<T> action) {
         return aResolver(resolver -> {
             final Context context = Context.current();
             executor.execute(() -> {
@@ -212,6 +200,6 @@ public final class AsyncContext {
      * @return promise that resolves to the result of the execution
      */
     public static <T> Promise<T> aForkJoinGet(final Supplier<T> action) {
-        return aExecutorGet(action, ForkJoinPool.commonPool());
+        return aExecutorGet(ForkJoinPool.commonPool(), action);
     }
 }

@@ -23,10 +23,6 @@
 
 package org.asyncflows.core.util.sample;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.stream.Collectors;
-
 import static org.asyncflows.core.AsyncContext.doAsync;
 import static org.asyncflows.core.CoreFlows.aTrue;
 import static org.asyncflows.core.util.ControlUtils.rangeIterator;
@@ -35,14 +31,18 @@ import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForCollect;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqForUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Test;
+
 /**
  * The test for asynchronous queue.
  */
-public class TestQueueTest {
+class TestQueueTest {
     @Test
-    public void test() {
-        final int rc = doAsync(() -> {
-            final ATestQueue<Integer> queue = new TestQueue<Integer>().export();
+    void test() {
+        var rc = doAsync(() -> {
+            var queue = new TestQueue<Integer>().export();
             return aAll(() -> aSeqForUnit(rangeIterator(0, 10), i -> {
                 queue.put(i + 1);
                 return aTrue();

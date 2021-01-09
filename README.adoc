@@ -1739,44 +1739,47 @@ When and how asynchronous method is executed is left up to component designer.
 === Netty
 
 The netty is organized as multi-stage event processing.It works very well when uniform processing is needed.
-The problem is that most of processing that is needed is non-uniform.There are generally recursive logical
-asynchronous processes built upon event streams.Netty requires implementing such processes using
-explicit stacks and other means.
+The problem is that processing that is needed is often non-uniform.
+There are generally recursive logical asynchronous processes built upon event streams.Netty requires implementing such processes using explicit stacks and other means.
 
 In contrast, AsyncFlows allows to freely use recursion when needed, just like in normal synchronous code.
 There is no need for inversion of control.
 
-Up to recent versions of Netty, the netty did not support back pressure regulation, and because of
-event notification approach, there were no natural way to specify it.The current way is still
-cumbersome.
+Up to recent versions of Netty, the netty did not support back pressure regulation, and because of event notification approach, there were no natural way to specify it.The current way is still cumbersome.
 
-On other hand, netty contains implementation of many network protocols.And it makes sense to reuse
-these implementations from AsyncFlows.There is plan to create a library that access Netty channels
-from AsyncFlows framework.
+On other hand, netty contains implementation of many network protocols.And it makes sense to reuse these implementations from AsyncFlows.There is plan to create a library that access Netty channels from AsyncFlows framework.
 
 === Reactive Programming
 
-The reactive programming is higher-level and more narrow paradigm than what is targeted by
-this framework. So it does not make sense to compare them directly. However, the concepts
-from reactive programming could be relatively easily implemented using framework constructs.
-The reactive programming mixes several concepts together, i.e. data stream processing and
-tracking/propagating changes. These are somewhat different tasks, and have different data
-processing needs, for example with tracking changes there is no problem to drop intermediate
-changes, but for processing data streams this might be not acceptable.
+The reactive programming is higher-level and more narrow paradigm than what is targeted by this framework.So it does not make sense to compare them directly.However, the concepts from reactive programming could be relatively easily implemented using framework constructs.
+The reactive programming mixes several concepts together, i.e. data stream processing and tracking/propagating changes.These are somewhat different tasks, and have different data processing needs, for example with tracking changes there is no problem to drop intermediate changes, but for processing data streams this might be not acceptable.
 
 The data stream processing is covered by stream library in AsyncFlows.
 
-The event processing is not covered in standard library yet, but it could be implemented using standard
-means of asynchronous component development, like it is done in
-link:samples/asyncflows-tracker/src/main/java/org/asyncflows/tracker[sample tracker library]. 
+The event processing is not covered in standard library yet, but it could be implemented using standard means of asynchronous component development, like it is done in
+link:samples/asyncflows-tracker/src/main/java/org/asyncflows/tracker[sample tracker library].
 The link:samples/asyncflows-awt/src/test/java/org/asyncflows/ui/awt/TrackerSample.java[demo]
-reproduces some typical scenarios. Java 9 flows are more oriented to similar task, and there
-might be some integration in the future.
+reproduces some typical scenarios.
+Java 9 flows are more oriented to similar task, and there might be some integration in the future.
+
+=== On the Project Loom
+
+The project Loom when integrated into Java, tries to solve the problem by other way.
+It allows synchronous code to be executed by small chunks on the thread pool.
+So, the execution will look a bit like AsyncFlows on low level, but it looks like a normal multithreaded Java code on high-level.
+
+However, the multithreaded programming in Java has two major problems:
+
+. There are performance problems when there are a lot of threads since each thread eats a lot of resources like stack.
+. It is difficult to reason about code that uses synchronization and low-level utilities from java.util.concurrent.
+
+The project loom solves the first problem, but it does not affect the second problem.
+It is possible to create a lot of threads, but it is still difficult to reason about them.
+The AsyncFlows framework will benefit from the Project Loom, as it will allow using lightweight vats over system thread pool with as-needed lifecycle.
 
 == Other Programming Languages
 
-The framework relies on Java 8 functional interfaces to create DSL. So if other language supports them
-in reasonable way, it is possible to use this DSL language in similar way.
+The framework relies on Java 8 functional interfaces to create DSL. So if other language supports them in reasonable way, it is possible to use this DSL language in similar way.
 
 === Groovy
 

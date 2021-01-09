@@ -51,7 +51,7 @@
         </dependency>
         <dependency>
             <groupId>org.asyncflows</groupId>
-            <artifactId>asyncflows-core</artifactId>
+            <artifactId>asyncflows-io</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
