@@ -23,18 +23,18 @@
 
 package org.asyncflows.core.streams;
 
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aNow;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.function.AsyncFunctionUtil.booleanSupplier;
+import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.data.Tuple2;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.AResolver;
 import org.asyncflows.core.util.RequestQueue;
-
-import static org.asyncflows.core.CoreFlows.aFalse;
-import static org.asyncflows.core.CoreFlows.aNow;
-import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.function.AsyncFunctionUtil.booleanSupplier;
-import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
 
 /**
  * The {@link ASink}-based forward stream builder. It actually builds sinks in the reverse order. So until
@@ -112,7 +112,7 @@ public class PushStreamBuilder<T> extends StreamBuilder<T> {
                     }
                     if (value1.isSuccess()) {
                         return value1.value().isEmpty() ? aVoid()
-                                : wrapped.put(value1.value().value());
+                                : wrapped.put(value1.value().of());
                     } else {
                         return failNext(value1.failure());
                     }

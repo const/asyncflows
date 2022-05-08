@@ -23,17 +23,17 @@
 
 package org.asyncflows.core.util;
 
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.function.AsyncFunctionUtil.failureSupplier;
+
+import java.util.Iterator;
+
 import org.asyncflows.core.CoreFlows;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.function.AFunction;
 import org.asyncflows.core.function.ASupplier;
-
-import java.util.Iterator;
-
-import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
-import static org.asyncflows.core.CoreFlows.aMaybeValue;
-import static org.asyncflows.core.function.AsyncFunctionUtil.failureSupplier;
 
 /**
  * Utilities for creating producers.
@@ -133,7 +133,7 @@ public final class ProducerUtil {
             if (value.isEmpty()) {
                 return aMaybeEmpty();
             } else {
-                return mapper.apply(value.value()).flatMap(ProducerUtil.optionalValueWrapper());
+                return mapper.apply(value.of()).flatMap(ProducerUtil.optionalValueWrapper());
             }
         };
     }

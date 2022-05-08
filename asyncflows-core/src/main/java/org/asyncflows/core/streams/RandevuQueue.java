@@ -23,6 +23,13 @@
 
 package org.asyncflows.core.streams;
 
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.Outcome.notifyFailure;
+import static org.asyncflows.core.Outcome.notifySuccess;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.data.Tuple2;
@@ -31,13 +38,6 @@ import org.asyncflows.core.util.CloseableInvalidatingBase;
 import org.asyncflows.core.util.ExportableComponent;
 import org.asyncflows.core.util.RequestQueue;
 import org.asyncflows.core.vats.Vat;
-
-import static org.asyncflows.core.CoreFlows.aFailure;
-import static org.asyncflows.core.CoreFlows.aFalse;
-import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
-import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.Outcome.notifyFailure;
-import static org.asyncflows.core.Outcome.notifySuccess;
 
 /**
  * <p>Randevu Queue is a queue that provides a pair of facets of types {@link AStream} and {@link ASink}.</p>
@@ -129,7 +129,7 @@ public final class RandevuQueue<T> {
                     return aFalse();
                 }
                 if (currentRequest != null) {
-                    notifySuccess(currentRequest, Maybe.value(value));
+                    notifySuccess(currentRequest, Maybe.of(value));
                     currentRequest = null;
                     return aFalse();
                 }

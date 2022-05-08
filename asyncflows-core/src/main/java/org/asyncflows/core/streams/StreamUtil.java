@@ -23,12 +23,6 @@
 
 package org.asyncflows.core.streams;
 
-import org.asyncflows.core.Outcome;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Cell;
-import org.asyncflows.core.data.Maybe;
-import org.asyncflows.core.function.ASupplier;
-
 import static org.asyncflows.core.CoreFlows.aFalse;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aNow;
@@ -39,6 +33,12 @@ import static org.asyncflows.core.util.CoreFlowsAll.aAll;
 import static org.asyncflows.core.util.CoreFlowsResource.closeResourceAction;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Cell;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.ASupplier;
 
 /**
  * The stream utilities.
@@ -117,7 +117,7 @@ public final class StreamUtil {
                                         return aFalse();
                                     }
                                     count[0]++;
-                                    return sink.put(value.value().value()).thenValue(true);
+                                    return sink.put(value.value().of()).thenValue(true);
                                 }
                             } else {
                                 return sink.fail(value.failure()).thenFailure(value.failure());

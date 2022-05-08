@@ -232,7 +232,7 @@ public final class CoreFlowsSeq {
                     if (v.isEmpty()) {
                         return true;
                     } else {
-                        notifySuccess(resolver, v.value());
+                        notifySuccess(resolver, v.of());
                         return false;
                     }
                 } else {

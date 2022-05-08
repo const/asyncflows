@@ -23,6 +23,16 @@
 
 package org.asyncflows.protocol.http.client.core;
 
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.Outcome.notifySuccess;
+import static org.asyncflows.core.util.CoreFlowsAll.aAll;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
@@ -33,16 +43,6 @@ import org.asyncflows.io.AChannel;
 import org.asyncflows.io.util.ByteGeneratorContext;
 import org.asyncflows.io.util.ByteParserContext;
 import org.asyncflows.protocol.http.client.AHttpRequest;
-
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-
-import static org.asyncflows.core.CoreFlows.aFailure;
-import static org.asyncflows.core.CoreFlows.aValue;
-import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.Outcome.notifySuccess;
-import static org.asyncflows.core.util.CoreFlowsAll.aAll;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 
 /**
  * The client connection for HTTP 1.x.
@@ -169,7 +169,7 @@ public class HttpClientConnection extends CloseableInvalidatingBase
                     return aVoid();
                 } else {
                     current = new HttpClientAction(HttpClientConnection.this);
-                    notifySuccess(promise.resolver(), Maybe.value(current.export()));
+                    notifySuccess(promise.resolver(), Maybe.of(current.export()));
                     return aSeq(
                             current::finish
                     ).flatMap(value -> {

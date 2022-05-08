@@ -23,9 +23,10 @@
 
 package org.asyncflows.netty.common;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+
+import java.util.LinkedList;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
 import org.asyncflows.core.util.CloseableInvalidatingBase;
@@ -36,9 +37,9 @@ import org.asyncflows.netty.ANettyChannel;
 import org.asyncflows.netty.ANettyChannelProxyFactory;
 import org.asyncflows.netty.NettyVat;
 
-import java.util.LinkedList;
-
-import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class NettyChannel<I, O> extends CloseableInvalidatingBase implements ANettyChannel<I, O>, ExportableComponent<ANettyChannel<I, O>> {
     private final NettyVat vat;
@@ -106,7 +107,7 @@ public class NettyChannel<I, O> extends CloseableInvalidatingBase implements ANe
                     return reads.suspendThenEmpty();
                 }
             } else {
-                return aMaybeValue(Maybe.value(input.removeFirst()));
+                return aMaybeValue(Maybe.of(input.removeFirst()));
             }
         });
     }

@@ -75,7 +75,7 @@ public final class Maybe<T> {
      * @param <A>   the value type
      * @return the option value
      */
-    public static <A> Maybe<A> value(final A value) {
+    public static <A> Maybe<A> of(final A value) {
         return new Maybe<>(true, value);
     }
 
@@ -101,7 +101,7 @@ public final class Maybe<T> {
      * @return the result.
      */
     public <R> Maybe<R> map(Function<T, R> mapper) {
-        return isEmpty() ? empty() : value(mapper.apply(value));
+        return isEmpty() ? empty() : of(mapper.apply(value));
     }
 
     /**
@@ -118,7 +118,7 @@ public final class Maybe<T> {
     /**
      * @return the value
      */
-    public T value() {
+    public T of() {
         if (!valuePresent) {
             throw new IllegalStateException("No value in this optional value");
         }

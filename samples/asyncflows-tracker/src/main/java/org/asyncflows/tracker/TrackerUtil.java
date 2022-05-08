@@ -23,6 +23,11 @@
 
 package org.asyncflows.tracker;
 
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+
+import java.time.Duration;
+import java.util.Objects;
+
 import org.asyncflows.core.Outcome;
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Maybe;
@@ -30,11 +35,6 @@ import org.asyncflows.core.streams.AStream;
 import org.asyncflows.core.streams.StreamBase;
 import org.asyncflows.core.time.ATimer;
 import org.asyncflows.core.util.RequestQueue;
-
-import java.time.Duration;
-import java.util.Objects;
-
-import static org.asyncflows.core.CoreFlows.aMaybeValue;
 
 public final class TrackerUtil {
 
@@ -62,7 +62,7 @@ public final class TrackerUtil {
                         return requestQueue.suspendThenEmpty();
                     }
                     lastReported = adapter.value();
-                    return aMaybeValue(Maybe.value(lastReported));
+                    return aMaybeValue(Maybe.of(lastReported));
                 });
             }
 

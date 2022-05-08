@@ -23,12 +23,6 @@
 
 package org.asyncflows.core.streams;
 
-import org.asyncflows.core.Outcome;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Maybe;
-import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.RequestQueue;
-
 import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
 import static org.asyncflows.core.CoreFlows.aMaybeValue;
@@ -37,6 +31,12 @@ import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.function.AsyncFunctionUtil.evaluate;
 import static org.asyncflows.core.streams.AsyncStreams.aForArray;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.util.RequestQueue;
 
 /**
  * Stream builder for all elements.
@@ -82,7 +82,7 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
                                     if (outcome.value().isEmpty()) {
                                         return aMaybeEmpty();
                                     } else {
-                                        return aMaybeValue(Outcome.success(outcome.value().value()));
+                                        return aMaybeValue(Outcome.success(outcome.value().of()));
                                     }
 
                                 } else {
@@ -115,12 +115,12 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
                         if (value.isEmpty()) {
                             return aMaybeEmpty();
                         }
-                        if (value.value().isSuccess()) {
-                            return aMaybeValue(value.value().value());
+                        if (value.of().isSuccess()) {
+                            return aMaybeValue(value.of().value());
                         }
                         return aSeqWhile(
                                 () -> wrapped.next().flatMap(discarded -> aBoolean(discarded.hasValue()))
-                        ).thenFailure(value.value().failure());
+                        ).thenFailure(value.of().failure());
                     });
                 });
             }
@@ -163,7 +163,7 @@ public class AllStreamBuilder<T> extends StreamBuilder<T> {
                                 if (outcome.value().isEmpty()) {
                                     return aMaybeEmpty();
                                 } else {
-                                    return aMaybeValue(Outcome.success(outcome.value().value()));
+                                    return aMaybeValue(Outcome.success(outcome.value().of()));
                                 }
                             } else {
                                 return aMaybeValue(Outcome.failure(outcome.failure()));

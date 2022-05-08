@@ -145,7 +145,7 @@ public final class CoreFlows {
      * @return the maybe with value
      */
     public static <T> Promise<Maybe<T>> aMaybeValue(final T value) {
-        return aValue(Maybe.value(value));
+        return aValue(Maybe.of(value));
     }
 
     /**

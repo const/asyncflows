@@ -122,9 +122,9 @@ public final class Promise<T> {
     /**
      * Add synchronous listener to promise. Note, this operation is low-level and it does not save a {@link Context},
      * and does not propagate it to listeners. The execution context is completely arbitrary.
-     * The listener should be executed very fast and never block, prefer wait-free operations.
+     * The listener should be executed very fast and never block, prefer lock-free operations.
      * If there is a need for some processing, just create an event and send it to some executor.
-     * Also if you could have a long chain of promises, use {@link #listen(AResolver)} instead,
+     * Also, if you could have a long chain of promises, use {@link #listen(AResolver)} instead,
      * as this method could create a chain reaction of promise resolution.
      *
      * @param listener the listener.

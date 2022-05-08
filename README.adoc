@@ -1,6 +1,8 @@
 = AsyncFlows Framework {current-version}
 Konstantin Plotnikov <constantine.plotnikov@gmail.com>
 0.1.2-SNAPSHOT, 2019-??-??
+:source-highlighter: rouge
+:experimental:
 :toc:
 :toclevels: 5
 :toc-placement!:
@@ -87,7 +89,7 @@ A Vat is Executor that has the following guarantees:
 
 1. It executes events in order that was sent
 2. It executes only one event at each time
-3. During execution it is possible to get the current Vat
+3. During execution, it is possible to get the current Vat
 
 These guarantees allow avoiding a lot of concurrency issues and organize asynchronous processes a lot easier.
 
@@ -362,7 +364,7 @@ The more advanced collection processing could be done by the stream framework.
 === Simultaneous Processes
 
 Sequential execution is not that interesting in asynchronous context.
-More interesting is case when asynchronous operations overlap.
+More intriguing is case when asynchronous operations overlap.
 It could happen in the context of the same event loop.
 AsyncFlows provides a number of methods to organize simultaneous asynchronous activity.
 
@@ -1529,12 +1531,12 @@ while(true)  {
 }
 return length;
 ----
-That is practically all.Back pressure propagates naturally via blocking.No more data will be read,
-if write is not complete.If there is error, it will be propagated to caller.
+
+That is practically all.Back pressure propagates naturally via blocking.No more data will be read, if write is not complete.If there is error, it will be propagated to caller.
 
 The framework provides practically the same approach.There is no explicit backpressure control.
-The output stream is accepting request, and return to caller when it is finished processing it,
-including sending data to downstream.
+And instead of thread blocks there is waiting for events.
+The output stream is accepting request, and return to caller when it is finished processing it, including sending data to downstream.
 
 [source,java]
 ----
@@ -1625,24 +1627,34 @@ http://david.tribble.com/text/goto.html[David R. Tribble "Go To Statement Consid
 Control flow inversion causes the same problem as it was described by Edsger W. Dijkstra:
 
 [quote,Edsger W. Dijkstra,Go To Statement Considered Harmful,1968]
-"" My second remark is that our intellectual powers are rather geared to master static relations and that our powers to visualize processes evolving in time are relatively poorly developed.
+____
+My second remark is that our intellectual powers are rather geared to master static relations and that our powers to visualize processes evolving in time are relatively poorly developed.
 For that reason we should do (as wise programmers aware of our limitations) our utmost to shorten the conceptual gap between the static program and the dynamic process, to make the correspondence between the program (spread out in text space) and the process (spread out in time) as trivial as possible.
-""
+____
 
 It is very hard to understand what is happening in the process and to what states it could go by analysis of the code.It is much simpler when control flow is evident from the code structure.AsyncFlows library provide such flow.
 
 I would say that direct event sending to some queue or actor is similar to "go to" operator in programming languages.At least it has the same properties.
 
 [quote,Edsger W. Dijkstra,Go To Statement Considered Harmful,1968]
-"" The unbridled use of the go to statement has an immediate consequence that it becomes terribly hard to find a meaningful set of coordinates in which to describe the process progress.Usually, people take into account as well the values of some well chosen variables, but this is out of the question because it is relative to the progress that the meaning of these values is to be understood!With the go to statement one can, of course, still describe the progress uniquely by a counter counting the number of actions performed since program start (viz. a kind of normalized clock).The difficulty is that such a coordinate, although unique, is utterly unhelpful.In such a coordinate system it becomes an extremely complicated affair to define all those points of progress where, say, n equals the number of persons in the room minus one!
-""
+____
+The unbridled use of the go to statement has an immediate consequence that it becomes terribly hard to find a meaningful set of coordinates in which to describe the process progress.Usually, people take into account as well the values of some well chosen variables, but this is out of the question because it is relative to the progress that the meaning of these values is to be understood!With the go to statement one can, of course, still describe the progress uniquely by a counter counting the number of actions performed since program start (viz. a kind of normalized clock).
+The difficulty is that such a coordinate, although unique, is utterly unhelpful.In such a coordinate system it becomes an extremely complicated affair to define all those points of progress where, say, n equals the number of persons in the room minus one!
+____
 
 If we have event handlers, that are to keep own state, we also do no have a context, that helps us to understand context.We need to consider all events to be possible at every moment of time.The pain is real.
 For example of pain of Actor programming paradigm cased by event sending in Erlang context, one could watch the presentation https://www.infoq.com/presentations/Death-by-Accidental-Complexity[Death
-by Accidental Complexity].While presentation is using Erlang sample, the problems described are common for many other technologies, particularly Actor-based.
+by Accidental Complexity].
+While presentation is using Erlang sample, the problems described are common for many other technologies, particularly Actor-based.
 
 [quote,Ulf Wiger,Death by Accidental Complexity (slide Apparent Problems at 26:49)]
-"" * The whole matrix needs to be revisited if messages/features are added or removed * What we do in each cell is by no means obvious - depends on history * What to do when unexpected message arrives in a transition state is practically never specified (we must invent some reasonable response.) * Abstraction is broken, encapsulation is broken * Code reuse becomes practically impossible ""
+____
+* The whole matrix needs to be revisited if messages/features are added or removed
+* What we do in each cell is by no means obvious - depends on history
+* What to do when unexpected message arrives in a transition state is practically never specified (we must invent some reasonable response.)
+* Abstraction is broken, encapsulation is broken
+* Code reuse becomes practically impossible
+____
 
 The core of the problem is the same as what was described by Edsger W. Dijkstra for "go to": the code structure does not mach control flow structure, so we could not reason about application state by reading code.
 The solution to the problem is also the same: structured asynchronous programming.
@@ -1680,16 +1692,6 @@ TBD
 
 TBD
 
-=== Java EE Security Manager
-
-The framework uses an own thread pool in some cases, and it could be incompatible with Java EE when a security manager is enabled.
-Turn off security manager or add appropriate permissions for your application.
-Also, the contextual security checks are not so valid in the asynchronous context, and they could be break important assumptions about security if Java EE components are called.
-
-The contextual security information like active user should be passed as parameters, and it needs to be reestablished before invocation of Java EE functionality that requires it (for example Hibernate audit support).
-Some technologies have support for re-establishing context (like
-`AsyncContext.run(Runnable)` for servlets).
-
 == Comparison with other frameworks
 
 === Actors (Akka)
@@ -1722,6 +1724,7 @@ The difference is small, but it greatly affects usability as AsyncFlows does not
 
 There was an experimental version of the framework that used CompletableFuture as foundation instead of promise.
 However, this version proved to be less usable, as it is more complex to listen for events, for example it is not possible just to listen to CompletableFuture w/o creating another completable future.
+
 Also, the defaults for execution context are different.
 The framework defaults to the current Vat.
 The CompletableFuture defaults to ForkJoin pool.
@@ -1732,9 +1735,8 @@ Practically all invocations on CompletableFuture required explicit specification
 AsyncFlows also has a lot of utility methods, that do not make sense as CompletableFuture API.
 For example, loops, request queues, cancellation.
 
-Also, CompletableFuture does not have component model.
-It is just a single class w/o larger contexts.
-When and how asynchronous method is executed is left up to component designer.
+Also, CompletableFuture does not have an associated component model.
+It was designed as an isolated class that would be useful in many contexts, rather than as a core part of something bigger.
 
 === Netty
 
@@ -1857,7 +1859,7 @@ Note, Kotlin currently implement lambdas using inner classes, so more classes ar
 
 ==== Kotlin Coroutines
 
-CAUTION: Obsolete, it needs to be revised with flows and coroutines in 1.4.x.
+CAUTION: Obsolete, it needs to be revised with flows and coroutines in 1.4.x+.
 
 The https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md[Kotlin Corountines]
 is an experimental feature similar to C# async support, and there are some similar problems and advantages.
@@ -1892,7 +1894,7 @@ Practically these are orthogonal aspects, and they may be decoupled (and they ar
 ** Resuming/Suspending: Promise
 ** Contextual variables: Components and Asynchronous operations with lexical scope
 
-5. Context combinators could provide more interesting methods of integration with legacy frameworks like Java EE. Some of these ideas could be also implemented in AsyncFlows with minor refactoring the current Vat API.
+5. Context combinators could provide more interesting methods of integration with legacy frameworks like Java EE.Some of these ideas could be also implemented in AsyncFlows with minor refactoring the current Vat API.
 
 Also, coroutines are bound to Kotlin with compiler support.
 So it is hard to write library code that is intended to be used by other programming languages.
@@ -1903,16 +1905,13 @@ Some library extension might be done in the future to integrate with Kotlin coro
 === Scala
 
 The Scala is not directly supported as it wraps Java types and this causes multiple problems in different places, if AsyncFlows used directly.
-So for the Scala adapters needed and support for scala collections needs to be implemented.
+So for the Scala, adapters are needed, and support for Scala collections needs to be implemented.
 Some code could be executed directly, but it is less usable than in other languages.
 
-Generally, the framework ideas are well compatible with Scala, and few first research versions of
-the framework were implemented in Scala.This Java version is based on ideas from Scala version.
+Generally, the framework ideas are well compatible with Scala, and few first research versions of the framework were implemented in Scala.This Java version is based on ideas from Scala version.
 And Java 8 finally allows more compact syntax to be used.
 
-The future versions of the framework might provide Scala support again after the framework
-stabilization.However, comparing to Kotlin and Groovy, there is not so big productivity
-increase and there even some additional complications cased by features of Scala language.
+*The future versions of the framework might provide Scala support again after the framework stabilization.However, comparing to Kotlin and Groovy, there is not so big productivity increase and there even some additional complications cased by features of Scala language.
 So this feature has low priority.There is previous iteration of scala adapter at
 https://github.com/const/asyncflows/tree/63586493fb9d5a63c0c335df63fa396d894b0a5b/asyncobjects-scala[this link].
 
@@ -1944,4 +1943,4 @@ In the old sample code, control flow looked like the following:
     assertEquals(List(1, 2, 3, 4), list)
 ----
 
-It looks the same as Groovy version (but with better typing), and it a bit cleaner than Kotlin version.
+It looks the same as Groovy version (but with better typing), and it was a bit cleaner than Kotlin version.

@@ -24,17 +24,6 @@
 package org.asyncflows.core.streams;
 
 
-import org.asyncflows.core.CoreFlows;
-import org.asyncflows.core.Outcome;
-import org.asyncflows.core.Promise;
-import org.asyncflows.core.data.Maybe;
-import org.asyncflows.core.function.AFunction;
-import org.asyncflows.core.util.CoreFlowsResource;
-import org.asyncflows.core.util.ProducerUtil;
-import org.asyncflows.core.util.RequestQueue;
-
-import java.util.ArrayDeque;
-
 import static org.asyncflows.core.CoreFlows.aBoolean;
 import static org.asyncflows.core.CoreFlows.aFailure;
 import static org.asyncflows.core.CoreFlows.aFalse;
@@ -45,6 +34,17 @@ import static org.asyncflows.core.CoreFlows.aValue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 import static org.asyncflows.core.util.CoreFlowsSeq.aSeqWhile;
+
+import java.util.ArrayDeque;
+
+import org.asyncflows.core.CoreFlows;
+import org.asyncflows.core.Outcome;
+import org.asyncflows.core.Promise;
+import org.asyncflows.core.data.Maybe;
+import org.asyncflows.core.function.AFunction;
+import org.asyncflows.core.util.CoreFlowsResource;
+import org.asyncflows.core.util.ProducerUtil;
+import org.asyncflows.core.util.RequestQueue;
 
 /**
  * The stream builder provides fluent interfaces for building streams.
@@ -117,7 +117,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
                                 eof = true;
                                 return aMaybeValue(Maybe.empty());
                             }
-                            mapped = value.value();
+                            mapped = value.of();
                             return CoreFlows.aMaybeEmpty();
                         });
                     }
@@ -191,7 +191,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
             if (value.isEmpty()) {
                 return aFalse();
             }
-            return loopBody.apply(value.value());
+            return loopBody.apply(value.of());
         }))).finallyDo(CoreFlowsResource.closeResourceAction(current));
     }
 
@@ -205,7 +205,7 @@ public class PullStreamBuilder<T> extends StreamBuilder<T> {
                 return requests.runSeqUntilValue(() -> wrapped.next().flatMap(value -> {
                     if (value.isEmpty()) {
                         return aMaybeValue(Maybe.empty());
-                    } else if (value.value().isEmpty()) {
+                    } else if (value.of().isEmpty()) {
                         return aMaybeEmpty();
                     } else {
                         return aValue(value);

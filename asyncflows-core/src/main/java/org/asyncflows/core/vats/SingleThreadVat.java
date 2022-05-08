@@ -60,6 +60,8 @@ public final class SingleThreadVat extends SingleThreadVatWithIdle {
 
     @Override
     protected void wakeUp() {
-        semaphore.release();
+        if (semaphore.availablePermits() < 1) {
+            semaphore.release();
+        }
     }
 }

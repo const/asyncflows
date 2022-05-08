@@ -24,4 +24,7 @@
 /**
  * The core stream interfaces. The streams API are iteration API in the AsyncObjects.
  */
+@Experimental
 package org.asyncflows.core.streams;
+
+import org.asyncflows.core.annotations.Experimental;

@@ -23,6 +23,31 @@
 
 package org.asyncflows.protocol.http.client.core;
 
+import static org.asyncflows.core.CoreFlows.aFailure;
+import static org.asyncflows.core.CoreFlows.aFalse;
+import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
+import static org.asyncflows.core.CoreFlows.aMaybeValue;
+import static org.asyncflows.core.CoreFlows.aTrue;
+import static org.asyncflows.core.CoreFlows.aValue;
+import static org.asyncflows.core.CoreFlows.aVoid;
+import static org.asyncflows.core.Outcome.notifyFailure;
+import static org.asyncflows.core.Outcome.notifySuccess;
+import static org.asyncflows.core.function.AsyncFunctionUtil.maybeMapper;
+import static org.asyncflows.core.streams.AsyncStreams.aForIterable;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
+import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
+
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.asyncflows.core.Promise;
 import org.asyncflows.core.data.Cell;
 import org.asyncflows.core.function.ACloseable;
@@ -50,31 +75,6 @@ import org.asyncflows.protocol.http.common.headers.HttpHeaders;
 import org.asyncflows.protocol.http.common.headers.HttpHeadersUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import static org.asyncflows.core.CoreFlows.aFailure;
-import static org.asyncflows.core.CoreFlows.aFalse;
-import static org.asyncflows.core.CoreFlows.aMaybeEmpty;
-import static org.asyncflows.core.CoreFlows.aMaybeValue;
-import static org.asyncflows.core.CoreFlows.aTrue;
-import static org.asyncflows.core.CoreFlows.aValue;
-import static org.asyncflows.core.CoreFlows.aVoid;
-import static org.asyncflows.core.Outcome.notifyFailure;
-import static org.asyncflows.core.Outcome.notifySuccess;
-import static org.asyncflows.core.function.AsyncFunctionUtil.maybeMapper;
-import static org.asyncflows.core.streams.AsyncStreams.aForIterable;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeq;
-import static org.asyncflows.core.util.CoreFlowsSeq.aSeqUntilValue;
 
 /**
  * The simple HTTP client (no proxies and other things). This client is used mostly for testing.
@@ -577,7 +577,7 @@ public class SimpleHttpClient extends CloseableBase implements AHttpClient, Expo
                 if (value.isEmpty()) {
                     return aFalse();
                 } else {
-                    nextRequest = value.value();
+                    nextRequest = value.of();
                     idleSince = System.currentTimeMillis();
                     return aTrue();
                 }

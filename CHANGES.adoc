@@ -12,7 +12,7 @@
 * Added the asynchronous proxy generator annotation processor
 * Added PromiseTraceProvider that allows enriching exceptions with asynchronous stack traces
 * Some small renames, improvements, and bug fixes
-* Promise and BatchedVat now use wait-free structures based on AtomicReference
+* Promise and BatchedVat now use lock-free structures based on AtomicReference
 * FailFast is renamed to Cancellation
 * Changed to Sonar for verification
 * Added an experimental version of the context propagation API modelled after Project Reactor and Kotlin contexts
